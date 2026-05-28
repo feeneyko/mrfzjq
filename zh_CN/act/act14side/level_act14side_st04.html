@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>封盘 · 风雪过境</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">风雪过境</a> / <span>BI-ST-4</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act14side/level_act14side_st04.html" class="">English</a></div>
+  </div>
+  <h1>封盘<span class="section-tag">BI-ST-4 · 幕间</span></h1><div class="meta">风雪过境</div><div class="story-info">雪山事变结束，各方收场，事情似乎在往好的方向展开。但也有可能，一切只是刚刚开始。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g6_square.png" alt="24_g6_square"><div class="cap">24_g6_square</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%231%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">数千年前，耶拉冈德降生在这片土地，将这里命名为谢拉格，并始终守护着这片土地。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">千百年来，祂的教诲无时无刻不在影响着谢拉格的人民。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">祂将血肉赐予佩尔罗契家，将皮毛赐予布朗陶家，将骨骼赐予希瓦艾什家。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我们有一个共同的名字——谢拉格人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对祂的信仰，是谢拉格的根基，也是今时今日，我们能够站在这里，共同自称谢拉格人的理由。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们心中共同怀揣着对祂的敬仰，携手在这片土地上生存至今。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，我们如今已经知道，这片大地上并非只有谢拉格一个国家。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在这片雪山之外，还有广阔的天地，那里有着和我们长相不同，语言不同，且并不信仰耶拉冈德的人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在过去，我们在如何与这样的人接触这一点上，产生了巨大的分歧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但这分歧并不是危机，而是祂对我们的考验，同时也是祂对我们的教导。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">祂作为谢拉格全体人民信仰的对象，是我们的母亲，是我们的守护神。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为母亲，绝不会希望看到自己的孩子停滞不前。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不要因为贪恋旧的而不去尝试新的，你是祂的子民，你当充满勇气。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不要因为怀恋家乡而不去探寻新的土地，无论你身在何处，祂都与你同在。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不要因为已经拥有财富而不去冒险，你本可以拥有更庞大的财富。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为，祂是包容的，祂所守护的这片土地理当是包容的，祂的子民，更应是包容的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">以祂赐予我的权柄，我在此郑重宣布：</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">蔓珠院将接受外国人士对耶拉冈德的信仰。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并且，蔓珠院鼓励民众以自己的方式追求更美好的生活。</div></div></div>
+<div class="narr">为纪念喀兰圣女、神启者、应被称颂者恩雅·希瓦艾什面向全谢拉格人民的极具感染力的演讲。</div>
+<div class="narr">这一日，被定为谢拉格的国教日。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g10_manorhouse.png" alt="24_g10_manorhouse"><div class="cap">24_g10_manorhouse</div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>（移动棋子）</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">......谷地一事，原本只是一手闲棋。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我需要一个人引开佩尔罗契家的注意力，让我得以暗中调遣物资和人员。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个人若不是你，也会是别人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">原本，事后我打算就此事向你致歉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过现在看来，我或许更该为轻视了你能产生的影响而道歉。</div></div></div>
+<div class="narr">恩希欧迪斯自顾自地说着，移动了一枚棋子。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>（移动棋子）</li></ul></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">诺希斯是我的挚友，同时也是合作者。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他的想法和我并非完全一致，他有他的想法和做法。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我了解他。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只要目的一致，他就不会背叛我，甚至不必在计划中和他交换情报。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以放心地任由他动用一切资源，选择他认为高效的方式，绊住布朗陶家的力量。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">破坏铁轨是一着妙手。诺希斯既取得了菈塔托丝的信任，也封锁了他国的间谍与信使进出的道路。</div></div></div>
+<div class="narr">恩希欧迪斯看了你一眼，移动了一枚棋子。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>（移动棋子）</li></ul></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">和棋。</div></div></div>
+<div class="narr">仿佛是预示了结局一般，恩希欧迪斯将手脱离棋子，摊开双手。</div>
+<div class="narr">示意本局已经结束。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">看来，最近我的时运确实不太好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">连下棋都开始赢不了了。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你并没有输。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">有的时候，和意味着大胜，而有的时候，和则意味着大败。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>对你来说，这样的结果是大胜，还是大败？</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">......对我来说，向来是若未取得大胜，就等同于大败。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过这一次，确实是例外。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的胜利毋庸置疑。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但没想到的是，你为我的胜局开拓了另一种可能性。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>另一种可能性。</li><li>我没有能力说服圣女下山。</li><li>我只是想避免伤亡。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">是的，另一种。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我本以为这样的结果不可能实现，但你竟在一无所知的不利境况下看破并影响了局面。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">即使这没有改变我胜利的事实。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">也许是太久没有棋逢对手，旗鼓相当的对局确实令我心潮澎湃。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">圣女——不需要别人为她做出决定。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，你在合适的时候推了她一把，为她提示了一个方向。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并且，你还为她搭建好了舞台。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你想告诉我，这一切都是你的无心之举？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而你确实达成了这个目的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">主动接触阿克托斯和菈塔托丝，为他们进行战前预估，并提供了更优的避免开战的方案。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">确实很有你的风格，博士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">即便是我，也没有预料到，这一次的事情，能以这样和平的方式收场。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">想必你已经知道，我为什么如此急于让谢拉格成为一个整体。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>外忧。</li></ul></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">不错。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我并没有那么痛恨蔓珠院，或是急于将信仰从这片土地上根除。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我也没有那么不满阿克托斯的排外，菈塔托丝的踌躇。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们不知道外面正在发生什么，也就不可能与我有相同的看法。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果时间充足，我不介意花上五年十年甚至更长的时间，去改变他们的想法，去用更温和的方法改变谢拉格。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">谢拉格没有那么多时间。即便或许称不上富饶，也一定会有邻国盯上这片不受天灾侵扰的土地。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我必须加快步伐，而如果有谁不能接受，那我就只能剥夺他们反对的权力。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">仅此而已。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你不必说服我。</li><li>这些与我无关。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%235%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">只是与我认为值得分享的人分享一些我的想法罢了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你以一个旁观者的身份洞察了这一切，所以我才能放心与你谈论这些。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%235%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">据我所知，阿克托斯会宣布对给大长老下毒负责，并辞去家主之位。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他之所以这么大方，是因为他决定主动向圣女宣誓，佩尔罗契家的土地将由圣女参与管理。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">恐怕是想要巩固圣女的地位吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">布朗陶家与希瓦艾什家的从属协约即将签订。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以对你多透露一些，我并没有吞并布朗陶家的打算，如果菈塔托丝愿意，她的权力不会比过去少多少。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不再有渴望停滞的人、坚守不前的人与权衡利弊的人阻挡喀兰贸易和谢拉格的发展。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以接受这个结果，博士。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你与圣女之间，并没有那么大的隔阂。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">......但我们终究选了两条路。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并且，这是我过去的选择带来的结果，我会为这个选择负责。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而她也必须背负起她的选择，让谢拉格人在她的指导下而非我的策动下，走出这片凝滞。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你向我、向谢拉格证明了你自己，也证明了......恩雅。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g10_manorhouse.png" alt="24_g10_manorhouse"><div class="cap">24_g10_manorhouse</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%231%241.png" alt=""><div class="bubble"><div class="who">切斯特</div><div class="text">总裁，会议的时间快要到了。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_i13.png" alt="24_i13"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">我知道了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">无论如何，谢拉格将会迎来巨大的改变，博士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我接下来可能很难抽空与你见面。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我可以向你保证，罗德岛可以在谢拉格的任何角落畅行无阻——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">另外，作为对将你与其他干员卷进这次事件的补偿，同时也是我对你诚意的证明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">罗德岛这个名字，以及博士你们的名字，不会出现在未来任何与本次事件有关的官方记录中。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并且，一份新的，能够让你我从此互称盟友的合约也已经在前往罗德岛的路上。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">等到此间事了，我会再次拜访罗德岛。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">届时，我希望能与你再下一局棋，博士。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g4_boudoir.png" alt="24_g4_boudoir"><div class="cap">24_g4_boudoir</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%231%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">雅儿。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%231%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">嗯？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2312%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">你啊，好大的胆子，竟然把我蒙在鼓里这么久！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%237%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">圣女大人恕罪啊，雅儿不知做错了什么。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">哦？那就当是这么回事吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，雅儿，我只有一个问题。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%231%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">圣女大人请说。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%237%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">......我想知道，让我成为谢拉格的领导者，是祂的意思吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这一切都是祂的安排，我在这一连串的事件中产生的困惑，迷茫，和最后做出选择时的坚定——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">都在祂的预料之中吗？</div></div></div>
+<div class="narr">雅儿明白了恩雅为什么忽然在此时此刻问出这个问题。</div>
+<div class="narr">她在害怕。</div>
+<div class="narr">她并不是在害怕自己的决定做错了，她所害怕的是，眼下的这一切，都不过只是神明的一场游戏。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%235%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">......唯有这一点，我可以向您保证。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">祂......从未想过要干涉您的意志，您的一切想法都出自您自身。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">说不定啊，人们对祂神迹的想象大多也都只出于自己的愿望与杜撰。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">仅仅是在风雪中为人们开辟一片不受侵袭的土地，祂或许就已竭尽全力。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">祂只是一直在看着这片土地，寻找着能让生活在这片土地上的人民幸福的方法。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而您给出的答案，得到了祂的承认，仅此而已。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%231%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">......既然如此，可以帮我向祂请求一件事吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%231%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">您说说看。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2310%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">请祂不要把你带走。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%238%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">......欸？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2310%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">故事里通常不都是这样的吗。虽然我得到了答案，但代价却是失去了你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我不会随意向祂请求什么事情的，所以可以让你继续做我的侍女吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%231%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">......噗。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哈哈哈，哈哈哈哈。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%237%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%231%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">抱歉抱歉，我没想到您会提出这样可爱的要求......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过......也是，圣女大人，既然如此，我们来约法三章吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果有一天，您不再坚持现在的理想，那么，我会离开您的身边。但是，在那之前，我将永远担任您的侍女长。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">恩雅</div><div class="text">一言为定？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_250_1%237%241.png" alt=""><div class="bubble"><div class="who">雅儿</div><div class="text">一言为定。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g8_nobleroom.png" alt="24_g8_nobleroom"><div class="cap">24_g8_nobleroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%236%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g10_manorhouse.png" alt="24_g10_manorhouse"><div class="cap">24_g10_manorhouse</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%234%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">让我作为你的代表去罗德岛？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">不错。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">罗德岛是个能够让你潜心做研究的地方，想必你会喜欢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">你将他们请来，也有这个打算？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">只是一种可能性。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">毕竟，无论我们的计划成功还是失败，你在谢拉格的处境都会变糟。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%237%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">只是你没料到，原本只是想拉拢的对象，最后险些破坏了我们的计划。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">这无法改变你我的胜利。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当然，如果你想留在谢拉格，我也会为你安排。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%232%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">算了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我不在乎骂名，但如果每天都有人来我的研究所用石头砸窗户，终究令人烦躁。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而且，我也想见一见那位博士。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">你也对他产生兴趣了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%232%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">怎么可能，他已经在这片土地留下了自己的痕迹，我只是要看一看，他会不会成为我们的敌人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%2312%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">如果他不会呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%232%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">那么，我也想知道——一家似乎确实做到了抑制矿石病的公司，究竟拥有怎么样的技术实力。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_172_svrash_1%2312%241.png" alt=""><div class="bubble"><div class="who">恩希欧迪斯</div><div class="text">......诺希斯，你现在这副见猎心喜的样子，比你口中的我好不到哪里去。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g8_nobleroom.png" alt="24_g8_nobleroom"><div class="cap">24_g8_nobleroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%238%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%231%241.png" alt=""><div class="bubble"><div class="who">切斯特</div><div class="text">诺希斯，行李已经都打点好了，该出发了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">我知道了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%231%241.png" alt=""><div class="bubble"><div class="who">切斯特</div><div class="text">现在就出发吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%236%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">等等。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g5_guestroom.png" alt="24_g5_guestroom"><div class="cap">24_g5_guestroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%233%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">莫希！</div></div></div>
+<div class="narr">没有人回应诺希斯的话语。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%236%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">......莫希？</div></div></div>
+<div class="narr">朴素的房间中，一切都井然有序，唯独那个说话时总是会带着一丝阴沉的女孩不知所踪。</div>
+<div class="narr">他随即注意到，房间中央的桌子上，摆着一柄匕首。</div>
+<div class="narr">那是他过去送给莫希的匕首。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%235%241.png" alt=""><div class="bubble"><div class="who">诺希斯</div><div class="text">......</div></div></div>
+<div class="narr">他沉默了一会儿，拿起匕首，走出房门。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g7_thoroughfare.png" alt="24_g7_thoroughfare"><div class="cap">24_g7_thoroughfare</div></div>
+<div class="narr">门外阳光正好。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g9_manoravenue.png" alt="24_g9_manoravenue"><div class="cap">24_g9_manoravenue</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%2310%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">咦，博士，你看，这里居然已经开始卖和圣女大人有关的东西了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">哎呀，这不是恩希亚小姐吗，欢迎您再次光临小店。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">老板，你可真是与时俱进呀。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我回谢拉格的时候，你这还在卖蔓珠院的东西，现在就都换成和圣女大人有关的东西了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">哈哈哈，不止我这里，现在满大街都是。而且还鼓励我们去做生意。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">您还别说，之前卖的那些东西，那些来历说出来我自己都不信的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是制作和圣女大人有关的商品，那我真是真心实意的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">一开始听说还政的时候，我们这些做生意的还真担心会变成什么样呢。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没想到圣女大人这么开明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在，就算是最顽固的谢拉格人，都不会再对和外国人接触说什么了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而且听说，恩希欧迪斯老爷正打算和圣女大人商谈，接下来，布朗陶家和佩尔罗契家的领地也会全面对外开放。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">要我说啊，这日子真是越来越有盼头了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%236%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">嘿嘿。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">听你这么说，我也跟着高兴起来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">那您可真是该高兴。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">您瞧瞧，这街上的人，哪一个不是笑容满面的？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">大典上虽然发生了那样的事，但在圣女大人的调停下，三家的人也心服口服。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这样的结果绝大多数人都能接受。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而这一切，都得感谢圣女大人和恩希欧迪斯老爷才行啊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对了，瞧您这架势，是要离开谢拉格了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">是啊，假期要结束了，我也该回去继续治病和工作了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">那您今天想要什么，我这儿都免费！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就当是为您送行了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%233%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">这......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">您就别客气啦，这是您应得的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%235%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">......那我就不客气啦。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我要这幅姐姐的画像，还有这幅刺绣，还有这个雕刻。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">咦，这幅画是——</div></div></div>
+<div class="narr">一幅挂在墙边的画引起了恩希亚的注意。</div>
+<div class="narr">画中，姐姐恩雅与哥哥恩希欧迪斯站在一张谈判桌旁握手，似乎达成了某种协议。</div>
+<div class="narr">她一瞬间，停住了脚步。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">啊，这幅画是描绘恩希欧迪斯老爷和圣女大人在谢拉格的未来上达成共识的景象。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然我不知道是不是真的有这一幕存在，但是如今实质上治理谢拉格的无疑是恩希欧迪斯老爷与圣女大人......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而大家都知道，二人是兄妹。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那么，二人之间的关系一定是非常和谐的吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">您说说，是不是这么一回事？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%237%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">是呢......其他的话，我再看看......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你有什么想要的吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我也要一些土特产吧。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%236%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">好嘞！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_278_1%231%241.png" alt=""><div class="bubble"><div class="who">谢拉格商人</div><div class="text">呃......恩希亚小姐，虽说是免费，也请您手下留情啊。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g11_snowylane.png" alt="24_g11_snowylane"><div class="cap">24_g11_snowylane</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%237%241.png" alt=""><div class="bubble"><div class="who">魏斯</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_199_yak_1%2310%241.png" alt=""><div class="bubble"><div class="who">角峰</div><div class="text">......博士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们两个虽然有身为恩希欧迪斯老爷家臣的立场，但也确实是罗德岛的一员。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%236%241.png" alt=""><div class="bubble"><div class="who">魏斯</div><div class="text">在许多事情上......很抱歉。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_199_yak_1%235%241.png" alt=""><div class="bubble"><div class="who">角峰</div><div class="text">我和讯使不会厚着脸皮奢求原谅，只希望能允许我们未来还能去罗德岛探望恩希亚小姐。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_252.png" alt=""><div class="bubble"><div class="who">Sharp</div><div class="text">......博士，怎么办？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你们也不好做，可以理解。</li><li>......</li><li>我凑巧去佩尔罗契家做客，和你们有什么关系？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_252.png" alt=""><div class="bubble"><div class="who">Sharp</div><div class="text">这件事确实情有可原，我会在报告里阐明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">至于上面怎么决定，我就不知道了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，我知道你没有责怪他们。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但假装没听到并不高明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并且凑巧解决了一些和恩希欧迪斯有关的事件。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果你想这么给事件定性，那么，交给凯尔希医生的报告就要多花点功夫了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我是不会帮你的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%236%241.png" alt=""><div class="bubble"><div class="who">魏斯</div><div class="text">......谢谢你们，博士，Sharp队长。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_199_yak_1%238%241.png" alt=""><div class="bubble"><div class="who">角峰</div><div class="text">谢谢你们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_422_aurora_1%231%241.png" alt=""><div class="bubble"><div class="who">极光</div><div class="text">博士，我已经和家人道完别，可以准备出发了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_130_doberm_ex.png" alt=""><div class="bubble"><div class="who">杜宾</div><div class="text">行李都准备好了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">杜宾教官！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_130_doberm_ex.png" alt=""><div class="bubble"><div class="who">杜宾</div><div class="text">圣女成为了谢拉格实质上的领袖，而恩希欧迪斯则获得了调用谢拉格大部分资源的权力......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你应当听从我的忠告。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">幸好，我没有在其他人的口中听到你的名字，看来，至少你们没有被卷入其中。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%235%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">呃......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%232%241.png" alt=""><div class="bubble"><div class="who">魏斯</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_199_yak_1%232%241.png" alt=""><div class="bubble"><div class="who">角峰</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_422_aurora_1%234%241.png" alt=""><div class="bubble"><div class="who">极光</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_252.png" alt=""><div class="bubble"><div class="who">Sharp</div><div class="text">......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_130_doberm_ex.png" alt=""><div class="bubble"><div class="who">杜宾</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">看来，你们不仅被卷入其中了，恐怕还做了不少事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我很期待看到你们的报告。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">好了，有什么话路上再说，都上车吧，该回罗德岛了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%237%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你还记得刚才我们在那家店里看到的那幅画吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>握手的那一幅？</li><li>不记得了。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%238%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">嗯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，别装了，你明明记得。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我当时，真的很想把那幅画买下来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但想了想还是算了，因为我知道，那幅画上的内容，并不是真的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">老哥只是在最后选择了让姐姐一步，仅此而已。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>抱歉。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%234%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">这不怪博士你呀。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没有博士你的话，老哥和姐姐的关系只会更加险恶吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过，这让我彻底搞清楚了一点。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那就是，无论是老哥的选择，还是姐姐的选择，都是他们坚持自己信念的结果。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士你只是在其中起了一些推动的作用。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就好像，谁也别想说服我放弃登山一样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">信念是没有办法轻易被改变的。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>否则，那也就不会被称作信念了。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_173_slchan_1%231%241.png" alt=""><div class="bubble"><div class="who">恩希亚</div><div class="text">是啊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，我的另一个信念也是不会轻易改变的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">总有一天，我要让老哥和姐姐之间的关系变回过去的样子。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>（恩雅与恩希欧迪斯。）</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>（谢拉格需要面对的困难，也许才刚刚开始。）</li></ul></div></div><div class="nav"><a href="level_act14side_08_end.html">← 上一段</a><span>下一段 →</span></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

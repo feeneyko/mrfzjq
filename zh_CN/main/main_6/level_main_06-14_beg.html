@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黑兔子,白兔子 · 局部坏死</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">局部坏死</a> / <span>6-16</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_6/level_main_06-14_beg.html" class="">English</a></div>
+  </div>
+  <h1>黑兔子,白兔子<span class="section-tag">6-16 · 行动前</span></h1><div class="meta">局部坏死</div><div class="story-info">无论怎样动人的话语在钢铁般的意志面前也显得那么苍白无力，交谈的终点，只有战斗。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_undergroud_n.png" alt="bg_undergroud_n"><div class="cap">bg_undergroud_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">不对......她的样子......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她身边漂浮在空中的源石结晶......怎么可能？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">是斥离性......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">难道说源石结晶从她的皮肤里渗透了出来，和空气中的水分子一起形成了黑色的冰晶？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">渗透？......渗透？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......**......**！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">煌！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">她不疼吗！她难道不疼吗！！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你难道感觉不到疼吗，白兔子！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">够了.......够了！为什么要这么做，为什么？住手！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......唔......唔！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">阿米娅？你的表情很奇怪......等等！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿米娅，快住手，别再摸索她的意识了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我没有......没有施术！但她的情感......她的情感在倒灌进我的意识......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我等到你们了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们想要杀死整合运动的指挥官吧？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在她就站在你的面前。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你的目标就在这里。发热，发烫。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">发热......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">是说......她的情感......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">小队成员，准备！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">霜星，我们没必要在这浪费气力！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">龙门已经不再关心彻底被逐出这座城市的感染者们会去向哪里。他们不会来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">即使这座城市里还有着成千上万的感染者......但他们的命运已经被龙门决定好了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">已经没人会干扰这场战斗了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">我们这么多人......围攻你一个？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">不然呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">我是觉得，我们人算是带少了。没人会傻到正面对上一场雪崩。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哎，不，正面对上雪崩，我应该能赢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但你是那种......类似整片大地的寒冷聚到了一具身躯上的那种东西。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我以为你的雪怪小队能够尽可能地延展你的能力，让你的法术更加强大有效。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我错了，我弄错了......不是你因为他们变强了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是他们因为你的法术而变强了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">只要我的兄弟姐妹还在我身边，我就不会出全力。因为那会伤害他们。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在不一样。他们都死了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的身边，已经没剩下任何活物了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_undergroud_f.png" alt="bg_undergroud_f"><div class="cap">bg_undergroud_f</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">唔！！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">温度急剧下降，已经达到......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......不好！这个低温......我的仪器在失衡！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">我已经没有理由再压抑我体内的这抔冬天了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">搞什么，整合运动是批发人形天灾的吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">源石技艺所能创造的历史最低温是多少？怕是被她摁在地上一层层突破了吧......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">霜星，我再问一遍，你是想玩真的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">还有什么想说的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">有。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——现在，停下。白毛兔子，你会被你自己弄死。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">哼。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你真的会死！就算你不把自己逼到这个地步，你也已经够强了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">别再强撑着干架了！要打以后随便打！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">无论是杀掉别人还是被杀......这种事，我根本不希望在感染者之间发生！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在你我哪有什么理由去打得不死不休！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">不。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">煌！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">爆雾！卷起来！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嘁！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......指甲盖都快冻裂了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你真想杀掉我们？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">理由，我有。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">作为指挥官，我已经输了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——但作为战士，我还从没输过。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......Amiya-1，Blaze-4，全小队，听从命令。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">退出这个区域。现在。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嘉维尔，你也出去！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为你现在出去，之后才能进来救下我们！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">我们小队里最强的狙击手是谁？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">......我。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你可能会死。真要这么推荐自己？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">没有错。现在最强的，是我。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">好，灰喉，你留下。其他人，立刻出去。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">快！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>为什么在决战时撤出小队？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">对付这个霜星，一两支小队和两三个人比起来并没有优势，他们根本没有有效的防护手段，被杀也就是一瞬间的事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就算是巡林者老爷子那样的好手来也没什么办法，这不是箭术的问题，是材料的问题。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">我的弩箭似乎已经没用了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">一会儿还是有用的。不过你要说有没有用......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是我的话，建议直接用舰炮对着她来几发，那最有用。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">或者变出十个以上的火力小队全力倾泻弹药和源石技艺，看她的极限在哪。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她终归会撑不住的。不过......现在先撑不住的，可能是我们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">止血剂带了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你该问我有没有带抗凝血剂，不会捣乱的那种。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">煌......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......你刚才问过，霜星为什么能忍受源石结晶从她皮肤里渗出的那种疼痛？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我知道原因。我感受到了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她能忍下来，是因为她内心的痛苦，要比这痛上几倍......好几倍。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在，博士，请你也出去。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>不。</li><li>不。</li><li>不。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士！</div></div></div>
+<div class="narr">......要不要看到最后......</div>
+<div class="narr">......成为一个值得信任的人......</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我要看到最后。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">......阿米娅。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我......Dr.Doctor是......认真的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">罗德岛的博士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你的选择不会给他们带来好处。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......为什么这么做？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我说过，你可以来罗德岛。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>以及，我要和干员们并肩战斗。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我明白了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">煌，灰喉，Dr.Doctor。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这会是场艰苦的战斗。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">哼，哼哼。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">看看，白毛兔子，这就是我们的Dr.Doctor和阿米娅！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">哦......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......别这样......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">算了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们准备好了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">现在就开始！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">推力，爆发！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">不错的突袭。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">——冰刀？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嘁！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">小猫咪，你是不是觉得我是个术师......所以弱不禁风？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你认真的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你锯条上缠绕的热流敌不过我的寒冷，你不可能切断我的霜冻。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">我没低估过你，可我没想到......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这一锯连城墙都能切开，你居然能挡住？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">在我眼里......你的动作和力度，与静止无异。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">接下来是咽喉。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">空气！压缩！爆破！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">咳，哈哈哈哈，咳......啐！好险，差点就被冰刀给捅穿了嗓子！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哈，没错，你和我一样是战士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">怎么办，阿米娅，我已经没辙了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">接下来要靠你了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">阿米娅......我的手指快扣不下扳机了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们必须速战速决。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（这次她所释放源石技艺的强度，比起在废城时强上百十倍......！）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">（她可还没见底！）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">（顾不得那么多了......这次不解放戒指的话，所有人都会被冻死！）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">霜星——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">想都别想。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">啊？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的手指？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呜......呃！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你和塔露拉的战斗，我全部看在眼里。你的法术因为戒指的强制解锁而增强。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">十枚戒指，全都......冻上了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">作为战士的你实在是太幼稚了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">不过是冻上几个戒指而已，你这家伙，嘴巴可真厉害啊？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（嗯？怎么......我都把气温加热到这种程度了，居然没有一点融化的迹象？）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">煌......收手吧，别浪费血。这是......这是非常强大，也十分精妙的源石技艺......！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">寒流裹挟着源石晶体，在我们进入这个区域的时候就潜伏在我们身边。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这是她暗中施加在我们身上，没被热气流隔绝掉的部分！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唔，呃......连我的法术也切不开！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">战斗在你们踏入这一层的时候就已经开始了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这十枚霜环会吸吮你的体温，压榨你的源石技艺，你施加在上面力量越大，冰晶就越坚固，越寒冷。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可悲。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">爆发？蓄能？储备？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......想着使些小手段就想战胜我......你们知不知道自己在面对什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">灰喉，穿刺矢！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">明白！六连预备！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">我知道的塔露拉，会在一切开始之前就设计好你的死期。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">压缩空气！射击！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">疾！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">而现在的罗德岛就像这些箭矢一样......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">什......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">怎......怎么？箭矢为什么会......停在空中？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">真可悲。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">（先用数股寒流搅住箭矢，在低温下直接摧毁？！）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（灰喉，你的箭矢是什么材质？）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">（......是罗德岛标准，碳纤维混合铝合金。）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">（糟了。唉，麻烦大了。）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">甚至，有些可耻。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">（虽然她自己可能不知道......但她的源石技艺，已经上升到现代理论最**晦涩的那个层面了。）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">只要轻轻一捏......你们就会落得粉碎。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">想一想。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我只是雪怪小队的队长。而整合运动由那个在切城堵截你们，杀死你们战友的名叫塔露拉的女人控制着。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你以为塔露拉是什么......？整合运动的领袖，感染者的救世主吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>她根本不配做什么救世主！</li><li>......</li><li>这片大地上没有这种东西。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">哼。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不管你脑海中的她是什么印象，如果她是什么“救世主”，我和老爷子根本不会带队加入“整合运动”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她首先是军事家，然后是战士，最后才是领袖。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但她已经背叛我们了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我所认定最坚定最执着的战士，居然只是种假扮出来的面貌......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而她最后剩下的敌手，竟然是你们这样毫无决心、从来不曾与死亡日夜相伴的人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">说话客气点，白兔子。出生入死不只是你一个人的权利。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你眼神里也有悔恨。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">轮不到你来提醒！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你没准备好接受他们的死。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">够了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">咳，哈哈，咳......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我难道就准备好了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">咳......咳！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">我想过那么多次，梦见过那么多次所有人的死，只是没想到.....</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你也是一样的，小猫咪。我看得出。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“我幻想的那么惨烈，却从没想过会有那么孤独的死。”</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你有兄弟，我也有。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">在切尔诺伯格与塔露拉战斗的罗德岛干员，各个都相当英勇。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">有一个被他们称作Ace的，是我平生少见的顽强战士，他会带着一种其他战士少有的情感去战斗。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......“忧愁”。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">我和你之间的关系可没好到我允许你随便谈论我战友的地步。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">只有不断反思自己战斗的战士，才会感到担忧。他是个好战士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你也是。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">嘁。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">他独自死去。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">失去他，遗憾吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">必须。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">没机会救下他，后悔吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">当然！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你难道不想问问谁？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">问问吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">问问那个你不知道该怎么说，也不知道该向谁抛出的问题。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">“为什么？”</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">（......好浓烈的情感......霜星......！）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">为什么？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“为什么我不在那里？为什么我不更强一些？为什么我没能阻止？”</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">呃......温度还在降低！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">往我身边站站！我已经被她的寒冷压到只能尽力提高身边的气温了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......为什么？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么我会在兄弟姐妹们最需要我的时候倒地？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们都是些傻子。都是些只知道互相帮助，只想活下去，只想有一处容身之地的傻子。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......为什么我连一群傻子的愿望都实现不了？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么乌萨斯对待我们的同胞是这样的残忍，对待普通的乌萨斯人是那么的冷酷。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么这一点点能够点燃大地的火苗，却要熄灭在这异国他乡？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么原本是为阻止更多罪恶而发起的战争里，我却只是带去了更多无谓的牺牲？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">咳，咳......呃，咳，咳......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">呃......呃......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">为什么我们赔上了所有性命，却，咳，只成就了一个谎言？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么......为什么这片大地不肯再多给我一点时间？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“感染者应该为自己的身份而骄傲，并用最简单的手段夺取大地的公正”......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我最开始只把它当作整合运动理念的一部分。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没错，它让足够多的感染者不再软弱，不再把自己当成是帝国的废料......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但现在我才发现，塔露拉曾经与我们畅谈过的信念，需要深植的思想，还应该不断巩固、不断更正的方向，全都没有了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只有煽动。只有放任。我们被安排进最艰苦的战事，无法插手队伍的建设，一切来的都太快......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果这一切都是塔露拉的安排，那从最开始，她就欺骗了所有人。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你可能确实被她蒙蔽了！</li><li>......</li><li>事情往往不像我们想的那样。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">如果她要带着感染者向那最黑暗的未来走去......去完成她最恶毒的计划......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那她的邪恶就必须被摧毁。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可是我的兄弟姐妹们，无数已死的普通人和感染者们......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">已经回不来了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......她凭什么变成这样？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">呃......呜......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">不该这样，从来就不该这样！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的同胞......我的兄弟姐妹！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿米娅。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">听见了吗，阿米娅？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">霜星小姐......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">寒流太庞大了......她甚至能把寒流凝聚成形状了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的热流要被冲散了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">寒气就能让你的体温冷却了吗？死亡就能让你胆怯了吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你不会，阿米娅，你也不能！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你不是能读心吗，小兔子？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那现在就读一读吧，读读我的愤怒，读读这被酸苦和沸腾在胸膛里闷烧十几年，却还没放弃跳动的心！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">读一读吧，读一读吧阿米娅！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这因为枉死的亲人，因为腐败的乌萨斯，因为感染者同胞因为乌萨斯的人们，依然不肯停下、不肯死去的心脏里，究竟有多少愤怒！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你恨过她吗，霜星小姐？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">......咳。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呵。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我从没恨过她。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哪怕她是造成今天一切后果的元凶，我也从来没恨过她。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">仇恨能带给你我什么呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我有的只是对这片丑恶大地无穷的愤怒。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你的心里难道没有这股愤怒？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你难道没有因矿石病而死的亲人？没有因这片大地的冷漠而死的朋友？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你没有失去过赖以生存的，给你活下去的动力的人？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">仅仅是宣称着某种理念，仅仅是拿上了某种技术，仅仅是组织了几支队伍......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这样就能战胜塔露拉了吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">白日做梦也该醒了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我懂了，霜星小姐。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">刚才涌进我大脑的，我已经明白是什么了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">是什么在推着罗德岛前进？是什么促使你们不断战斗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">正面！庞大的寒流！大概，大概是——是刺的形状！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">再这样下去，我就只能放弃后背，把热气流聚在前方做盾......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可她的寒流正在剥夺空气中分子的振动，就算强顶，也就只能顶这么一时！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，快点，有没有什么办法！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>既然我们都打不破它，就只能顶住！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">等于没说！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">不......博士说的很对。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为霜星她的生命不剩下多少了，只要撑过去，我们就赢了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">你在说什么？那样的话，她不就没了？！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这是她的选择，也是她留给我们的唯一机会！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">那你们的选择呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在面对那必须被毁掉的邪恶时，在篡夺了感染者理念和明天的背叛者面前，你们的心脏究竟又是为了什么而跳动？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">咳，咳......连我都战胜不了，你们怎么去面对她，怎么去带领无数的感染者，怎么去对抗这片恶毒的大地！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">霜星小姐......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">谢谢你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我是没法对你生气的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">浪费我的时间。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">不，霜星小姐......我知道我要做什么。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我并不真的能读取别人的思维。而且，读心，从不意味着我能比没这种能力的人更理解一个人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我只是没法拒绝......我没法隔绝从你那来的情感。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">从你胸膛中涌入我记忆里的又痛又焦灼的......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">愤怒。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你很清醒，也很冷静，但愤怒燃烧着，烫到我想抽回手......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我不能。霜星小姐，我很明白我该做什么。我不会拒绝你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">霜星小姐，我确实感受到了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你为什么流眼泪？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">霜星小姐......你......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">不可以。擦干净。在敌人面前，不可以流眼泪。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿米娅，说出你的回答。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......说吧，阿米娅。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">Dr.Doctor......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......嗯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“如果战斗是必要的，那就战斗到最后。”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士。现在，我们要和霜星小姐战斗。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你死我活。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_6_1.png" alt="avg_6_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">霜星</div><div class="text">是的。你们现在......要与我战斗。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你死我活。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_6_2.png" alt="avg_6_2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">霜星</div><div class="text">如果你们战胜我，有人能够侥幸活着——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_undergroud_f.png" alt="bg_undergroud_f"><div class="cap">bg_undergroud_f</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">我愿意加入罗德岛，依你们的想法，去对抗感染者共同的敌人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这是我必须承担的责任。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>希望你信守诺言。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">既然我都许诺了，我自然会兑现。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">还有......霜星小姐。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">感染者才不需要谁去带领他们。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们只是为了同一个信念而战，而不是为了哪一个人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">从来都不是。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">——没错。对了。没错。腐败了的就该切除。战胜我，战胜塔露拉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你是什么人？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">可以是任何人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你在为谁而战？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">为所有人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">好。阿米娅......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">咳......谢谢你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“就连时间也会在此冻结......♪”</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">煌</div><div class="text">寒潮在向我们移动！灰喉！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_367_swllow_1.png" alt=""><div class="bubble"><div class="who">灰喉</div><div class="text">我准备好了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，请不要走出我的身侧。我会尽力保护你。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>霜星！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_1505_frstar_1.png" alt=""><div class="bubble"><div class="who">霜星</div><div class="text">你们会在这里战死，而我会熄灭你们荒诞不经的幻想。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">或者，战胜我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......战胜我吧。让我看到希望。</div></div></div></div><div class="nav"><a href="level_main_06-13_end.html">← 上一段</a><a href="level_main_06-15_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

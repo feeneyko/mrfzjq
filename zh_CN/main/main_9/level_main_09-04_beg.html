@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>临界值 · 风暴瞭望</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">风暴瞭望</a> / <span>9-5</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_9/level_main_09-04_beg.html" class="">English</a></div>
+  </div>
+  <h1>临界值<span class="section-tag">9-5 · 行动前</span></h1><div class="meta">风暴瞭望</div><div class="story-info">号角向伦蒂尼姆发信无果。简通过好友获得了塔拉人聚会的情报，传给了风笛。风笛和号角决定前去聚会一探究竟。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_offce.png" alt="bg_offce"><div class="cap">bg_offce</div></div>
+<div class="narr">4:23 P.M. 天气/多云转阴</div>
+<div class="narr">麦克马丁兄弟炸薯条专门店，二楼</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">还是没有回复？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">没有。从昨天到今天，没有收到任何伦蒂尼姆来的消息。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">二十多个小时过去了，他们一定已经收到了我的上一封电讯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">会不会是加密线路有问题？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">不好说啊长官。老实说，自毕业以后，我调来小丘郡都快十年了，需要启动这条秘密通讯线路的情报就没几条。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">前年年末我跟我们小组长汇报，他问我除了第几个孩子出生以外还有没有话要说，没有的话连常规报告都可以省了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">哦，怪不得你开了这家炸薯条店。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">这主意不错吧？谁让我的代号一直是厨子呢。当时我就想，就算有外人想找我们的联络站，也只会怀疑隔壁书店。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">唔唔，而且炸薯条味道很好！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">是吧？哈哈，你们随便吃。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">小丘郡的土豆质量就是好。当地人很喜欢我的薯条，要不是还记着自己的点灯人老本行，我早就开了五六家分店。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哎，总之，昨天你们用暗号找上门的时候，我还以为是又做梦梦到受训时的事了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......看起来这条线路是很可能被废弃了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">又或者，有人收到了消息，却不想给回复。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">队长，你的意思是有人有意拦截我们的情报？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">还不好说。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">下面这条讯息还是原样发出去——对了，除了三角铁的发现，再加上我和汉密尔顿上校的对话结果。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">上校针对部分居民的措施已有过激嫌疑。万不得已的情况下，我希望我们小队能获得更多机动权。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">这......看来我没必要劝你们动用驻军信使了，是吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">唉，队长，我不想说这个，可我们人有点少。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">这听起来真不像你说出来的话。不过放心，没人想走到那一步。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只是......这座城市的情况，远比我们来之前预料的更复杂。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">厨子，你在小丘郡待了这么多年，你觉得这里的人怎么样？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">没什么特殊的。你真让一个塔拉人站我跟前，我也不觉得他和其他地方来的维多利亚人有什么区别。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">再说句大实话，要是日子过得不错，谁会整天想着闹事？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">把理想挂在嘴边的人挺多，真装在心里的走到哪都是少数。更多人在意的不过是填肚子，肚子满了的话还有钱包。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">说的是呀！队长，我也很难把达米安·巴里和鬼魂部队扯上关系。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在我眼里，他和那条街上的居民都是普通人，被抓的时候会吓得立刻求饶，亲人死了会聚在一起崩溃哭泣。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们一点都不像受过训练的士兵。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">你们说的，正是我所担心的——汉密尔顿上校的话也许并不全是危言耸听。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当普通人拿起了武器，无论他们是自愿还是非自愿，我们面临的都将是一场维多利亚许久未见的灾难。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G3_victoria_street_d.png" alt="21_G3_victoria_street_d"><div class="cap">21_G3_victoria_street_d</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">下午好啊西尔莎！这么巧，我刚想去报社找你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">咦，西尔莎，你怎么了？你刚哭过吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">......简妮。不，我没事，我很好。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%236%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">你骗人。你眼睛都肿了，而且脸色这么苍白，平时你可不会允许自己这么狼狈地上街。你受到了惊吓，对不对？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是谁欺负你了？还是上次那个士兵吗？我再帮你想想办法......一定会有办法的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">不是的，简妮，你别忙活了。他并没有再来缠着我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是......我不知道怎么说。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%238%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">来，深呼吸——在你面前的人是我，你的好朋友。你现在很安全，我保证。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">简妮......为什么？为什么你是他们中的一个？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">你在说什么啊西尔莎？我不明白。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">我不想你受到伤害。你是我最好的朋友......而且你是一个好人。我也是好人吧？我的妈妈、爸爸、表弟......我们不都是好人吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">你的表弟......巴里？你是说达米安·巴里？对不起，是我没反应过来。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">这不是你的错。这也不该是我的错。我只想要平静的生活。我不想再看见重要的人死去了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">......哭吧，西尔莎，我陪着你。看着亲人离世，还要忙着工作，你压力太大了。要不要靠在我的肩膀上？这样能舒服一些。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">不用了，谢谢你，简妮，看到你我已经好多了。现在我明白自己该怎么做——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个给你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">这是......一个地址？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">我还可以给你几个人名。但没这个必要，我不想把你卷进更大的危险里。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个地址也该够了。你可以......交给你觉得可靠的人。你的士官长，或者别的长官，比如路易斯叔叔。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我知道有人在打听达米安的事，他们想弄清楚我们在谋划什么。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">谋划——西尔莎，连你都......？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">我不清楚。信不信由你，从头到尾，我只是负责传递一些消息。几张夹在书里的便签纸，一两句藏在小丘晚报杂事栏里的暗号。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我以前以为这是为了让大家更安全......我并不了解他们在盘算这么可怕的事，直到我刚才听见总编的通讯......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">算了，我不想辩解或者忏悔，更重要的是及时阻止他们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">好，我会的。我想好了这东西该给谁。比起其他人，她能更公正地对待你们。西尔莎，你别怕，一切都会好起来的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_213.png" alt=""><div class="bubble"><div class="who">西尔莎</div><div class="text">嗯，简妮，我信你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">晚上八点，你要记得。拿好这个地址——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%238%241.png" alt=""><div class="bubble"><div class="who">简妮</div><div class="text">第十区雕像东侧......左数第三个巷口。这里有家书店，书店门口的花盆......黄色玫瑰......找到了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">风......笛......收——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（这样压在花盆底下就可以了吗？刚好有块松动的砖，和早上说的一模一样。）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（这收信方式可真特别。）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（伦蒂尼姆来的朋友，希望你能帮到西尔莎......和我们所有人。）</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_offce.png" alt="bg_offce"><div class="cap">bg_offce</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">麦克马丁兄弟员工</div><div class="text">老板，楼下有人新扔了一张纸条，在黄玫瑰下面。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">拿过来吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">咦，黄玫瑰，给我的吗？好快啊。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">是你跟我提过的线人？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">嗯。也是驻军士兵，不过队长放心，她是个热心肠的好人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%235.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......但愿你慧眼识人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">没问题！我眼神一向很好。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%236.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">纸条上写的什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">“大坝街109号，今晚8点”——就这一句话。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">厨子麦克马丁</div><div class="text">大坝街？就在第十区和十一区交界处。这地方我有印象，是波顿男爵的房产。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">看来今天晚上会有一场重要的集会。风笛，我们该出发了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G9_rhodes_xqoffice.png" alt="21_G9_rhodes_xqoffice"><div class="cap">21_G9_rhodes_xqoffice</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......您在这里。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">是啊。喝着热茶，翻翻报纸，做我这个年纪的人该做的事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啧，风变大了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">找到您想看的了么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">（塔拉语）当你想找明天时，你却与昨日相见。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">您会说塔拉语？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">远远谈不上会，如你所见，现学现卖而已。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......难以置信。奥利弗是对的，您非常厉害。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">哈哈，第一次让人惊讶的时候我还会有些得意，第二第三次就难免无趣了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">我们办事处，大家基本都不会说塔拉语。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">考虑到你们的出身，这很合理。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">奥利弗成长于伦蒂尼姆北部的中产家庭，他们家族最早来自高卢，他至今住在办事处楼上，每年都会请假回去看妻儿。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">弗雷德大约是来自半岛郡的学徒，家中除了自己还有好几个兄弟和一个小妹妹，家庭关系非常和睦。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">威尔是本地人，他们一家在几十年前从附近的固定村落搬来小丘郡，他的塔拉血统应该是来自他的祖母。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......您看过我们的资料？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">我这么怕麻烦的人，很少有提前做功课的习惯。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">那您......怎么知道？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">语言。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">姓名、口音、措辞、语气，甚至停顿的偏好——语言中含有的信息比你想象的要多。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">我对萨科塔的特殊之处有所耳闻，但没想到......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">啊哈，更多是我个人的小小兴趣。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">话说回来，对于其他人而言，语言也有特殊的意义——否则，塔拉人也不会如此执着于从故纸堆里把自己的语言找回来了吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">您说的对。在三五年前，并没有多少塔拉人常说塔拉语。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">你呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......您大概也听出来了，我不是塔拉人。我的妻子是，她生前只教过我一两句。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">可如今这种渐渐消失的语言在报纸上到处都是。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">另外，我刚才听到窗外有人在教孩子们用塔拉语称呼彼此。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......您提起之前，我没发现。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">语言的纽带比许多别的东西都要牢固，不像血缘可能被流逝的时间冲淡，也不像利益时时刻刻都需要在天平上经受衡量。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">看样子，有人想要利用这根纽带，令一个本来日渐松散的群体重聚。可这么一来，旧有的集合将不再稳固。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">维多利亚不会放任这件事在眼皮子底下发生。然而拉扯的力量越大，反弹的力量就越超出预期。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们知道我因何而来，对吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......其实，没那么清楚。我只觉得，取资料不用劳烦一名精英干员亲自跑一趟。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%232.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">纸面数据不如亲眼所见，这么说的话，取资料也算不上幌子。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">麻烦再告诉我一遍，这半年来，有多少家当地企业与我们中止了合作？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">干员碎纸机</div><div class="text">......七家。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">比上个月报告的还多了三家。在今天的维多利亚，任何风吹草动，大商人们的钱袋子都会最先察觉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我也得出门再多看几眼了——赶在泥雨将这座城市淹没之前。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G3_victoria_street_d.png" alt="21_G3_victoria_street_d"><div class="cap">21_G3_victoria_street_d</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">队长，从上午到现在，你一直皱着眉。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......我们剩下的时间不多了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这一次鬼魂部队的行动，和过去那些案件有所不同。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">以前他们行事隐蔽，速度很快。每次我们想追上去的时候，都会发现线索全部被处理干净了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而现在......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">呃，他们就像织完毛衣扔了一地线头？线头和线头之间还没什么关联。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......而且这些线索都断在了小丘郡。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">队长，不光是你，我也感觉闷得慌。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">现在这座城市，活像个出不了气的高压蒸锅。居民，驻军，大家都很烦躁，随时随地都有人在干架。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......大家都在等，等第一道雷什么时候落下来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但要是真落下来了，这座城市......不，维多利亚会变成什么样子？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">（队长......！）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">（嗯？）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">（有人跟踪！）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">（......确实。看到西边那巷子了么？）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">（明白。）</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G7_decisivebattlealley_d.png" alt="21_G7_decisivebattlealley_d"><div class="cap">21_G7_decisivebattlealley_d</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">站住！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">克雷格</div><div class="text">呃啊——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">咦，怎么回事？是一个小孩子......而且还有些眼熟？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">克雷格</div><div class="text">呜，痛......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">啊，抱歉！我这就松手。我本以为跟进来的会是什么坏家伙。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">克雷格</div><div class="text">......球。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%238.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">你是因为球掉了，所以想过来捡对不对？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">快点回家去吧，这地方不太安全，到处乱跑的话，你的爸爸妈妈会担心的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%238.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">队长，虚惊一场。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......只是一个孩子？不，不太像。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">跟着我们的人不止一个，而且能跟着走了几条街，都没有被我们发现，他们本身具备一定跟踪经验。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你刚才躲在高处，还有没有看到什么不同寻常的人？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">风笛</div><div class="text">啊......一定要说的话，我瞥见不远处的街道上有一个特别亮的圆环......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">号角</div><div class="text">......萨科塔。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G3_victoria_street_d.png" alt="21_G3_victoria_street_d"><div class="cap">21_G3_victoria_street_d</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">请给我一块蛋糕，还有这个苹果派......那种饼干也请给我来一些。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......真是艰难的选择，毕竟华法琳禁止我吃太多甜点......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你好，请问这些糕点中，哪种最甜？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">焦躁的青年</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%234.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">难道你不知道？不会啊，你在小丘郡待了挺长时间了吧？我想，服役时间应该超过三年——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">焦躁的青年</div><div class="text">......你？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">别急啊，我能看出来，你跟着的人当然也能看出来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">反正任务也没法继续了，不尝尝我买的苹果派吗？真挺好吃的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">焦躁的青年</div><div class="text">你这奇奇怪怪的萨科塔，究竟从哪里冒出来的？为什么要阻拦我们的行动？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">我？没拦啊，我只是路过而已。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">焦躁的青年</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">十二队，目标丢了，但看她们消失的方向，应该是去大坝街。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......好的，我明白，我马上带人去......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们逐一排查。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我警告你，萨科塔，不该掺和的事情别掺和。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%234.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">......警告？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">类似的话听得实在太多，没什么武器抵着我，还真不习惯。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">焦躁的青年</div><div class="text">......我现在没空听你耍嘴皮子。士兵们，我们走。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">老板，别害怕，士兵都走啦。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">麻烦把剩下这些甜品都包一包，我带回去给同事们尝尝。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......毕竟，是时候把出门办事的小朋友们都叫回来了。</div></div></div></div><div class="nav"><a href="level_main_09-03_end.html">← 上一段</a><a href="level_main_09-04_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

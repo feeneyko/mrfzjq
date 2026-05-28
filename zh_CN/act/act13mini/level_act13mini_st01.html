@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>向左向右 · 好久不见</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">好久不见</a> / <span>level_act13mini_st01</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act13mini/level_act13mini_st01.html" class="">English</a></div>
+  </div>
+  <h1>向左向右<span class="section-tag"> · 幕间</span></h1><div class="meta">好久不见</div><div class="story-info">来到龙门的小黑与小白阿根不幸分散，暂住在吽家的他接到了一件寻找走失宠物的任务。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rooftop_2.png" alt="bg_rooftop_2"><div class="cap">bg_rooftop_2</div></div>
+<div class="narr">白日里下了一整天的雨，到晚上虽然雨停了，但空气仍然有些湿润。</div>
+<div class="narr">团团阴云聚在天空，像堵无情的墙，莹莹月光洒不下来，盏盏灯光照不上去。</div>
+<div class="narr">这天气讨厌死了，</div>
+<div class="narr">阿嚏——</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">本来想上来打个盹，这下可好，天台上到处都是水。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（嗅嗅）嗯？这有个箱子里面还没湿。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（钻入箱中）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啊哈......这天气倒头睡一觉也是不错。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">楼下广告</div><div class="text">今日生鲜大特惠，买一送一别错过，龙门市区最低价，只为回馈广大顾客！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（向左翻身）嘶——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">楼下邻居</div><div class="text">和你讲过多少次了！吃完饭不要磨蹭，赶紧去写作业！哎呦老天爷，谁家佩洛是你这样的慢性子！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（向右翻身）啧——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">楼下电视</div><div class="text">近期天气潮湿，请市民们关注消防安全，空气湿度大容易导致家庭电气发生火灾事故，大家务必注意安全用电和定期检查家中电器！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（猛然坐起）吵死了！这个人话说得这么快，谁能听清啊！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="narr">他躺回箱中，头顶是浓云密布的夜空，耳朵里挤攘着各式各样的声音，但其中并没有他期盼听到的内容。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">小白......阿根......你们现在在哪儿呢？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">小黑？你在天台上吗？吃晚饭了！今天刚下过雨，在上面待着会着凉的，快下来吧！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（胡乱擦擦眼睛）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">知道啦！我马上就下来！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodesroom.png" alt="bg_rhodesroom"><div class="cap">bg_rhodesroom</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">吽哥，我来帮你拿碗筷了，今天几个人来吃饭？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%231%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">不用了，碗筷槐琥已经端过去了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">那还有什么我可以帮忙的吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%235%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">嗯......？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你这孩子身上怎么潮乎乎的！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">小黑，你又上天台了是不是？难怪刚刚一直找不到你。阿，快帮小黑拿条干净毛巾来！这孩子头发都是湿的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_225_haak_1.png" alt=""><div class="bubble"><div class="who">阿</div><div class="text">喂，小鬼，接着，不用谢了！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">哼，我才没有要谢你呢！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%2310%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">好了好了，别吵了，赶紧擦干净头发来吃饭吧，小黑。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">槐琥</div><div class="text">小黑，快过来！这一大块排骨给你搁在饭碗里啦，你这个年纪的小菲林，正是长身体的时候，营养可不能耽误啦。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">哎，槐琥姐，我去开门，一会儿就来。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%234%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">哎呦，是小黑啊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哈哈，在走廊里我就闻到味道了，今天有粉蒸排骨对不对？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">嗯，吽哥今天一早去市场排队了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_243_waaifu_1%234%241.png" alt=""><div class="bubble"><div class="who">槐琥</div><div class="text">哼，鲤叔你鼻子很灵嘛，不巧了，我鼻子也很灵，说，你背后拎的瓶子是什么！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_225_haak_1.png" alt=""><div class="bubble"><div class="who">阿</div><div class="text">没错，老实交代，交瓶不杀。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">唉，办完事回来路过孙家的酒铺，那老孙头非得送四两黄酒来答谢我，我又拗不过他，只好收下了不是。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">说清楚了，这可不是我自己要买的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%2310%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">那可真是谢谢孙老板，正好今天做菜我家里料酒用完了，这酒送得可太及时了。小黑，来帮我把这瓶黄酒收到灶台底下的柜子里。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">好嘞，吽哥。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%235%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">嘿，原来你这老实头才是最坏的，我还一口没喝呢！还有你这小毛头，跟着瞎起哄什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_243_waaifu_1%233%241.png" alt=""><div class="bubble"><div class="who">槐琥</div><div class="text">哈哈哈，小黑干得好！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodesroom.png" alt="bg_rhodesroom"><div class="cap">bg_rhodesroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">嘶，你这孩子看着小小一只，吃起饭来倒是干劲十足，不错，我喜欢，认真吃饭的总没有坏孩子。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（埋头吃饭）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">对了，小黑啊......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（放下碗）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">鲤先生，有消息了吗？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%235%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">呃，你托我打听的事，目前还是没有什么眉目......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">噢，这样吗......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%2311%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">（小声）老板，你怎么在饭桌上提这事！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">唉，其实我是另有件小事想请小黑你出个力，不知道小黑你可否赏脸帮帮忙啊？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">鲤先生你说，我听着呢！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">是这样的，袁家的大小姐丢了只宠物，转来送去的，把这事递到我手头了，几番探查下来，说是有人在南坪湾的美食街瞧见过。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我最近嘛，缠身的事太多，实在是忙不过来，就想拜托你帮我走一趟去看看，不知你愿不愿意啊？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">没问题，包在我身上。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">好，这是它的照片，你收好了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">这、这是什么动物啊？我以前都没有见过......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">没见过吗？那倒是奇了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这东西是云兽，这里的人，有钱的没钱的，都喜欢养一只。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%231%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">来，小黑，我也看看，全黑的......居然是乌云兽，这毛色可不多见。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">乌云兽？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%231%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">这是大炎特有的叫法，因为养云兽的人多，就又按着颜色往下分了几类。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">白色的，叫雪云兽，红色的，叫彤云兽，还有些花色的，叫法也另有讲究。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">唔，原来是这样，我明白了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">小黑啊，你刚说没见过，是你的家乡没人养这种宠物吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">不是！我见过的，就、就是一时着急忘了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">哦——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">鲤先生，吽哥，我吃完了，我先去睡了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">哎，你这孩子跑这么快干什么，明天记得早起，我带你去南坪湾的美食街。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">知道啦！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">嗨，吽你板着张脸做什么？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%2311%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">老板你......怎么能把我们分内的工作委托给客人去做呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">哎，多个人多份力气。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%238%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">老板！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">得，我这老板是愈发没面子了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我问你，今天这小孩是不是又上天台去了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%235%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">......没错，老板你怎么知道？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">刚一进你这屋我就从他身上闻到一股子潮气，屋里又不下雨。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然相处时间不长，倒也看得出来，这孩子一有心事便避去天台不愿见人。想来一是思念亲友，心里不痛快。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">二来嘛，大概是天天待在你家无所事事，面儿上挂不住，身上不得劲。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%2311%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">还是个孩子，哪用他忙活做事。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">呵呵，是孩子，也不是孩子。吽，你和他交过手没？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%235%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">怎么，这孩子有功夫傍身？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">嗯，而且不逊于成人。那天我遇见这小孩时，他戒备心重，和我过了几招，招招刚劲生猛。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%235%241.png" alt=""><div class="bubble"><div class="who">吽</div><div class="text">那也是罕见，什么样的地方会教出这样的孩子？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">呵，问得好，我也想知道。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_station.png" alt="bg_lungmen_station"><div class="cap">bg_lungmen_station</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">广播</div><div class="text">各位旅客大家好，请在一米线外等待，排队通行，不要拥挤，现在是夜间两点四十五分，龙门欢迎您的到来。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">这就是龙门吗？这么深的夜里还亮着这么多的灯，好美，不枉我们跑了那么远来这里。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">洛洛姐姐，你也是第一次来吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">是的，在这里感受到的，是种完全和家乡不一样的风貌。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">有什么特别的地方吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">感觉这里很......年轻，很有活力。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">真是难以想象，看周围来来往往过关的人这么多，就好像......好像几年前那场浩劫什么影响也没留下。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">我想，城市和人一样，也是有自愈能力的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">是啊，蓬勃发展的城市，即使是遭受重创，也很快会有更新鲜的血液补充进来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只是不知道，表面上不留疤痕了，内里的创伤呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">我想......总会好的，人的记性很差的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2311%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">唉......那都是骗人的，记忆不会说消失就消失的，只是事情过去，人们就不愿再提了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">嗯，我明白，大人们总有说不出来的东西，都是闷在肚子里慢慢消化的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">你......懂的有些太多了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">洛洛姐，等等我们呀！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（哥哥，这里真的好神奇，我从来没有见过可以移动的城市呢。）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（哈哈，是呀，我也没想过自己有一天会看到像动物一样四处迁徙的城市啊。）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">小白！阿根！你们去哪里了？马上就到我们了，给你们办的证件都带好了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">不好意思，让你们久等了，刚刚小白说要上厕所，我们找了好久才找对地方。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_604_1%232%241.png" alt=""><div class="bubble"><div class="who">比丢</div><div class="text">Biu！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">这里人太多啦，刚刚还遇到一个——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">先不说这些了，我们快去排队吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">遇到了什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">不会是遇上危险了吧？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">没有的事，大家不必担心。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">阿根，你是个性格沉稳的孩子，源石技艺也很厉害，这些都足够保护你自己和小白。确实，我们也不用为你担心。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可如果你连遇到危险也不愿告诉我们，只会让我们更加为你担忧啊。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">本来洛洛姐你愿意捎我们这一程，我们就很感激了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">何况当时多亏你出手搭救我和小白，我就算是再有本事，也没办法带着小白从那群凶猛的“铨兽”嘴下逃脱。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">“铨”兽？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%233%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">哥哥，你又大舌头啦，那个是念“钳兽”的呀。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">哈哈，闹笑话了不是。这一路上本就已经给你们添了很多麻烦，实在不好意思再多让你们担心了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">那你们来到龙门以后有住的地方吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%2310%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">嗯......目前还没有。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">我就猜到你们很难找到地方了，先来罗德岛的办事处住一段时间吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">那就......只好再麻烦你们了。如果有什么能帮上忙的，请尽管说。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">哎呀，真是的，一路上我们在一起相处都这么久了，你怎么还是对我们这样客气。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">对啊，阿根哥哥，何况我们这次来并没有很繁重的任务，主要是负责转移护送一些龙门当地的病患去本舰接受治疗。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">你们想不到吧，虽然铃兰年纪很小，但她入职时间比我早，是很能干的前辈哦。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%234%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">四处奔波只为救死扶伤，罗德岛真是个了不起的地方啊。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%235%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">是啊，虽然很怕去医院打针，但是我也知道医院里的医生和护士们总是很辛苦。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">我们也不仅仅是做这些啦，还有一些其他......嗯？已经排到我们了。没事，等到了办事处，你们自然就知道了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">嗯，小白，阿根，我们走吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">维多利亚商人</div><div class="text">咦，怎么近卫局的人突然来了这么多？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_201.png" alt=""><div class="bubble"><div class="who">玻利瓦尔游客</div><div class="text">刚刚过来时你没看到吗？有个偷渡的通缉犯被人用源石技艺冻在了栏杆上。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">维多利亚商人</div><div class="text">什么？！开玩笑吧！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_201.png" alt=""><div class="bubble"><div class="who">玻利瓦尔游客</div><div class="text">喂，把下巴收收吧，该你过关了，还不快去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">维多利亚商人</div><div class="text">啊？哦......好，好。啧，真是稀奇。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/31_g2_luo_reception.png" alt="31_g2_luo_reception"><div class="cap">31_g2_luo_reception</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%235%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">哥哥，这就是洛洛姐她们工作的地方吗？那个叔叔石头长在心口，一定很痛吧......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">小白，不要盯着人家的患处看，这样不礼貌。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%231%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">啊！不好意思，大叔，我不是故意的。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">病患</div><div class="text">哈哈，小朋友，没关系，异样的眼神我们见过很多，知道你没带恶意的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">大叔，麻烦问下，您知道要去哪里找洛洛干员吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">病患</div><div class="text">哎，就在前面不远处小沅的病房里，你继续朝前走然后向左拐个弯儿就到了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">谢谢大叔了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">大叔再见，希望你能早日康复。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">病患</div><div class="text">啊，康复？！哈哈哈哈，谢谢你了，小朋友，承你吉言吧......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%2310%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">（哥哥，我是不是说错了什么，那个大叔好像笑得很勉强？）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">（摇头）我们还是先去找洛洛姐她们吧。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ri_1.png" alt="bg_ri_1"><div class="cap">bg_ri_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">姐姐，我不去本舰，我还好得很，你让我留在这里吧，求求你了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">小沅，乖，听话，办事处的医疗资源已经不足以应对你目前的病症了，转到本舰才能够更好地控制你的病情。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">小沅妹妹，本舰有很多和你一样年纪的小病患，你去了那里能认识到很多新朋友的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">我......我等我的六十七回来，我和它一起走，呜呜......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">六十七是？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">六十七跑丢了，我不能一个人离开，我、我想再等等它。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">阿平，我们这里曾经走失过病患吗？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">办事处干员</div><div class="text">不是的，洛洛姐，六十七是她的宠物，去年丢了，小沅她一直放不下，一直在找。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">姐姐，你就让我留在这里吧，求求你了，你再给我点时间，我一定能找着它的，呜呜呜。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">唉，小沅，你先不要哭，把眼泪擦干净。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">办事处干员</div><div class="text">我们当时也派人去找了，但偌大一个龙门，找一只宠物谈何容易，再加上人手总是吃紧，也就没再坚持了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%237%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">这可怎么办？强行把她带回去肯定是不行的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">（嚎啕大哭）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不要，我不要离开，你不要带我走！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">要不然，洛洛姐姐，我们再帮忙找一找吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">可是，这里也没有多余的人手啊......还有其他计划去本舰治疗的病患需要转移。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而且下周我们必须按时返程，不然很多人的治疗时机就耽误了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">铃兰</div><div class="text">怎么办......我们实在是没有其他的办法了......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%231%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">哥哥，我们能帮忙去找吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">我没有什么把握，毕竟我们并不熟悉这个地方。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">噢......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">你很想帮忙吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">我只是想......洛洛姐姐帮了我们那么多，我也想帮上她的忙。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">嗯，是该轮到我们为她们做些什么了，那我们就去争取一下吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">洛洛姐，不知道能不能让我和小白帮忙去找呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">你们......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">洛洛姐，让我们试试吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">哥哥很厉害的，洛洛姐你放心。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">后勤干员</div><div class="text">请问洛洛小姐在吗？诊室中的成像设备出了点故障，可以麻烦你等会儿过来看一下吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">稍等，我马上就过去！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......那好吧，一旦遇到什么困难，要及时告知我。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">嗯，一定会的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">小沅，你好，我叫阿根，这是我妹妹小白。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">（不住地抽噎）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">小沅，先冷静下来，好好听我说。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">别太难过啦......我们会帮你的！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">......对不起......我、我是不是很任性，大家那么忙，还帮我找了那么久，我不应该还麻烦你们......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">怎么会呢，我们都不舍得和朋友分开呀......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">嗯，所以我们会尽力帮你的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">真、真的吗！这个是它的照片，它很可爱很乖的，肯定是在哪个地方躲着......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">照片我们收好了，我们一定会尽全力帮你找它，但是你要知道，结果......不一定会如你所愿。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">没错，小沅，相遇离别在所难免，无论如何，你都要勇敢面对，千万不要因此而伤害自己，好吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">小沅</div><div class="text">（啜泣）嗯，最后一次，就试最后一次，如果还是找不到，我......就不找了，我就乖乖......跟着洛洛姐姐去本舰。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%233%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">好，明天我就和小白一起出去四处问问。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">洛洛</div><div class="text">麻烦你们了，今天就好好休息吧，我先离开了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">你老实一点。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">咪嗷！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">别再乱动了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">嘶哈！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">（接起）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">咪呜——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">鲤先生，是我，小黑。我已经抓到这只乌云兽了，一会儿就回事务所。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啊？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那位小姐她已经找到自己的宠物了？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可......嗯，好吧，我马上就回去。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">奇怪了，那你又是哪里来的？明明和照片上一模一样啊......</div></div></div>
+<div class="narr">被拎起后颈的乌云兽不适地乱动起来，张牙舞爪试图逃开小黑的控制，但同时也让自己嶙峋的肋骨暴露在小黑的眼前。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">你一定很久没有好好吃过东西了吧，嗯......先带你回去吃顿饱饭吧。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%231%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">这条街好热闹啊，我们先从这里开始找吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">嗯，美食街附近应该会有不少流浪的小动物，这里吃的多，很容易获取食物。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%2310%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">可是动物能吃人类的食物吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">不适合，但它们也不知道啊，能不饿肚子就很好了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">......希望小黑在这边不会饿肚子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">不会的，他一定能照顾好自己的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不要胡思乱想了，出来这么早，你一定也饿了，入关后洛洛姐塞给我好些这里的钱，我们先去找点东西吃吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">嗯......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">老板，外带两杯豆浆，麻烦了，谢谢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩A</div><div class="text">哎，您接好。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">老板，这地方应该有很多流浪动物吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">摊贩A</div><div class="text">哎，不错，天天在街上窜来跑去的，脏兮兮的，烦死人了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">那老板你最近有没有见过一只黑色的云兽？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">摊贩A</div><div class="text">不记得，一天忙到晚谁有心思管这些玩意儿。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">摊贩B</div><div class="text">就是，谁知道那些小东西身上带的细菌寄生虫有多少，不打死就算我们好心了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">（抓紧阿根的衣角）打死......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">摊贩A</div><div class="text">你这人怎么回事，孩子面前你也说这种话！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">没事，走吧，小白，我们去问问别人吧。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">摊贩C</div><div class="text">鲜榨果汁限时优惠，八折出售，心动不如行动！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">老板，打扰了，请问最近有见过一只黑色的云兽吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩C</div><div class="text">没见过没见过，小伙子你要是不买，就不要站在这里影响我生意了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">不好意思，请问果汁多少钱？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩C</div><div class="text">一百二十龙门币一扎。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%2310%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">呃......有点贵啊。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%231%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">哥哥，算了吧，我们去下一家问问。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">摊贩D</div><div class="text">包子，现包的包子！各种馅料应有尽有！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">您好，请问您有见过一只乌云兽吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩D</div><div class="text">小妹妹，我没见过啊，你去别处问问吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%231%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">唉......不好意思打扰了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">小白，别沮丧，我们再去问问。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩D</div><div class="text">小伙子，贫民窟附近有个救助站，经营的人常从这条街带流浪动物回去，要不你去那里看看吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">小白</div><div class="text">真的吗？太好了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩D</div><div class="text">说来也怪，这人最近好久都没有再见过了......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">阿根</div><div class="text">老板，包子怎么卖？麻烦你拿两个鲜肉包子！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">摊贩D</div><div class="text">哈哈，一共七龙门币，多谢惠顾了。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿根</div><div class="text">欸，你的包子怎么只吃了面皮？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小白</div><div class="text">我想剩下些看看路上会不会有小动物在找吃的。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿根</div><div class="text">哈哈哈，是这样啊，那我再去多买一个包子好了，你把你手上的包子吃完吧。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小白</div><div class="text">不了，哥哥，我们省着点花吧，之后找六十七肯定还要用的。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿根</div><div class="text">那好吧。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小白</div><div class="text">如果能多剩一些，到时候再见面还可以给小黑多买点吃的！也不知道他现在有没有吃饱。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">阿嚏——奇怪，怎么会打喷嚏......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">（胡乱挣扎）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">好了，我们走吧，为了捉你，我今天连早饭都没来得及吃呢。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿根</div><div class="text">也许小黑比我们好运，这时候在哪个地方吃好吃的呢！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">看这会儿快到中午了，吽哥应该做好午饭了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小白</div><div class="text">那可太好啦！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">真想快点找到小黑啊。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">也不知道小白和阿根在哪里呢......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿根</div><div class="text">他一定也在找我们呢。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">什么时候才能再见面啊......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小白</div><div class="text">嗯！希望，我们能早点相见！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">不想这么多了！我们一定还会再见的！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rooftop_2.png" alt="bg_rooftop_2"><div class="cap">bg_rooftop_2</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">乌云兽</div><div class="text">（左右张望）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（四处寻觅）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">你在找什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">咪嗷！！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">别害怕，我是带你回来的那个人，这只是我的另一种形态。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你要是在找离开的路，侧边有消防楼梯可以下去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（不安地甩甩尾巴）咪......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">也是奇怪，明明来自不同的世界，你的意思我却大致都能明白。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么要走，留在这里不好吗？鲤先生虽然嘴上说头疼，但看得出来，他还是愿意收留你的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（摇头）咪咪。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">外面吃不饱饭，还有人追着打，那为什么还总想着到外面去呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">咪......咪......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">原来......你也在找人啊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">过来呀，我不会伤害你的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（趴下）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">那个人，我帮你一起找吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（抬头）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">......来到这里后，我一直不敢告诉其他人，我其实不属于这个世界。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在原来生活的地方，我有很好的师父，很好的朋友。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">两个月前我们在森林里追逐两只异兽，啊，就是你们这里的源石虫，不知道为什么会出现在那里。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿根说，我们分头去追，我独自追着那只源石虫在林子里面跑了很久，可一回头却看到来时的路消失了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">然后我便一脚踩空，在一片白光中不停往下掉......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">再睁开眼，我就到这个地方来了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我不知道小白和阿根是不是也来到了这里，我想见他们，却又不想在这个世界见到他们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（抖抖耳朵）咪？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">这里太危险了，我和阿根也许还可以保护自己，但小白呢......这里还有会让人长出可怕石头的传染病......我希望他们都能留在安全的地方。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">（伸出爪子想搭在小黑的背上）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">你是在安慰我吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">乌云兽</div><div class="text">咪！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">小黑</div><div class="text">......谢谢。</div></div></div></div><div class="nav"><span>← 上一段</span><a href="level_act13mini_st02.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>深埋地底 · 反常光谱</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">反常光谱</a> / <span>16-12</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_16/level_main_16-12_beg.html" class="">English</a></div>
+  </div>
+  <h1>深埋地底<span class="section-tag">16-12 · 行动前</span></h1><div class="meta">反常光谱</div><div class="story-info">在由“奥卡”构成的瀑布前，Mon3tr发现了这种流体的本质。博士在矿洞中捕捉到了普瑞赛斯邀请自己继续“辨论”的意图。而在矿洞更深处，变异的裂兽发出了嘶号。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/66_g3_miningarea.png" alt="66_g3_miningarea"><div class="cap">66_g3_miningarea</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">前面就是第一次发现“奥卡”的矿洞了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">按理说，在那不久之后这里就被严格管控起来了......但是现在看来，像是完全废弃了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过，好消息是矿洞里的活性源石粉尘含量也在停工后迅速下降了，只要不去直接接触失去活性的源石结晶，不会有太大的感染风险。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%2310%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">博士，我没有检测到别的生命信号——看上去不用打架就可以进去了。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们尚不清楚这里是什么情况。</li><li>纠察队和卫兵随时都有可能回来。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>抓紧时间。</li><li>我们快去快回。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">科谢尼娅，你确定是这个方向吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我什么也没看到。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">抱歉，我只下来过一次......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">让我先找找应急能源开关的位置。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哦，在这儿。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/66_g5_deepmine.png" alt="66_g5_deepmine"><div class="cap">66_g5_deepmine</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%239%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">呼，看来没错。接下来继续往矿车运行的反方向走就行。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%238%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">反方向？我以为我们要下到更深处去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">前面连接的是其他地方，并不是矿洞。我也不知道那边具体是做什么的，但应该只走货物不走人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%235%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">矿车呢？还能用吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">矿车本身没有问题，但被搁置太久了，应急能源大概只够提供照明，我们还是不去尝试的好。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>没错。</li><li>我们走下去就行。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%234%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">唔。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们两个，上矿车。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%236%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">什么？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>矿车里可没有安全带！</li><li>我们可以自己走下去！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%2310%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">上矿车，博士。这样节省时间。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%236%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">但矿车启动不了——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%2310%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">别担心，我来解决。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，需要我扶你上去吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......我自己来！</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">准备好了吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">可是，Mon3tr小姐，你准备做什——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——呃？！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们绝对会被晃飞出去。</li><li>矿车绝对会被你弄散架的。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">我保证不会的，你们坐稳就行。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们要出发了！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">还好，矿洞看上去还正常，没有出现坍塌。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过......下来之前我们应该先烤烤火的。矿洞深处的湿度比外面要高许多，几乎是伊比利亚沿海和乌萨斯内陆的区别。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当然，矿井内外的温差也很大......你们感觉还好吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">我当然没什么问题啦。博士呢？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>感觉......感觉我的脑子被晃得很均匀。</li><li>Mon3tr，你好像玩得很开心！</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">我控制速度了啊？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">Mon3tr小姐是一位很好的驾驶员，或者说推车工人。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">哼，看来不是我的问题。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>科谢尼娅，我有一个问题。</li><li>矿区第一次发现“奥卡”是什么时候？</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">具体时间我并不清楚，在一个月前，第一份“奥卡”样本才被送到研究所。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那也是我知道源石矿井中出现这种......闻所未闻的新物质的时刻。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>可是很奇怪......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>像这种矿井中出现的物质......</li><li>研究所是如何把它和“人体实验”联系起来的？</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">就在这个发现了“奥卡”的矿洞里，感染者出现了匪夷所思的异变。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">感染者的感染程度奇高无比的同时，却保持着正常的生命体征，甚至算得上“健康”......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">症状听起来很熟悉。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">你们在别的地方也遇到了这样的病人？他们也接触过“奥卡”？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>或许还有别的可能。</li><li>我们还不能确定......</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">总之......乌萨斯官方想要复制这样的“奇迹”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我猜，他们是想要不惧病痛、不会反抗的劳动力，甚至是......另一种特殊的军队。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>乌萨斯官方会有这样的反应并不令人意外......</li><li>他们还没有意识到这样做的危害。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">博士，科谢尼娅，我们好像接近了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">矿车的轨道就到这里了，接下来我们得步行了。</div></div></div>
+<div class="narr">三人摸黑徒步向前走去。</div>
+<div class="narr">比光线先进入知觉的依然是声音。水声，滞重的水声。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/66_g6_magnetofluidwaterfall.png" alt="66_g6_magnetofluidwaterfall"><div class="cap">66_g6_magnetofluidwaterfall</div></div>
+<div class="narr">三人抬起头，缓慢睁开眼睛。</div>
+<div class="narr">他们很快意识到洞内的光亮并不来自外界，它来自眼前地上静止不动的液体，以及视线尽头淋漓的——瀑布。</div>
+<div class="narr">液体有着黑曜石般的光泽，在下落过程中折射从高处缝隙中透出的光亮，让洞窟崎岖的内部明亮得如同下过小雨的清晨。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......逆向河。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%236%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">你看出来了？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是的，类似逆向河，“奥卡”本应溢出的部分无法沿倾斜面向外流淌，因此只能往回流，直到像这样“静止”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但它其实保持着某种程度上的流动性，即使没有外力影响。这可能也是他们把它命名为“奥卡”的原因，像河流一样。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">这里到处都是这种液体。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">根本看不出这里是矿洞，简直就像是一个天然溶洞。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">更神奇的是，“奥卡”本身，就像是水一样。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这是什么意思？</li><li>这怎么可能？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">不......只是一个比方。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">沉淀一段时间之后，“奥卡”呈现出的状态非常稳定，甚至可以被当作通用溶剂使用。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">请等一下！就算是这样我们也不能直接用手去接触——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啊......</div></div></div>
+<div class="narr">Mon3tr弯腰，用试管从地上收集起一些液体。她没戴手套，也未做任何防护。</div>
+<div class="narr">湿漉漉的双手晃动着试管中的液体，她的表情凝重起来。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Mon3tr？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%236%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">Mon3tr小姐，你不该直接接触——我带了防护设备，你想要样本的话可以告诉我，让我来采集！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（小声）......博士，我知道这是什么了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%238%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">什么？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>科谢尼娅，样本采集......</li><li>那能麻烦你去采集一下瀑布那边的样本吗？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%231%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">啊，可以。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们就在这里等我，我很快回来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......要小心。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">这种被称为“奥卡”的流体......实际上就是“源石”。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>源石......</li><li>为什么会是这个样子？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">这解释起来稍微有些复杂。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你还记得莱茵生命研究的“递质”，或者伊比利亚炼金术中常被提及的“心相原质”吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我记得。</li><li>它们之间有关系？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">这可能就是它们的原型，或者说原始素材。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>“递质”和“心相原质”的共通点......</li><li>它们都是某种“媒介”。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">没错，能直接与人体产生反应，或留存信息的“媒介”。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>所以这两种产物才都呈现为流体？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">我认为是这样的......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你应该已经了解，源石既是“信息”的载体，也是“能量”的载体。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“递质”与“心相原质”，都是用特定的手段重新刻录了源石能量，用以保留不同信息的产物。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而出现在这里的“奥卡”，是以一种更高效的手段抽空了源石中的能量后，残余的空白物质......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以，它甚至真的就是一种“通用溶剂”。或许这也可以解释那些接触过“奥卡”的感染者为何会出现“变异”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">简单来说，“奥卡”作为一种失去了能量的源石，中和了感染者体内的源石活性，同时也为源石的持续生长创造了前所未有的优越条件。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这或许能暂时维持感染者的生命体征，但是无法改变他们注定很快就会死去的结果。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而那些被注入了“奥卡”的普通人，由于体内几乎毫无活性源石，产生了强烈的排异反应，所以无一幸存......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>它大规模出现在这里......</li><li>那就意味着......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%239%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">这就是我们最应该担忧的事......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，科罗萨主矿脉正在枯竭。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li><li>......</li><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">我们听到的那些传闻，乌萨斯正在加快开采源石的速度......实际上是在掩饰矿脉枯竭的事实。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">从这里，乌萨斯最北端的矿区开始，枯竭的速度还会不断加快。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以大概估算出，四个月之内，乌萨斯境内的源石矿储量将会下降到原有的百分之三十......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这才是女大公封锁矿区的真正原因。</li><li>这件事根本不可能一直隐瞒下去。</li></ul></div>
+<div class="narr">甚至不用问出那个问题，你和Mon3tr对视，脑海中不约而同地浮现出一个名字。</div>
+<div class="narr">那唯一一个有能力做到这件事的人的名字——</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>普瑞赛斯。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">除了她，也不可能有其他人了。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>她为什么要这样做？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">矿脉枯竭的进程无法被干涉，也无法被逆转。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">乌萨斯必定会走向崩溃。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>恐怕不只是乌萨斯。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这种体量的资源枯竭必然会影响整个泰拉。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>难道这就是她想要的？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%238%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">博士，博士！我想到了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“奥卡”也是前文明的遗留......还是你们曾经实验的副产物。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果矿脉枯竭是因为她做了些什么，那这里面可能存在一些有用的信息。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你试试看能不能读取。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我该怎么......？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%232%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">现在条件有限，直接把你的手放进去，就像我刚才采集样本时那样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">放心，它不会对你产生伤害的。</div></div></div>
+<div class="narr">依着Mon3tr的指示，你蹲下身去，把双手都沉入名为“奥卡”的液体当中。</div>
+<div class="narr">你等待了一会儿。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>没感觉到有什么不同。</li></ul></div>
+<div class="narr">你等待着变化，或者回应，就像先前数次发生过的“奇迹”一样。</div>
+<div class="narr">然而最终却什么也没有发生。</div>
+<div class="narr">来自前文明的产物似乎在拒绝、否认你们之间存在某种联系。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们脚下这些会不会已经失去储存信息的功能了？</li><li>或者说，她根本没有想留给我们的信息。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%235%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">......唔，不是没可能。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4208_wintim_1%236%241.png" alt=""><div class="bubble"><div class="who">科谢尼娅</div><div class="text">Mon3tr小姐，博士！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">快过来，我发现了一些新东西！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在瀑布后面有个空洞，爬上去，站到那里——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我发现矿洞中存在一种特殊频率的声音，它很不自然——不，是绝对不自然！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就仿佛......它在试图通过声波传达某种信息！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%238%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">啊......？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们去看看。</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/66_i06.png" alt="66_i06"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">这是——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">瀑布中间还有这样的地方？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>确实......很壮观。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">来，你们仔细听！在所有液体击打岩石的声音里，总有几段频率特别的声音，仿佛在吸引人注意。它们非常不同，你们一定能听见！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我刚才有试着解读我听到的那几段，这花了一些时间，因为要把时高时低的声音完全记录下来——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就是这个！你们听到了吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">我只听到了雨声！甚至听不清你说话——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士？</div></div></div>
+<div class="narr">你只是闭上了双眼，任由所有的声音将你包裹。</div>
+<div class="narr">直到明确听到了那不断变换频率的声音。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我听见了。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">——你是说你听见了吗——</div></div></div>
+<div class="narr">那些陡然闯入知觉的声音，时而由数段频率高的声波组成，时而简短且凌厉，像一张韵调别致的乐谱。</div>
+<div class="narr">但你很快就确定，它理应是某种编码，或者是语言。</div>
+<div class="narr">你尽力捕捉了自己能忆起的所有语言，将它们分门别类，一一对应之后，你意识到这只是同个词语在不同语言中的变体。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">好吧，我抄写下来了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然只是直觉，但如果按照不同移动城市之间使用的通用编码规则来识别这些声音......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我觉得它应该是一个单词，是用很多语言写出来的同一个单词。我可以认出乌萨斯语和高卢语！我觉得这两个词的意思都是——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="sticker">“未知语言”<br></div>
+<div class="narr">......</div>
+<div class="sticker">“спорить”<br>“dibattito”<br></div>
+<div class="narr">......</div>
+<div class="sticker">“débat”<br>“debate”<br></div>
+<div class="narr">......</div>
+<div class="narr">是的。留在矿井中的流体用敲击岩石的形式向你传递了同一个词语——</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_white.png" alt="bg_white"><div class="cap">bg_white</div></div>
+<div class="sticker">“辩论”。<br>“辩论”。<br></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_0_rhodes3.png" alt="bg_0_rhodes3"><div class="cap">bg_0_rhodes3</div></div>
+<div class="narr">是了，Dr.Doctor。</div>
+<div class="narr">如果你依然认为自己的选择是正确的。</div>
+<div class="narr">如果你依然坚定地相信你描述的未来。</div>
+<div class="narr">那就用现实来驳斥我，向我证明......</div>
+<div class="narr">你坚持的......</div>
+<div class="sticker">“希望”。<br></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/66_i06.png" alt="66_i06"></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......这是一个邀请。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">你说什么？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我说，这是一个邀请。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>一个我必须接受的邀请。</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/66_g6_magnetofluidwaterfall.png" alt="66_g6_magnetofluidwaterfall"><div class="cap">66_g6_magnetofluidwaterfall</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（小声）你认为这是普瑞赛斯留给你的信息？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>是的。</li><li>我明白她的意思......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们应该尽快撤离了。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">等科谢尼娅采集完样本，我们就回研究所吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">得想个办法和阿米娅他们取得联络......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>不知道阿米娅他们怎么样了。</li><li>希望阿米娅已经和Raidian他们取得联系了。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......你有没有听到什么声音？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">什么样的声音？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>重物踩在水里移动的声音。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%231%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">瀑布的水声一直挺大的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，你确定不是耳鸣吗？也许是因为刚才需要你大脑同时处理的信息太多，知觉滞留......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......等等。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">科谢尼娅？是你吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>那不是科谢尼娅的脚步声，体重和节奏都不对。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4179_monstr_1%238%241.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">那是......什么——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/66_g6_magnetofluidwaterfall.png" alt="66_g6_magnetofluidwaterfall"><div class="cap">66_g6_magnetofluidwaterfall</div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/66_i11.png" alt="66_i11"></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/66_i11.png" alt="66_i11"></div>
+<div class="narr">癫狂的呼号，急促的呼吸，獠牙之间的黏液不断滴穿水面。</div>
+<div class="narr">暗红的源石贯穿了它整个身躯，似乎是由于这坚硬的钳制，才使它必须像人一样站立。</div>
+<div class="narr">而后，你看到它擎起巨大的前掌——</div>
+<div class="narr">不，不能说是前掌。因为那完全是一双干枯的、人的双手。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......被源石感染的裂兽。</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">我采集完样本了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们......怎么站在这里不动？</div></div></div>
+<div class="narr">与认知不符的怪异裂兽正站在她身后。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>科谢尼娅，快过来！</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">跑，科谢尼娅！往前跑，不要回头看！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我得去带她回来。博士，你去矿车那边，我们在那里会合！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，快走！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">什——</div></div></div>
+<div class="narr">研究员奔跑起来的同时，忍不住回过头去。</div>
+<div class="narr">她只来得及咽下尖叫。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">科谢尼娅</div><div class="text">——陛下在上——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那究竟是什么东西？！</div></div></div></div><div class="nav"><a href="level_main_16-11_end.html">← 上一段</a><a href="level_main_16-13_beg.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maybe · A Light Spark in Darkness</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">A Light Spark in Darkness</a> / <span>level_act10mini_st01</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act10mini/level_act10mini_st01.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Maybe<span class="section-tag"> · Interlude</span></h1><div class="meta">A Light Spark in Darkness</div><div class="story-info">Susie, an Infected, works at the shop &#x27;Green Spark&#x27; in the Victorian town of Caladon. Just as her dreams are about to come true, an accident extinguishes all her hope.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini02_victoria_street_n.png" alt="25_mini02_victoria_street_n"><div class="cap">25_mini02_victoria_street_n</div></div>
+<div class="subtitle">Nightfall.</div>
+<div class="subtitle">The rumble of the Originium boilers has yet to cease. Thick plumes of smog gush out of the towering chimneys.</div>
+<div class="subtitle">The workmen take off their worn-out protective gear and hand it off to the next shift.</div>
+<div class="subtitle">The day is nearing its end here in Caladon.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini01_naturalspark.png" alt="25_mini01_naturalspark"><div class="cap">25_mini01_naturalspark</div></div>
+<div class="narr">November 16th, 1097, 9:50 P.M.</div>
+<div class="narr">Nine in the evening is when the Infected factory nearby changes shifts.</div>
+<div class="narr">Many of the workmen choose to kill time by paying Miss Quercus&#x27;s shop a visit.</div>
+<div class="narr">There is not much the shop has to offer to its patrons.</div>
+<div class="narr">A crude fried fin cutlet, a bowl of tasteless potato soup, and a mug of fruit-wine-flavored water.</div>
+<div class="narr">And yet, the shop has garnered a few regulars.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Cheers!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Cheers!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Hahahaha! Here&#x27;s to Brande!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Hey, Sparky! Another pint!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2311%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Here you go. Your fruit wine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So what&#x27;s going on? Why&#x27;s everybody so cheery?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Mr. Brande just gave us all a bonus along with our payslips for the month!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">They say it&#x27;s a bonus, but it&#x27;s just a hundred pence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And considering they work us to the bone, that&#x27;s the least they could owe us.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You sure you should be here at this hour, though? Might get a beating from the missus?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Jog on! I&#x27;m the king of the castle! She wouldn&#x27;t dare!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Alright. Here&#x27;s to the king of the castle!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Cheers!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, Sparky! Another pint!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... Mr. James, you really should watch your drink, though. We wouldn&#x27;t want to upset Mrs. James.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Sparky, I heard from your boss you&#x27;ve got something stronger than this piss?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Get us some of that!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Not! Happening!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Remember what Miss Quercus told you. Strong drink is bad for your condition!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You need to take better care of yourself, Stone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Come on, what&#x27;s the problem?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This disease is a death sentence. Might as well get a taste of the hard stuff before we cark...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%239%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Don&#x27;t say that!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The doctors in the city told us! Oripathy progresses differently depending on the patient&#x27;s physical condition!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Lighten up, I&#x27;m just...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%239%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Stone!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Um... Yeah?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Take care of yourself and live life to the fullest! Stop saying that word all the time!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Er... Sorry?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Look at you. You got Sparky upset.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">*Sigh*, I didn&#x27;t mean to...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Huh? Looks like we&#x27;ve got quite a crowd here today.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2311%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Good evening, Mr. Root!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Oi, if it isn&#x27;t Bitter Root! Come on, come on! Let&#x27;s drink!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Huh? Something to celebrate today?</div></div></div>
+<div class="narr">Caladon&#x27;s Infected community is home to many a peculiar man, and Bitter Root counts among them.</div>
+<div class="narr">Mr. Root works for an organization called Rhodes Island. He&#x27;s a &#x27;professional&#x27; hired by the lords of the city council.</div>
+<div class="narr">But the way Rhodes Island treats the Infected boggles the mind.</div>
+<div class="narr">&#x27;Rhodes Island will assist the Caladon City Council and provide medical assistance to all Infected,&#x27; said their public address.</div>
+<div class="narr">Why would anyone willingly help the Infected... especially when they&#x27;re not even from here?</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">How&#x27;s work today, Bitt? T&#x27;ain&#x27;t often you get the free time to come for a drink.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">It&#x27;s fine. We hired a few extra pair of hands. Things calmed down quite a bit, thanks to them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Eh? Is it that good working for Rhodes Island? Do they pay well?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">What of it? You interested?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Nah, forget I said anything. I can&#x27;t even read... I&#x27;d just be making a fool of myself.</div></div></div>
+<div class="narr">At first, no one in the Infected community trusted them. There were even rumors that they were here to take the late-stage Infected away for experiments.</div>
+<div class="narr">But Rhodes Island proved themselves with their actions. They really are here to help.</div>
+<div class="narr">Be it a regular Oripathy infection checkup, acute Oripathy attack treatment, or even just a normal workplace injury, you just walk into their clinic, and they&#x27;ll help you.</div>
+<div class="narr">Even right here, right now, there are those who have doubts about Rhodes Island&#x27;s true motives. But at the very least, all of the pub&#x27;s regulars trust them.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">By the way, Jim, I saw your wife on my way here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">What? What?? You sure?! Oh, bugger...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ahem.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Er... You carry on with the drinks. I... I just remembered I&#x27;ve got a few errands to run. See you around!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Hahaha, there goes our &#x27;king of the castle!&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Yeah, yeah, off I go. We&#x27;ll do this another time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Be safe on your way home, Mr. James.</div></div></div>
+<div class="narr">Unlike most of the people in the establishment, Mr. James is not Infected.</div>
+<div class="narr">In Caladon, it isn&#x27;t uncommon to find non-Infected working in the Infected community.</div>
+<div class="narr">Ever since the &#x27;New Caladon Infected Act&#x27; came into place, a lot of the unemployed poor have been risking themselves working in the Infected factories.</div>
+<div class="narr">A great majority of them leave the Infected community as soon as they get off work. They also avoid coming into direct contact with the Infected during working hours.</div>
+<div class="narr">That&#x27;s understandable. All of us Infected have gotten used to the attitude, and no one blames the non-Infected workmen for it.</div>
+<div class="narr">Though, still, there are people like Mr. James.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">*Sigh*. There goes my drinking buddy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Come on, Bean, stop spacing out over there. Have a few pints with me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Quiet down. I&#x27;m reading the newspaper.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">What&#x27;s the headlines?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">It&#x27;s all been big news the last couple of days! The whole town&#x27;s talking about it. Don&#x27;t tell me you haven&#x27;t heard!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">The new bill, is it? That&#x27;s some big news, indeed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">What new bill?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">The one that&#x27;s going to improve how us Infected workers are treated! Do you ever do anything except drink? This bill&#x27;s going to be massive for all of us!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Peh, and here I thought it was something that actually mattered.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re naive, you know? I gave up on that hokum long ago.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">What, you don&#x27;t want them to start treating us better?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">You think the lords actually care about us Infected? On your bike!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I guarantee you, this bill thing&#x27;s bound to fail. It&#x27;ll be unanimous, even. And then it&#x27;ll be like nothing ever happened.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They&#x27;re doing this just for show, I tell you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Aha! Too bad, then! You&#x27;re wrong.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The bill didn&#x27;t pass, but it didn&#x27;t fail either.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It was a tie. The final decision&#x27;s going to have to wait till next time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">I&#x27;m still not buying it. It won&#x27;t pass. What does the paper say, though? What&#x27;s in that bill, specifically?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">One second. Let&#x27;s see... I remember some bits and pieces of it back when they announced it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, take a look. It says here that Infected workers cannot work more than fifteen hours a day, that the factories have to give the Infected the same kinds of Originium protective equipment as non-Infected...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Pfft. Don&#x27;t make me laugh.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s a snowball&#x27;s chance that&#x27;s true. What&#x27;s that saying again? There&#x27;s no pies in the sky?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What would you outlanders even know? Me, I&#x27;m a born-and-bred Caladonian. I&#x27;ve seen how they do things my whole life. No one knows the nobles how I do.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re still counting on those stingy tosspots to do anything for you out of their pockets? Dream on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">*Sigh*... You want to at least hold out some hope... Keep a positive outlook on things.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">There&#x27;s no need to be so negative. Who could&#x27;ve thought ten years ago that they&#x27;d pass that New Caladonian Infected Act, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Now that, that&#x27;s apples to oranges.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Us Infected can work their factories, and the heads only have to pay us half the money. They get to pocket the other half! Of course they passed that bill!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">That&#x27;s true. Oftentimes, they don&#x27;t even pay us with cash, just Wage Tickets.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Things take time. I think you could be more optimistic about this.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Keep in mind that Caladon willingly accepts Infected from all the cities out there, and even offers work. You don&#x27;t see that anywhere else in Victoria.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">I heard from some of the foremen these policies are... what... &#x27;Columbian-style?&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are all the Columbian cities like this?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Well... It&#x27;s complicated. There&#x27;s a tiny bit of difference.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Whatever, time for a new topic. Any other news?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Let&#x27;s see...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Terror in Caladon! Loud Roars Heard Underground at Night!&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And then... &#x27;Possible Infected Smuggling Activity Spotted in Abandoned Districts in Caladon Outskirts.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then there&#x27;s also this... &#x27;Public Safety in Jeopardy, Convicts and Wanted Criminals Have Infiltrated the Infected Community.&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Why are all the headlines like that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">That&#x27;s the &#x27;Caladon Daily&#x27; and their rubbish reporting for you. They love their terrorizing headlines, and they take care to add the word &#x27;Infected&#x27; in there. Just talking about those hack journos makes me want to puke.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">It&#x27;s true, but you should still be careful, Susie. Caladon hasn&#x27;t been all that safe lately.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... I&#x27;ll watch out. Thanks.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G7_decisivebattlealley_d.png" alt="21_G7_decisivebattlealley_d"><div class="cap">21_G7_decisivebattlealley_d</div></div>
+<div class="narr">November 17th, 1097, 8:40 A.M.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Fin fillets, potatoes, green onions... I guess that&#x27;s about it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, and the pepper, too!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I just have to deliver these to Mr. Kells, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Citizen</div><div class="text">Yes, please.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">On my way!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Protester</div><div class="text">Foreigners go home!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Out with the Infected! This is our home!!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Out with the Infected!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s the Infected&#x27;s fault us porters lost all our jobs!</div></div></div>
+<div class="narr">It&#x27;s not uncommon to find people protesting the Infected community here in Caladon.</div>
+<div class="narr">When the city council passed the New Caladonian Infected Act four years ago, a large group of Infected migrated to the city for work all at once.</div>
+<div class="narr">But the hostility between the non-Infected and the Infected didn&#x27;t improve.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Hey, you! The Infected there! Get over here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">I-I&#x27;m just walking past...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What&#x27;s that you&#x27;re holding? Eh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">It&#x27;s just...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What&#x27;s that in your basket! Let me see it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">These are items I&#x27;m delivering to a customer!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Shouldn&#x27;t your lot be working in the factories right now? What are you wandering around here for?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">It&#x27;s part of my job to deliver things too...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Who said you could talk back?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%235%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Urgh...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Ouch...)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Spark... Arts...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Bear with it, Susie... Don&#x27;t fight back...)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(This isn&#x27;t the first time something like this has happened...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What gives you Infected the right to walk the streets in broad daylight anyway?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s all your fault the air here has gotten so polluted!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bunch of pests! Go back to the sewers, where you belong!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">(But you&#x27;re the one who came to the Infected community...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What? What are you looking at me for? Looking for a fight?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">That&#x27;s enough, mister. Let&#x27;s not overdo it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">And who are you?</div></div></div>
+<div class="narr">The tall, masked man helps the Feline girl up and turns around to face the thug.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">There&#x27;s no reason to lay hands on an unarmed lady now. It&#x27;s not a very honorable thing to do, wouldn&#x27;t you agree?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What? She&#x27;s just an Infected!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And what&#x27;s with you? Trying to be a hero?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Well? If you want some, come and get it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Coward.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Mr. Red!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Hmph.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m afraid I don&#x27;t have what it takes to offend you, kind sir.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Though before you continue, I should inform you that I have Originium crystals on my face, and your punch landed right on one.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">W-What...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Oh, sir, this isn&#x27;t good. Look, I&#x27;m bleeding out of my mouth, and your hand is injured.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It might just get you infected too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">What?! But...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Protester</div><div class="text">Hurry! To the hospital! You can still make it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Loud-Mouthed Man</div><div class="text">Damn you, Ursus! You&#x27;d better watch your back! You&#x27;ll regret this!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_195.png" alt=""><div class="bubble"><div class="who">Protester</div><div class="text">Enough now! Get to the hospital!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Um, thanks... Mr. Red.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A-Are you okay?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Don&#x27;t worry about me. I&#x27;m used to taking a beating.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I could ask you the same. Look at your face. It&#x27;s all swollen.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">I-I&#x27;m okay... I&#x27;ll put some ice on it when I get home.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">There&#x27;ve been more anti-Infected protests here lately. You should avoid this area on your way back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Where are you headed? I&#x27;ll go with you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2312%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Thanks, but don&#x27;t you have work? I wouldn&#x27;t want to be a bother...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Don&#x27;t worry yourself. I have errands in the area too.</div></div></div>
+<div class="narr">Mr. Red works at a nearby factory, and he visits the shop sometimes.</div>
+<div class="narr">He may be from Ursus, but he doesn&#x27;t like to drink. He prefers to read a book in the shop all by himself.</div>
+<div class="narr">The other workers seem to really respect him. They all call him &#x27;the bossman&#x27;.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">But... Mr. Red, is that man really going to catch Oripathy?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Of course not. You don&#x27;t just get infected like that. I was only scaring him.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oripathy can spread through blood, but he only had some minor scrapes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s pretty effective as a bluff, though.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha, I see.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini01_naturalspark.png" alt="25_mini01_naturalspark"><div class="cap">25_mini01_naturalspark</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Those bastards... What a lot of utter scumbags!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Laying hands on a young lady? Have they no shame?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Don&#x27;t get yourself all worked up. I&#x27;m okay.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%237%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">So they ran off after they hit you? Did you see where they went?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">They ran north, so my guess is they headed to the Boil.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%234%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">The Boil, eh? It won&#x27;t be easy to find them, then.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In any case, I&#x27;ll make a note. They&#x27;ve been fairly short staffed at the Guards lately.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Does your face still hurt? Need me to massage it a bit?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Haha... It&#x27;s okay. Don&#x27;t worry about me, Officer Grani.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%236%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">It&#x27;s true how Caladon hasn&#x27;t been that safe lately... but I didn&#x27;t expect you to get attacked, Susie.</div></div></div>
+<div class="narr">Officer Grani isn&#x27;t with the local Caladon Guards. She&#x27;s a Mounted Police officer temporarily loaned to the local guards and assigned to the Infected community.</div>
+<div class="narr">Of course, the Caladon Guards aren&#x27;t very interested in keeping the Infected safe. This &#x27;short staffed&#x27; business seems to be an excuse, too.</div>
+<div class="narr">Which makes Officer Grani one of very few local law enforcement officers willing to help the Infected.</div>
+<div class="narr">Though just the few of them alone... can&#x27;t solve all of the community&#x27;s safety problems.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%236%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">No loss of property... and that&#x27;s filed. This is all I can do for you right now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m off now. Come find me if there&#x27;s any more trouble.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Thank you, Officer Grani.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">The idiots better hope I don&#x27;t find them first.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">What if you do find them?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">I&#x27;ll beat the life out of them!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Think, Stone. The moment you lay a finger, everyone around will start screaming and making a fuss.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then, the next morning, the front page of &#x27;Caladon Daily&#x27; will read &#x27;Infected Batters Innocent Citizen, Security Problems Worse by the Day.&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Well...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">And I remember that rotten boy and his loud mouth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A month ago, he was protesting the crowd in overalls, complaining how the factory he worked at was shut down because of the Infected.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Two months ago, he protested with the hawkers and said the Infected stole his merchandise.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So what is he today?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">I think he said he was a &#x27;porter&#x27;?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">What in the world!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Sounds like something the gangs of the Boil would do. He was probably hired. Now which lord did we offend again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">The Infected community&#x27;s always been a thorn in the side of certain people. As long as the councilors who support the new bill aren&#x27;t in the majority, these things will keep happening.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;d better keep our eyes peeled.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">This prick, though... Forget Susie. He even tried to fight you, bossman, and how dare he!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Alright, enough. Your pint&#x27;s getting lonely.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">*Sigh*... How am I supposed to drink, knowing our little Sparky got harassed?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha, you&#x27;re just exaggerating.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Sparky, take this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Huh? What is it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">It&#x27;s an ointment that helps reduce swelling. Anywhere it hurts, just rub some on there after you wash your face tonight.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Huh? Now how come you&#x27;re not giving me some of that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">This is from Yan! You know how expensive it is? Besides, look how rough you are! What do you need it for?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Oh... If it&#x27;s that expensive, I can&#x27;t take it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">No, do. Best not work a pub with a swollen face.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... This isn&#x27;t exactly a pub, though...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thanks, Mr. Bean.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In that case, your drinks are on the house tonight.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Now that&#x27;s what I&#x27;m talking about!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_outcounty.png" alt="bg_outcounty"><div class="cap">bg_outcounty</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%236%241.png" alt=""><div class="bubble"><div class="who">Exhausted Woman</div><div class="text">Susie, are you sure you have to go?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Yes, Mum... Staying here... isn&#x27;t going to do any of us any good.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Exhausted Woman</div><div class="text">No, Susie, listen to me... I found another job this month. Don&#x27;t worry about the medicine. We&#x27;ll figure something out!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%235%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Please don&#x27;t... I can&#x27;t be a burden on the family anymore, not when my baby brother and sister still have school. And when my big brothers are all still healthy.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%235%241.png" alt=""><div class="bubble"><div class="who">Exhausted Woman</div><div class="text">I can&#x27;t let my daughter go to another city alone!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Don&#x27;t worry about me. I heard how the Infected working in Caladon get medicine as part of their pay.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Exhausted Woman</div><div class="text">I&#x27;m sorry... It&#x27;s all my fault, Susie... I&#x27;m so sorry.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">I&#x27;ll take care of myself. Don&#x27;t worry, Mum.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini01_naturalspark.png" alt="25_mini01_naturalspark"><div class="cap">25_mini01_naturalspark</div></div>
+<div class="narr">November 18th, 1097, 9:20 A.M.</div>
+<div class="narr">Every now and then, I dream of my family.</div>
+<div class="narr">I was born in Boschendal, a small town at the northern edge of Victoria.</div>
+<div class="narr">When I was little, back when my father was still alive, he would take our whole family out to picnics.</div>
+<div class="narr">When you&#x27;re up on Mount Shay, gazing out into the distance, you can even see the vast Kazimierzian Plains.</div>
+<div class="narr">It&#x27;s been five years since the last time I went home, but my mother still sends me letters.</div>
+<div class="narr">My family&#x27;s situation has taken a turn for the better since I left. It was difficult to pay all the expenses an Infected needs with just my mother and my brothers&#x27; income.</div>
+<div class="narr">They&#x27;re living a better life, and that&#x27;s more than enough for me.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2311%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Welcome!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Look who&#x27;s here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Huh? Hi, boss!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%238%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Li&#x27;l~ Susie~</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let me give your ears a good rub!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... boss... that tickles!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%231%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Boss again? Come on, don&#x27;t be such a stranger!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... Miss Quercus.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%236%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Hm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Quercus...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">That&#x27;s more like it!</div></div></div>
+<div class="narr">Quercus is a free-spirit, and also the owner of the shop.</div>
+<div class="narr">Although most people here treat it like a pub, it&#x27;s actually Quercus&#x27;s arboretum and lighting shop.</div>
+<div class="narr">Many have asked us why she would open such a shop in the Infected community.</div>
+<div class="narr">And her answer has always been a very simple one.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Why open a lighting shop?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because I want to.</div></div></div>
+<div class="narr">That said, Quercus actually spends very little time in Caladon.</div>
+<div class="narr">The shop seems only to be a hobby of hers. In other words, she really meant it when she said she wanted to. She mostly works as a Messenger, spending her time bustling about in the wilderness. Most people call her the &#x27;Druid of Gododdin.&#x27;</div>
+<div class="narr">By the way, Quercus&#x27;s Arts are actually very unique. She plants all kinds of strange flora around the shop, and she brewed most of the alcohol we sell here herself.</div>
+<div class="narr">She even gave me my staff and Arts Unit because they can apparently help me control my own Originium Arts.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Why did you come back this time? Did you need something?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Oh? I&#x27;m not allowed to come see you without a special reason?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">I have something to take care. What, have you forgotten? It&#x27;s almost the end of the year!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Oh, right...</div></div></div>
+<div class="narr">This is a defining moment for me.</div>
+<div class="narr">I&#x27;ve been saving up money for a few years now. I want to buy this place.</div>
+<div class="narr">I want to have my own shop here in Caladon. No matter what I do, this will be the beginning of my independence.</div>
+<div class="narr">And Quercus often tells me that the shop&#x27;s landlord has been thinking about renting to someone else, and that she doesn&#x27;t have much time to take care of it.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">So you&#x27;ve saved up all this? That&#x27;s amazing, Susie!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">But, Quercus... Are you sure it&#x27;s okay? Isn&#x27;t it a bit on the low side for a place like this?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">How many times have you asked me that now? Do you not trust me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">No, I mean... Of course I trust you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">I&#x27;ll get you a meeting with the landlord sometime next week for you to work out the details. He&#x27;s a dependable one.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Next week, huh...?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini01_naturalspark.png" alt="25_mini01_naturalspark"><div class="cap">25_mini01_naturalspark</div></div>
+<div class="narr">November 18th, 1097, 9:56 P.M.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Here&#x27;s your tea, Miss Mountbelan.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%2311%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Thanks.</div></div></div>
+<div class="narr">Ethelflaed Julie Mountbelan is one of our regulars. She&#x27;s just Miss Mountbelan to us.</div>
+<div class="narr">She&#x27;s another of Rhodes Island&#x27;s experts. She&#x27;s in charge of coming up with solutions to solve Infected problems for the council.</div>
+<div class="narr">Just like Mr. Root, she got along with our other customers straight away.</div>
+<div class="narr">The Mountbelan name is known far and wide in the country, so I still haven&#x27;t grown completely used to seeing a lady from such a prestigious family having tea around the Infected community.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%239%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Judging by your look, I suppose the lords did something to make you unhappy?</div></div></div>
+<div class="narr">Miss Mountbelan takes a sip of tea. Both her lips and the blood vessels on her forehead are twitching.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%238%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Can you believe it? Can you believe it?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I spent two weeks preparing all that data, and they only read a single page of it!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just one page!!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How short-sighted can they be?! The issues I raised are urgent to the point they need addressing right now! You can&#x27;t tell me it doesn&#x27;t worry them one bit?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%235%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Oh, they don&#x27;t worry about the fire until it&#x27;s started burning them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%238%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">It this drags on, it&#x27;ll immolate them completely.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hasn&#x27;t the Reunion mayhem in Gododdin taught them anything?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%231%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">The flames of Reunion Gododdin were stomped out two years ago. Why would it be a problem to these noble lords?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%239%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Things aren&#x27;t that simple, though! It&#x27;s as though they don&#x27;t even understand the crux of the matter! Reunion isn&#x27;t just a band of thugs or bandits. There&#x27;s a reason they started that uprising.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Oi, is it just me or did it get warmer in here all of a sudden?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Yeah, I think it did.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%236%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Not again. Cool it a little. Don&#x27;t burn my store down.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%236%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">*Sigh*... Never mind.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... Calm down, Miss Mountbelan.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re off work. Try to keep a happier face on, I think.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Here, give these a try.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%235%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">What do you have here... Sweets?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">That&#x27;s right. Quercus made these vanilla mints herself. Let them calm your rage.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%231%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">*Sigh*... Thanks...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I was on a holiday in Siesta just a few months ago... and now I&#x27;m starting to miss that place.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">It sounds like you&#x27;ve really had it tough, Miss Mountbelan. Loosen up some if you can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%236%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">At least I have you lot to listen to me grumble here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">You can&#x27;t do that at Rhodes Island?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%236%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">You think my case is bad? Everyone has it tough there... Kicking up a fuss at work would only hurt morale.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Don&#x27;t worry, we&#x27;re all a bunch of idiots. By the time you finish a sentence, we&#x27;ve gone and forgotten what you said.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%236%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">So, what conclusion did the lords arrive at?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%238%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Well, halfway through the meeting, they started fixating on all those silly rumors.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%236%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">You mean like the &#x27;sounds in the city underground&#x27; and &#x27;criminals have infiltrated the Infected community?&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">In the end, it&#x27;s all the Infected&#x27;s fault, eh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%238%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Right, it&#x27;s all just baseless conspiracy theories. It&#x27;s a mystery to me who&#x27;s even been spreading them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Anyway, the meeting devolved into a pointless shouting match after that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">It sounds like a lot of the lords support the Infected community, though?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">We do solve a lot of their problems, after all. Some of the lords have made a good bit of dough over the last few years. Likelihood is they&#x27;re just more amenable to it than most, considering they&#x27;re directly profiting.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%2310%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Besides, the community doesn&#x27;t only concern the Infected anymore. There&#x27;s plenty of non-Infected working here now, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">That&#x27;s true. I&#x27;m one of them right here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_166_skfire_1%236%241.png" alt=""><div class="bubble"><div class="who">Skyfire</div><div class="text">Right, that&#x27;s a fair point... but talking about it all here and now won&#x27;t change a thing. I still have other engagements tomorrow, so if you&#x27;ll excuse me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Be careful out there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Now setting that aside...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why are you working here in our community, James? It&#x27;s strange for me to say, but isn&#x27;t it a bit risky, on shift with the Infected?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Risky... eh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell you the truth, risks are, in the end, nothing more than an unknown. Putting food on the table, that&#x27;s the immediate problem.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If worse comes to worst, suppose I actually catch Oripathy, my family are still going to live better than if I didn&#x27;t have a job.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve got two little mouths to feed. I can&#x27;t just leave it to my wife to be the breadwinner. Besides, it&#x27;s not like she makes much, selling scarves. We wouldn&#x27;t be able to get by.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My mum&#x27;s got asthma. It costs an arm and a leg to treat. My dad&#x27;s got some serious bone disease too. He can&#x27;t even get out of bed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t have a choice. If only I could find better work...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">*Sigh*... How come it sounds like your life&#x27;s more of a mess than mine?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Why&#x27;re you so quiet today, Stone? Did something happen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">*cough*... How old did James say his kids are again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">One&#x27;s eight, the other twelve. Why?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">No... No reason. Just thinking.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Come on, if you&#x27;ve got something on your mind, just say it. It&#x27;s not like we&#x27;re strangers.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Did you run into some kind of trouble, Stone?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Trouble, huh...? *Sigh*.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I-I got a letter from my wife. She said she&#x27;ll come pay me a visit with our daughter.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">A daughter? You have a daughter?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Eh? I didn&#x27;t know you were married!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">What?! Is it that strange to you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">No, not like that. Just... an Infected having a kid...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Oh, don&#x27;t you worry about that. I caught Oripathy afterwards. My wife and daughter are fine.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Isn&#x27;t that a good thing? Why the long face?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Right, you got Oripathy, and your wife didn&#x27;t abandon you. Wish the missus cared about me like that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">*Sigh*, look at me. How am I supposed to face them the way I am now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">What&#x27;s wrong with the way you are?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Right, why look down on yourself like that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%239%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">It&#x27;s true, though. You&#x27;re not exactly in good shape to see her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why don&#x27;t we get you a haircut? You could at least be a little better groomed?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Alright! If it&#x27;s a haircut Stone needs...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Brandishes a pair of scissors and a comb)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Hold your beasties! You know how to cut hair, Sparky?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Now, don&#x27;t underestimate her! My girl Susie&#x27;s a master hairdresser.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2310%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Ta-dah!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Well, doesn&#x27;t that look pretty good?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">I don&#x27;t usually cut it so short. Feels all breezy...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Hey, you&#x27;re looking fresh.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%233%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">I think you can do a lot for yourself if you pay just a little more attention to your hair, Stone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">*Sigh*. Look at me, though. My life&#x27;s a disaster. How am I supposed to find time to care about my hair?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Don&#x27;t think like that!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s because life&#x27;s so hard that we should find our own ways to live better.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Right. No one&#x27;s ever said the Infected have to live in misery.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Chin up. Your wife will be delighted to see you like this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Take it slow. You come to my room later.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve got some clean clothes I&#x27;ve been holding onto. Haven&#x27;t worn them much. Give them a wash and see if they fit.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Eh... You sure about that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">What&#x27;s to stand on ceremony? Just take them!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now come on, drink up!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini01_naturalspark.png" alt="25_mini01_naturalspark"><div class="cap">25_mini01_naturalspark</div></div>
+<div class="narr">November 23rd, 1097, 10:35 A.M.</div>
+<div class="narr">Today&#x27;s the day.</div>
+<div class="narr">I&#x27;m meeting the landlord.</div>
+<div class="narr">There&#x27;s a thick stack of cash in front of me.</div>
+<div class="narr">Six thousand, five hundred pounds. This amount of money was once unthinkable to me.</div>
+<div class="narr">When I was little, one of my brothers broke an Originium lamp we had. Mum gave him a really good spanking.</div>
+<div class="narr">That was the first time I saw her get that angry. She needed that lamp to patrol the mineshaft at night.</div>
+<div class="narr">The lamp was worth a hundred and fifty pounds. It was almost her entire month&#x27;s salary. That&#x27;s what got her so angry.</div>
+<div class="narr">How many Originium lamps could six thousand and five hundred pounds buy?</div>
+<div class="narr">I assess the enormity of the heavy, foul-smelling pile of sacrifice before me.</div>
+<div class="narr">All the meals I&#x27;ve skipped over the years. All the hardships I&#x27;ve suffered through.</div>
+<div class="narr">Six thousand, five hundred pounds.</div>
+<div class="narr">These sheets of paper are like a bridge I laid myself, brick by brick. On the other side stands my dreams.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Susie! Get it together!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re just meeting with the landlord! He&#x27;s just a landlord!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From tomorrow onwards, you&#x27;ll be the shop&#x27;s owner! Your dream is coming true!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re almost there, Susie!</div></div></div>
+<div class="narr">I look in the mirror and give my cheeks a good slap.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">How should I greet him?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Nice to meet you, sir! I&#x27;m very glad to...&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, the smile&#x27;s too stiff.</div></div></div>
+<div class="narr">My dream is about to come true, but I don&#x27;t feel the least bit excited. On the contrary, I&#x27;m growing more and more afraid of seeing the man about to walk into the shop.</div>
+<div class="narr">The landlord... What kind of a person is he?</div>
+<div class="narr">Is he infected or not? Will he really sell the shop to me?</div>
+<div class="narr">He&#x27;s selling it to me so cheap. Could it be a scam?</div>
+<div class="narr">Is he doing this because, like everyone else, he just wants to make fun of me, to humiliate me?</div>
+<div class="narr">M-Maybe Quercus isn&#x27;t Infected either... Maybe they&#x27;re in on this together, just to...</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%239%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Ahhh! What am I thinking!</div></div></div>
+<div class="narr">I smack my face hard.</div>
+<div class="narr">I&#x27;m using pain to suppress these shameful, despicable emotions.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%238%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Don&#x27;t be like this, Susie! This is hideous!</div></div></div>
+<div class="narr">I stare into the mirror. The only thing that can be heard inside the quiet shop is the clock&#x27;s ticking.</div>
+<div class="narr">It&#x27;s like torture.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Susie! Are you there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Ehhh?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Watch your Arts!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s the matter with you? What are you so scared of? Did something happen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">No... I&#x27;m okay! Good morning, Miss Quercus.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%2310%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">(Doubtful glare)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Look at those dark circles under your eyes!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s wrong? Did you not sleep well?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Hahaha... I was a little nervous.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Good morning, Miss Susie.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Oh! Mr. Root! Sorry, I didn&#x27;t see...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Huh? What time is it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, sorry, Mr. Root. We aren&#x27;t open today. Did you need something?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">You haven&#x27;t told her yet, Quercus?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Oh, you&#x27;re right. I haven&#x27;t.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2312%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">I forgot to mention it, but he&#x27;s the landlord who owns the shop.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Eh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ehhh??</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Root&#x27;s the landlord? So the previous owners signed their contracts with Mr. Root?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">It&#x27;s a long story... Anyway, Rhodes Island actually owns this property.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve heard the details from Quercus. Miss Susie, you want to buy the store, is that right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Permit me to ask, then. What kind of business do you want to run here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Business?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh! Business!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">M-My father was a hairdresser.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When I was little, he often said... we shouldn&#x27;t change our attitude towards life just because we&#x27;re poor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hairdressing may seem trivial, but if someone&#x27;s putting in the effort to keep themselves groomed, then they must still carry the will to live.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s why I thought...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It would be nice... to open a hair salon in the Infected community.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Hairdressing, huh...? For the Infected?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That sounds very nice.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s a deal, then! Someone will come to sort out the contract later.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Eh? That&#x27;s it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">We&#x27;ve known each other for a long time, haven&#x27;t we? You&#x27;ll be fine, Susie.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%2312%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">My own shop... It feels like... I&#x27;m dreaming.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That reminds me. Where will you go now, Miss Quercus? Are you going to leave the city?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%239%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Oh, don&#x27;t look at me like that. It&#x27;s not like I won&#x27;t ever come back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll stop by every now and then. I have lots of friends in town, you know?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Bitter Root</div><div class="text">Oh, and one last thing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Susie, Quercus got you a little gift.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">A gift? Huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Come, Susie. Everyone&#x27;s waiting for you.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G7_decisivebattlealley_d.png" alt="21_G7_decisivebattlealley_d"><div class="cap">21_G7_decisivebattlealley_d</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Congratulations!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%235%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">You did it, Susie!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Officer Grani! Why are you here?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Alright! Now Sparky&#x27;s the owner! Make sure you keep the booze we like on the taps!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_328_1%241.png" alt=""><div class="bubble"><div class="who">Red</div><div class="text">Congratulations, Susie.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%234%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Mr. Red! Aren&#x27;t you supposed to be working?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_002.png" alt=""><div class="bubble"><div class="who">Stone the Infected</div><div class="text">Oh, we took the day off. We weren&#x27;t going to miss the moment you took over the shop.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">That&#x27;s right. I&#x27;ve been coming here every day for the last few years now. I probably know this place better than I do my own home.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Your wife could give you a good socking for that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Alrighty, then. Miss Susie, our new owner, the shop is all yours!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*Sob*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%234%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Oh, why are you tearing up? Don&#x27;t cry!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_005.png" alt=""><div class="bubble"><div class="who">James the Worker</div><div class="text">Yeah, no crying.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Life&#x27;s been hard for all of us lately. It&#x27;s not often we get something to celebrate, yeah?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Cheer up!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_329_1%241.png" alt=""><div class="bubble"><div class="who">Bean the Infected</div><div class="text">Anyway, it doesn&#x27;t matter what you turn the place into. I&#x27;ll be here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_220_grani_1%235%241.png" alt=""><div class="bubble"><div class="who">Grani</div><div class="text">Hahaha... What&#x27;s this? Tears of joy?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%235%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">(Breaking up) Miss Quercus... I...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_492_quercu_1%237%241.png" alt=""><div class="bubble"><div class="who">Quercus</div><div class="text">Okay, okay now. No more tears...</div></div></div>
+<div class="narr">My dream—</div>
+<div class="narr">To the Infected, dreams are distant and unattainable.</div>
+<div class="narr">My dream has always been to have my own shop, my own life.</div>
+<div class="narr">So I wouldn&#x27;t have to be a burden on my family anymore.</div>
+<div class="narr">And now, my dream is about to come true. It&#x27;s an unimaginable luxury for an Infected.</div>
+<div class="narr">Does that make me lucky?</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_mini02_victoria_street_n.png" alt="25_mini02_victoria_street_n"><div class="cap">25_mini02_victoria_street_n</div></div>
+<div class="narr">November 24th, 1097, 6:35 A.M.</div>
+<div class="narr">Smoke...</div>
+<div class="narr">A thick layer of smoke spreads from a corner of the Infected community, breaking the morning tranquility.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Guards Member</div><div class="text">Evacuate the nearby residents first!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You there, quit dawdling about! Nothing to see here!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Firefighter</div><div class="text">Over here! The fire&#x27;s still going!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Check again for casualties! This is the Infected community!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Look for any traces of Originium, like damaged appliances!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t let any activated dust spread!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Guards Member</div><div class="text">Bloody hell... Why&#x27;s somebody setting fires around here?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%237%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Why...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Guards Member</div><div class="text">Evacuate everyone first! Hey, you, Feline over there! What are you doing?!</div></div></div>
+<div class="narr">Smoke...</div>
+<div class="narr">The smoke and scorched stench fill the air.</div>
+<div class="narr">The burning leather and timber crack apart in the lingering heat.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Firefighter</div><div class="text">Don&#x27;t run in there! Are you daft?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%232%241.png" alt=""><div class="bubble"><div class="who">Guards Member</div><div class="text">Hold her back!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%231%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Why...</div></div></div>
+<div class="narr">The girl is unwilling to believe what she sees before her. She wants to close her eyes.</div>
+<div class="narr">This has to be a dream.</div>
+<div class="narr">This has to be a bad dream.</div>
+<div class="narr">Right. The moment she opens her eyes, she&#x27;ll be free of this nightmare.</div>
+<div class="narr">Yes, when she open her eyes, she&#x27;ll be greeted by the same old ceiling. A new day awaits her. A new day with her own shop.</div>
+<div class="narr">But the shop before her is nothing but a pile of rubble engulfed in flames.</div>
+<div class="narr">Of the sign that once read &#x27;Green Spark,&#x27; nothing remains but a few burnt fragments. It matches the walls and ceiling, long since rendered ash.</div>
+<div class="narr">Before her eyes lies what was once her dreams, her hopes, and her future.</div>
+<div class="narr">All of it now buried in this burning rubble.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_377_gdglow_1%235%241.png" alt=""><div class="bubble"><div class="who">Susie</div><div class="text">Why...?</div></div></div>
+<div class="narr">The will that once helped the Feline girl through countless tribulations can support her small body no longer.</div>
+<div class="narr">She falls to her knees.</div>
+<div class="narr">The scorching ashes burns her hands and legs. The broken fragments cut through her skin.</div>
+<div class="subtitle">In the ruins of despair, an Infected lost everything.</div>
+<div class="subtitle">And so the blaze is extinguished.</div></div><div class="nav"><span>← Prev</span><a href="level_act10mini_st02.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

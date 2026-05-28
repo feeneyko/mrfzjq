@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>守护者 · 覆潮之下</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">覆潮之下</a> / <span>SV-7</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act18d3/level_act18d3_07_beg.html" class="">English</a></div>
+  </div>
+  <h1>守护者<span class="section-tag">SV-7 · 行动前</span></h1><div class="meta">覆潮之下</div><div class="story-info">居民们纷纷走上海滩，聆听主教的教诲。斯卡蒂终于找到歌蕾蒂娅，歌蕾蒂娅要求她弄清楚心中所想。看着欣喜进食的居民和逐渐逼近的海怪，斯卡蒂找回了深海猎人的使命。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ibcoastn.png" alt="bg_ibcoastn"><div class="cap">bg_ibcoastn</div></div>
+<div class="subtitle">海滩上已经铺满了食物。</div>
+<div class="subtitle">人们的请求得到了大海的回应。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">男性居民C</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">鳞。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">......壳。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">能吃。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">能吃。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">多一点，再多一点......塞满嘴巴。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">漏了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">捡起来，吞下去。更多一点......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">带走。带回去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">带回去。塞满身体。塞到塞不下。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">教士......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">教士。</div></div></div>
+<div class="subtitle">他们愿意暂时停下来。他们抬起头，望向他们的兄弟。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">兄弟姐妹们，尽情享受你们的早餐吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这是对善行的奖赏，只因饥渴与病痛并未击溃我们，而是令我们更加真挚，更加团结，更加友爱。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这种长篇大论的表演，从一个城市到另一个城市，你竟不觉得腻。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">何为表演？将祂的伟岸与仁爱带到陆上，令无知者领受，我本就乐意之至。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">他们什么都听不懂。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">我们的海洋将一视同仁。</div></div></div>
+<div class="subtitle">主教慈爱地拍了拍正在努力吞咽的男人的胳膊。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">来吧，兄弟，将你手上这块鳞肉分享给你受苦的兄弟。你要相信，舍下这一小块，他的满足会使得你的心灵愈加满足。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_188.png" alt=""><div class="bubble"><div class="who">男性居民C</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">而你，你应同你的兄弟道谢，感激他舍下他本可以拥有的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你俩站在一起，手握着手，足抵着足，共享彼此的性命，自此你们将更伟大。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_189.png" alt=""><div class="bubble"><div class="who">男性居民D</div><div class="text">谢......教士......老爷。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">乖孩子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">约定并不在你与它之间。而是他们和它，经你的手。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">约定？不，约定是双向的，这些受苦的人还不足以令大海有所求。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们请求，大海给予回应。而我帮助他们，令他们的声音能被听见。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你既然已将自己当作我们的一部分，你自然清楚规则。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">请原谅我的生疏。我可以换上更恰切的措辞——你将他们的血肉筑成通路，从而在教会内部获得你想要的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">无论怎么说，你没必要每次现身。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">你怎知我要什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">高人一等的快感很容易使人沉溺。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">谬误。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">身为海的最虔心的造物，我的地位并非伪妄。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我站在这里，只是因我发自真心想救他们。若是没有我，他们早就化成了这陆上的一滩滩肮脏腐肉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">疾病，饥饿，这些具体的敌人，如果还能对抗，便不是最深的苦难。最深的苦难来自人心灵的深处。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当人们发现灾难已无法对抗，他们无论做什么都将把自己引向不可避免的衰亡，这才是真正苦难到来之时。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">像这样的城镇，伊比利亚还有多少？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这片庞大的国土早已支撑不起人们对它的诉求，这里的人与人却依旧困缩在各自逼仄的皮囊内，或彼此隔绝，或互相争斗。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">您对伊比利亚的关心令人赞叹。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">你又错了。我在意人们的苦，而非区区陆上的国境线。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">人都是如此，不是么？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">囿于自身肉体的限制，难以凭自己的力量打开对自我和对族类的执着，一味地选择对抗而非理解。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这样下去，再强大的个体都免不了被逐个击破，苦难终将吞噬每一个角落。你也曾见证，你也曾动摇。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">对我说这些，真的有必要？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">或许我说的还不够多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">真知总是值得传述，无论听者是否愚钝如你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">又或者，看在这段时间的共事之情份上，不如将这段话作为消磨等待时间的小小娱乐。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">您的言语技巧的确非同凡响。难怪沉迷的人这么多。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">你仍然无法理解。我比真诚更真诚。我对他们并无诉求，我亦不相信强迫的力量，我只想向他们指出一种新的可能性。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">身体的弱小将永远限制他们的认知。你以为我是在通过言语诱使他们心灵信服，恰恰相反。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我是在令他们的心灵听从身体最基本的诉求。圣人的训导能带来的不过是一时的盲信，肉身的强大才能令他们有资格亲眼看见更多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">海里有些生物。它们没有眼睛，身体微小，无法游动，只能随着潮汐漂荡。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">它们见到的大海，与我们见到的有多大区别？没有眼睛的生物又何从领会大海的神圣与深邃？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你与你的同僚，你们不知从何处谋取了这层卑劣却坚硬的皮囊。你们看不见这些弱小的正如何挣扎。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">试问谁才是真正的傲慢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是正在帮助他们的我，还是那些借着危难扩张，利用言语、将真正的绝望替换成虚假的希望，欺瞒、控制悲惨弱者，从而盗取权柄的伪神教徒？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">又或者——是从来不愿意正视海底的愚蠢的你们？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我将我看见的分享予他们，令他们打开视野，知晓自己仍有真实的希望。他们自己选择，是同陆地一起衰朽，还是随大海走向新生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这种可能性将不仅能将他们从饥饿病痛的绝境中解救，同样也是大海对僵持着耗损着的陆地的慷慨。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这并非征服，而是理解，是容纳。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我向他们指出了路，带给他们好的生活，最终引他们如我一样走向真理。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这便是我伟大的事业。你错误的皮囊困住了你的心灵，令你短视，看不见真正的伟大。我将原谅你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">呵。或许沉迷的不止有他们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">呼，歌手，我们差点来晚了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">好多吃的......大家都好饿，可算有吃的了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">一、二、三......这些，带回去，弄碎了，煮汤给佩特拉奶奶喝。今晚喝这个，好不好啊，小长凳？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">幼年居民</div><div class="text">呜......嗷......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">不，不要直接吃！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">壳太硬了，会把你的牙弄坏。回去煮软了再吃呀。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">歌手，你也拿一些？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">歌、歌手？你还愣着干什么呀？</div></div></div>
+<div class="subtitle">斯卡蒂看到了那个叫墙灰的男人。他正跪在海滩上，大口大口吞吃着一切能吃到的。</div>
+<div class="subtitle">他的眼睛红红的，泪水早就干了。</div>
+<div class="subtitle">他很饿。这些人，他们每个人都很饿。</div>
+<div class="subtitle">斯卡蒂松开了女孩的手。</div>
+<div class="subtitle">女孩迫不及待地扑进了人群中。她的眼睛闪闪发光。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">慢些吃，兄弟，这些都是你的。往前看，这一整片，也终将都是你的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">来吧，打开心灵，接受自己，拥抱他人，学会相信，懂得牺牲。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">纷争早已终结，苦难也会远去。我们站在一起，我们的心灵、肉体与信仰都将愈发强韧，就如我们足下这片永恒的海洋。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">请容许我走远些。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">哦？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我对近日某些......饮食消化不良。我或许会忍耐不住，吐在你脸上。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">——兄弟，你的贝壳掉了，让你的兄弟替你拿着吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">真有趣。你今天心情不错。你甚至对我使用了这样的词句。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">随你怎么说，请便。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">来自大海的讯息令你振奋。你等不及我们的盛会了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那就去吧，去寻她。找到你的故交，将这份喜悦分享予她。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......找到了。</div></div></div>
+<div class="subtitle">斯卡蒂飞快地穿过人群。她的眼里只有那一个人。</div>
+<div class="subtitle">那个人也仿佛正在等她。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你干什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">嘘。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">过来。你看他。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你闻到了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="subtitle">斯卡蒂从怀里摸出贝壳。</div>
+<div class="subtitle">她拿着贝壳，全力刺向歌蕾蒂娅。</div>
+<div class="subtitle">仿佛早有预料，歌蕾蒂娅没有躲。</div>
+<div class="subtitle">贝壳刺中了她的手，什么痕迹都没有留下。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你的姿势不够优美。我教你。</div></div></div>
+<div class="subtitle">歌蕾蒂娅一手将贝壳压在斯卡蒂胸前，将她压在墙边。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我和你跳过几次舞，斯卡蒂？两次，还是三次？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你是个好舞伴。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">她在哪里？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你很关心她。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">不然呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">她现在还算安全。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">证据。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你需要那些无用的东西么？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我真怀疑陆上的日子磨坏了你的鼻子，猎人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你身上全是臭味。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我比你更想吐。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她确实和你在一起。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">看来你的鼻子还不算太坏。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">幸好，你还没像一个哭哭啼啼的陆生幼崽一样，缠着我问个不停，问我为什么要带走她，又为什么在这里。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">问问题从来不是我们的方法。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">我们？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我不知道你还是不是我们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">看来你的心里还是有许多疑问。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">（摸箱子）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">不确定的话，还是不要动手。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">否则，你就只是在给敌人机会。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">我的目标不是你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">那你来这里，是想做什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你明明知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你一直想找她。找到她，你的疑问就能消失吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她的记忆坏了。她并不能告诉我什么。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">瞧瞧你的模样。也就比困在笼子里的好上那么一点。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">让我再教你一些，虽然你不是我的人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">记住，猎人追逐猎物，而不是沉迷追逐本身。盲目的追逐只能带来心理安慰。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你已经软弱到渴望这些虚无的幻觉了吗，斯卡蒂？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%233.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你多久没跳舞了？你走的路太多，你的皮肤很干燥。你也许已经遗忘了呼吸的节奏。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我再问你一次。你来这里，是来做什么？</div></div></div>
+<div class="subtitle">斯卡蒂看向主教。</div>
+<div class="subtitle">主教离得并不远。他的目光穿过人群，也看向斯卡蒂。</div>
+<div class="subtitle">斯卡蒂握紧箱子的把手。</div>
+<div class="subtitle">主教的脸上露出了一个礼貌且和善的微笑。他指了指某个方向，做出一个邀请的手势。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你不动手？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你们不是一起的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我没那么在乎。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在乎的是你。是你要解开心结，不是我。</div></div></div>
+<div class="subtitle">怀抱着食物的居民们一个个地走过主教的身边。他们与他打着招呼，仿佛他们真的是兄弟，真的是朋友。</div>
+<div class="subtitle">——就像一个普通的伊比利亚小镇会有的每一个午后。</div>
+<div class="subtitle">斯卡蒂的手渐渐放松。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你在和我装神弄鬼？他是什么人？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%233.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我说了你就会信吗？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ibcoastn.png" alt="bg_ibcoastn"><div class="cap">bg_ibcoastn</div></div>
+<div class="subtitle">斯卡蒂看向山上的教堂。</div>
+<div class="subtitle">下方，主教正与居民们挥手告别。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_178.png" alt=""><div class="bubble"><div class="who">居民</div><div class="text">呃......呃呃......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">主教</div><div class="text">慢慢来，别摔倒了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">听到了么？这海浪的身影。噗通，噗通，噗通，就像你我的心跳。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们食的、饮的皆是大海的馈赠。兄弟，你是否感觉到充沛的力量，正从口腹涌来，流通手脚，抵达心脏？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">拥抱你们面前的浩瀚吧！这是新生的希望！</div></div></div>
+<div class="subtitle">斯卡蒂看向岸上的人群。</div>
+<div class="subtitle">人们开始散去。女孩捡了满满一筐海货。她终于抬起头，茫然地在空荡荡的岸上寻找。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">咦，歌手呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">一眨眼，她又不见了啊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">算了。歌手认得路，她可能又去找她的同伴了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们走吧，长凳，带上这些吃的，回家。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">幼年居民</div><div class="text">呜啊......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%233.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">长凳，我好想唱歌。我们唱歌吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">歌手唱的歌。你还记得吗？你记得也没用。你连话都还不会说。这样吧，我唱给你听。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他的家乡在后♪</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">幼年居民</div><div class="text">咿......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%233.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">他的路在身前♪</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">幼年居民</div><div class="text">咿......呀......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">别挠我。唉。你觉得难听对不对？我也觉得。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我比歌手差远啦！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，多唱几次，我也会唱好吧？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哼哼......他的路在身前......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我要走了。再不走他会起疑心。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">二队长！你到底在盘算什么？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你是不是需要队友？你需要队友的话，为什么不说？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">要么你是敌人？如果你是敌人，刚才我想用贝壳了结你的时候，你为什么没有反过来杀了我？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......</div></div></div>
+<div class="subtitle">歌蕾蒂娅摇了摇头。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%233.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你先弄清楚自己要什么。彷徨的猎人连陷阱都辨别不出。不明不白地成为别人的收获，这是你想要的吗？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ibbar.png" alt="bg_ibbar"><div class="cap">bg_ibbar</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">歌手，你的眼神，好像有点变了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">嗯？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">你之前看我们的时候，和看那些海里来的怪物，都没什么区别。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%233.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">但现在，你愿意教我做海藻酒，还愿意为我们唱歌。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......你们和怪物，当然不一样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">怪物才不会缠着要我唱歌。怪物连说话都不会。它们通常又脏又蠢，只知道进食。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">那......那些海里的怪物，它们会吃了我们吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">如果它们饿的话，会。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">它们爬上来，就和我们去海里一样，都是为了找吃的啊。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你同情怪物？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">饿着肚子，确实难受。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">给它们吃掉的人就不会这么想。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%232.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">是......我也不想就这样被怪物吃掉。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">以前我没想过。现在，呃，我还想......再多听歌手唱一会儿歌。我还要教小长凳唱，就像佩特拉奶奶教会我的那么多事一样。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%232.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">那你可得和你奶奶一样，活久一些。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_180%233.png" alt=""><div class="bubble"><div class="who">安妮塔</div><div class="text">嗯！至少现在，我一点都不担心。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为......歌手，你还在这里，你会帮我们，砰砰砰把它们都打跑！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ibcoastn.png" alt="bg_ibcoastn"><div class="cap">bg_ibcoastn</div></div>
+<div class="subtitle">歌蕾蒂娅走了。</div>
+<div class="subtitle">斯卡蒂看向海面的下方。</div>
+<div class="subtitle">不同于一天前的死寂，里面多了许多活物，它们一个勾着一个，一个叠着一个。最上面的一个，正伸展自己的触肢，伪装成海浪的一部分，一下又一下，敲打着岸边的岩礁。</div>
+<div class="subtitle">山上教堂的门敞开着。</div>
+<div class="subtitle">岸上的人回家了。</div>
+<div class="subtitle">海上的怪物正在“看”。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1012_skadiSP_1%231.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......我的心跳，在加快。</div></div></div>
+<div class="subtitle">不仅仅是心跳。她看向自己的双手。只有猎人能看见。她的皮肤在高速震颤，因为承受不住血液的冲撞。</div>
+<div class="subtitle">走调的歌声来回轻触她的鼓膜。海里的气味不断刺激着她的鼻腔。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">斯卡蒂</div><div class="text">哎。对。是的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我毕竟还是个猎人。</div></div></div>
+<div class="subtitle">猎人追逐猎物，猎人狩猎猎物，但深海的猎人会在猎物的尖牙利爪上跳舞，失去了猎伴的猎人当然孤独。</div>
+<div class="subtitle">自己就是一个猎人，还应该是不要赏金的那种。再逃也没意义，她所该做的，就是返身走入围场。</div>
+<div class="subtitle">它们才该怕她。</div>
+<div class="subtitle">到了这时，斯卡蒂才终于原谅了自己。</div>
+<div class="subtitle">斯卡蒂纵身跃向恐鱼的潮水。</div>
+<div class="subtitle">臭味。那个教堂中有臭味。</div></div><div class="nav"><a href="level_act18d3_06_end.html">← 上一段</a><a href="level_act18d3_07_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

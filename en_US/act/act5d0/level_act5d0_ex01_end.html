@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gang Fight Tactics · Code of Brawl</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Code of Brawl</a> / <span>CB-EX1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act5d0/level_act5d0_ex01_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Gang Fight Tactics<span class="section-tag">CB-EX1 · After Operation</span></h1><div class="meta">Code of Brawl</div><div class="story-info">The true playwrights behind the farce gather in the now-abandoned bar. At sunrise, old friends stand side-by-side, watching a new future slowly dawn.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bar_1.png" alt="bg_bar_1"><div class="cap">bg_bar_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_029.png" alt=""><div class="bubble"><div class="who">Butler</div><div class="text">Please wait here a moment,</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Rat King.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Thank you very much. You are dismissed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And excellent marksmanship back there, by the way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_029%232.png" alt=""><div class="bubble"><div class="who">Butler</div><div class="text">The praise is much appreciated. And do forgive my rudeness, but you were not injured at all, were you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Of course not. However, if you ever had any genuine murderous intent towards me...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_029%233.png" alt=""><div class="bubble"><div class="who">Butler</div><div class="text">Then I never would have had a chance to pull the trigger. You need not be so humble, sir, the Master of the House and myself are well acquainted with your past.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Ah, time is a cruel mistress. Tonight once again reminded me of that fact.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When one toys with the power to terrify others, one risks seeing himself swallowed whole. Playing with those children full of piss and vinegar saw my precious coat destroyed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_029.png" alt=""><div class="bubble"><div class="who">Butler</div><div class="text">Only your coat?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Needlework is awfully difficult for me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You have completed your task, Messenger. Return to your master, let him feel at ease that his thing is done.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_029%232.png" alt=""><div class="bubble"><div class="who">Butler</div><div class="text">Indeed. But the Master of the House may well want to see you in person. For now, I shall take my leave.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...Hm. This place is a disaster. Clearly the work of that penguin.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Ooh, there&#x27;s an intact bottle of booze here. Mm, looks like some quality stuff.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Would you like a drink?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">A bottle that the Rat King himself deigned to bend over and pick up? How could I refuse?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Listen to you, Chief Wei.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Chief. It&#x27;s been a long time since I heard you call me that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And here you are, participating in this little game yourself. I thought you would just pawn it off on Penguin Logistics...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">An old man should look like an old man, be kind, and join in fun with the children.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Heh heh. I still don&#x27;t feel like you&#x27;re truly aging. Maybe it&#x27;s because your daughter looks more and more like you every day. The young you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">I don&#x27;t know how far she can go. Sometimes we need to let them go, but I think we haven&#x27;t done a very good job on that front.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Even if they choose a dead end?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Even if they choose a dead end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hah. But then, what path truly takes you that far? And who decides? The Catastrophes?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...Maybe you really have gotten old, Lin.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">You know why I pay so much attention to that little Messenger? It&#x27;s because I think they may have something in common.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Now that I think of it, maybe you shouldn&#x27;t be here in person, Chief.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">There are some &#x27;Lungmen citizens&#x27; who are &#x27;casually passing by,&#x27; we are well aware.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">*Sigh*</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Even the Rat King sighs.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">There are many things that merit a sigh. I just happened to pick one, with gusto.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Maybe it is time to retire.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">That&#x27;s no good. Lungmen still needs her Rat King.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">But she can do without Lin. Neither of us are as we once were.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No matter. I will persevere until the day Lungmen is ready to go without the Rat King.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;ll be the day my daughter is truly grown.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Is that what you think?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">I am her father. And the Rat King of the slums. And once, I was your friend, Lin Gray.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe I can&#x27;t make a decision. Maybe I&#x27;ve already made many mistakes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...You are still brooding over the past, Lin.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">When you took Lungmen back for us, I promised you I would stay in the shadow of Wei Yenwu. You need not ever again touch these filthy old alleyways.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Yes. It&#x27;s been so long. I made that promise, and we have a Rat King.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">You&#x27;ve sacrificed much.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Spare us the crocodile tears. As if I was innocent? When were we ever innocent?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...You kept your promise, old friend. But you also did not hide your misery.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is that because of your daughter?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">I could not make it clearer to you why I would use such a roundabout way of expelling those Siracusans.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">There are many troublesome foes. At least I can trust you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Trust and exploitation are of a kind. Each have a time and place. We must be practical.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...You used to hate this kind of talk.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">It&#x27;s remarkable. We have had so many long-awaited reunions tonight, and yet not a single one has been satisfying.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Don&#x27;t talk like that. Look, we&#x27;re two old friends enjoying some scintillating conversation just after Sauin. Let&#x27;s just relax.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">As you wish. Phew, it&#x27;s gotten cold. I don&#x27;t suppose you had time to light a candle for our old comrades in arms?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">That doesn&#x27;t take much time at all. As soon as you left, there I was.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...I just can&#x27;t imagine Wei Yenwu bringing flowers to a grave all by his lonesome.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">I won&#x27;t attend your funeral, but maybe I&#x27;ll bring a bouquet to your grave. Then you&#x27;ll know.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...Could you recall a person who saved your life, and for the trouble was never again able to walk?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">There are more such people than we could count. The ones who fought side by side with us, gave their lives for us.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And I will never forget any of them, even for a second.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...Your eyes never change. Maybe, just maybe you will live a long time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">There&#x27;s a trick to these things.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Either way, you have to live a while longer.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">I&#x27;ll take that as a Sauin blessing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">RAGGEDY-ASS! OLD! RAT!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%235.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Hm?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Marvelous flying kick, Mr. Emperor, but let&#x27;s show the Rat King a bit more respect.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Good evening, or is it good morning now, Chief Wei?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">It was an eventful evening, Mr. Eurill. There were some twists and turns, but everyone got what they needed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I thought you&#x27;d be waiting in the VIP room for everything to resolve itself comfortably.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">To toss my son into imminent danger while I wait warm and comfy in the VIP room for Chief Wei to report back? Does that sound like me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Who&#x27;re you callin&#x27; imminent danger?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Take it easy, Emperor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">I ain&#x27;t even started with your mummy lookin&#x27; ass, old man!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">What&#x27;s to be so upset about? It&#x27;s just one little hole in your belly I put.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Little?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Put a little gauze in it. Are you dead? You can&#x27;t die. Where&#x27;s the harm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">*KACHAK* You ruined my favorite tee, old man, cost me a shitload of paper, and then you come around and do me like this? Hmm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Let it go, Mr. Emperor, my company will cover all of the day&#x27;s expenses.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">You shut your mouth. This ain&#x27;t about money.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Answer me this, Eurill, why&#x27;d your man shoot a blank at the Rat King, but this stanky old bastard made a real ass shish kabob outta me?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%235.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">I couldn&#x27;t resist.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...You&#x27;re playing a dangerous game here, Emperor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">My hand slipped.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Now now. Chief Wei is present. Let&#x27;s clear the air of this murderous energy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In any case, the evening&#x27;s total economic damages don&#x27;t come anywhere near those of a single Catastrophe, so where&#x27;s the problem?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Penguin Logistics is a fine place to cut your teeth. All those young ladies, the so-called Messengers, certainly don&#x27;t make an easy go of it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But if I might offer one piece of advice: be careful it doesn&#x27;t backfire.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Hah, of course! But this is my son we&#x27;re talking about! Mountain Dash never backs down from a challenge!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">You got Mostima, and all of Lungmen really, playin&#x27; tutor to your boy. You got me and this ol&#x27; stank-ass rodent as your tools. Can you really afford all this?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Tools? Nonsense.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I couldn&#x27;t have foreseen those Siracusans would be so difficult to reason with. I thought they&#x27;d work with me after a good rapping on the knuckles.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Bullshit. You had &#x27;em all figured out the moment you laid eyes on &#x27;em.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Well I never.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...Heh. How lively.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From time to time, you take a deep breath in the outskirts and the air has a very particular taste to it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for the Siracusans, no matter how wild the game got, your particular hand was always going to see it turn into something great.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">It won&#x27;t always be so. You know this better than I. But they have yet to contend with Wei Yenwu.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may want to be mindful of Siracusa&#x27;s movements.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Of course.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">It&#x27;s too bad. The crusty old mouse couldn&#x27;t bring you the goods, Wei Yenwu.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">...Mr. Emperor, such words could hurt one&#x27;s feelings.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now, for the offense caused to the Rat King, planned though it was, I do offer my deepest apologies.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">Your man is a very impressive shot, or at least, he&#x27;s good at portraying one. It makes a man wonder about his background.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Real sad. Coulda been a lot more realistic.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...You really just want to see the whole world burn.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Mr. Eurill, in consideration of the cooperation agreement between Lungmen and your company, it would be wise for you to keep your son away from the center, for the time being.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Hah hah hah! Compared to the potential value of this little venture, that&#x27;s no trouble at all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">And Mr. Emperor, I trust you understand why it is Lungmen has always turned a blind eye toward the activities of Penguin Logistics.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Are you telling me it&#x27;s not because of my outstanding business acumen and immense personal charisma?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">...Eheh. Indeed. And I believe you see it clearer than anyone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">*Yawn* Leave me out of it the next time you wanna do something like this! I&#x27;ma send you all an invoice and a bill or two. And you can be sure they&#x27;re comin&#x27; with lots of zeroes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Ahahahaha! That&#x27;s our Emperor. He never misses a chance to extort a dollar. Maybe I should take a page from his book.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">There are few who would dare to extort the whole of Lungmen. That book is a tough read.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Now then, Chief Wei.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Yes, it&#x27;s probably time for a change of venue. Everyone has their own business to attend to.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Huh? You plannin&#x27; another elaborate, multi-layered plot with six traps, eight twists, and four turns?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Would you care to invest? Together, we could move the logistics industry up to a new level. From Lungmen, we could take on all Terra!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_105_emper.png" alt=""><div class="bubble"><div class="who">Emperor</div><div class="text">Nah. Honestly, I think your company&#x27;s branding is as crusty as that old rat.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_030.png" alt=""><div class="bubble"><div class="who">Eurill</div><div class="text">Ahahahaha! That&#x27;s the reason! How regrettable!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But now I think it was your turn to speak?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lmstreet_1.png" alt="bg_lmstreet_1"><div class="cap">bg_lmstreet_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Thank you, Lin.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%233.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">It is not yet time for thanks.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">I&#x27;m not just talking about today. It&#x27;s been many years.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%239.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...The sun is up.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">It &#x27;s the first time for me to see the sunrise here. The last time we stood shoulder to shoulder like this, was a time of terrible bloodshed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034%2311.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">The way the tenements in the slums wrap around each other, causing the shadows to criss cross over themselves, it&#x27;s not the kind of thing you should get used to.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2005_weiyw_1.png" alt=""><div class="bubble"><div class="who">Wei Yenwu</div><div class="text">Then, after all these years, what is it you see here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_034.png" alt=""><div class="bubble"><div class="who">Rat King</div><div class="text">...Changes, Mr. Wei.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">On that road we walked...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...there is long since no one behind us.</div></div></div></div><div class="nav"><a href="level_act5d0_st03.html">← Prev</a><a href="level_act5d0_ex02_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

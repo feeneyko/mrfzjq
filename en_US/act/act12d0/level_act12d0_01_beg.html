@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Falling Objects · The Great Chief Returns</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">The Great Chief Returns</a> / <span>RI-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act12d0/level_act12d0_01_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Falling Objects<span class="section-tag">RI-1 · Before Operation</span></h1><div class="meta">The Great Chief Returns</div><div class="story-info">En route to Gavial&#x27;s homeland, the Rhodes Island aircraft comes under surprise attack.
+Gavial and Ceobe wake the Doctor and the three go to the crash site, only to find it surrounded.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">Everything you could ever want is right here.</div>
+<div class="narr">The moment of peace you&#x27;ve longed for. A land without warfare, the embrace of your mother.</div>
+<div class="narr">Your consciousness expands limitlessly, breaking its shackles. You are free.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What is freedom?</li><li>I&#x27;m free!</li></ul></div>
+<div class="narr">Broadly speaking, to be free is a relative state, free from constraints. However, people who say this are often constrained by their flesh.</div>
+<div class="narr">But you are truly free.</div>
+<div class="narr">That&#x27;s right, my dear friend. You are free, and you forever will be.</div>
+<div class="narr">You are a resolute stone in the river of time. Though your responsibilities, fate, desires, and attachments may all be washed away, you, and only you, will always exist here.</div>
+<div class="narr">You are beholden to nothing, and nothing is beholden to you.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>There is nothing better than this!</li><li>Responsibilities. Fate. Desires. Attachments...</li></ul></div>
+<div class="narr">You understand everything. Right now, you are speaking to an unfathomable being. Gaze in awe and offer up your purest blood.</div>
+<div class="narr">Or maybe you have merely been hit on the head and fallen into a state of unconsciousness. You are simply carrying out a meaningless conversation with an imaginary self.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I want to build my kingdom here!</li><li>No, on second thought, I&#x27;m more of a masochist.</li></ul></div>
+<div class="narr">A wise decision, my King. This place is broader than Terra itself, and you can build whatever you wish here.</div>
+<div class="narr">First of all, let&#x27;s found a country. How about naming it the Land of Existence?</div>
+<div class="narr">The country raised on the banks of Nothingness shall last a thousand years——</div>
+<div class="narr">Oh, pardon me. It seems that our noble cause must come to an end here.</div>
+<div class="narr">Like a ray of light that shines through the curtains, a strong sense of discomfort suddenly invades your consciousness.</div>
+<div class="narr">You love pain. You like exhaustion. You enjoy plunging into the flames. You relish getting hurt.</div>
+<div class="narr">Smart people are forever seeking a failure that is just right, some loss that can be aptly contained. They believe this is the best way to help themselves grow.</div>
+<div class="narr">Do not become conceited, my dear Secretary of the Nothingness Department.</div>
+<div class="narr">Well then. Firstly, let&#x27;s grant you some of that pain that you love oh so much——</div>
+<div class="narr">From every nook and cranny of your flesh, comes the sensation of extreme soreness.</div>
+<div class="narr">Soldier, you have borne countless pains, witnessed innumerable failures. There is little that brings you joy.</div>
+<div class="narr">But that is exactly what has allowed you to come this far. They are a poison, shackles upon your self. They will never let you know peace.</div>
+<div class="narr">Some things can never be taken back. Some things you need not burden yourself with.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You&#x27;re right. It&#x27;s time for me to rest.</li><li>No, there are people waiting for me.</li></ul></div>
+<div class="narr">Yes, my dear. That is how it should be.</div>
+<div class="narr">Relax. I will sing to you a lullaby, and you shall rest in eternal sleep, undisturbed forevermore.</div>
+<div class="narr">And yet, just as you fall into slumber, a powerful sensation assaults you——pain!</div>
+<div class="narr">Ah, I see. I do admit they are all good children.</div>
+<div class="narr">But did you ever consider that even without you, those kids will still be able to move forward? You are not responsible for them.</div>
+<div class="narr">Your responsibilities. Your fate. Your desires. Your connection to them. Are they but a delusion of yours?</div>
+<div class="narr">...Fine. Since you have already made your decision, I shall grant you a surprise. That&#x27;s right, it is none other than the pain you love so much!</div>
+<div class="narr">From every nook and cranny of your flesh, comes the sensation of extreme soreness.</div>
+<div class="narr">What follows is a distant yet familiar voice.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">...D-Doctor!</div></div></div>
+<div class="narr">Amiya? No, no. This voice is far more mature than Amiya&#x27;s.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Still sleeping after all this time, huh? Why do you do this to me?</div></div></div>
+<div class="narr">...Far more violent, too.</div>
+<div class="narr">You feel several slaps on what seems to be your cheeks. It would appear they are willing to practice what they preach.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">That didn&#x27;t do the trick... Hmm, what should I do? Since Amiya isn&#x27;t here, guess I&#x27;ll just give the Doctor a few rounds of the whirlwind.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whirlwind? Is it fun? I want to play too!</div></div></div>
+<div class="narr">It seems they are preparing some extreme measures now. Also, the voice that just cut in carries a hint of innocence.</div>
+<div class="narr">The problem? In this situation, the wonderful trait of innocence belies a sense of commitment.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>No, I want to go back!</li><li>Open my eyes</li></ul></div>
+<div class="narr">Oh, woe. Some journeys cannot be undertaken by your will alone. You have already lost the chance to step out on this journey.</div>
+<div class="narr">Fret not, however, for such chances remain plentiful. Now, let us open our eyes...</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/ac12_1.png" alt="ac12_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ceobe</div><div class="text">Gavial, how do we play the whirlwind?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gavial</div><div class="text">What you want to do is grab the person&#x27;s legs or hands, then start spinning in a circle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When you&#x27;re ready, just let go.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ceobe</div><div class="text">It sounds really fun! I want to try!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gavial</div><div class="text">Sure. I&#x27;ll just catch the Doctor after... Oh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor, you&#x27;re finally awake.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ceobe</div><div class="text">Ah, it&#x27;s the Doctor!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gavial</div><div class="text">Kay, don&#x27;t tackle the Doctor like that. Crush those organs and that one won&#x27;t stay with us for long.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ceobe</div><div class="text">Oh, sorry, Doctor!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Are you both alright?</li><li>......</li><li>Was that you who just slapped me?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I&#x27;m fine. This isn&#x27;t high enough to scare me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">I&#x27;m fine too!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Uh oh. Don&#x27;t tell me you tripped and lost your memory again, Doctor.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I have amnesia.</li><li>And who might you be, Ma&#x27;am?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Don&#x27;t forget, I&#x27;m a doctor too. The real, medical kind.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But if you&#x27;re cracking jokes, I guess you&#x27;re good.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Sure did.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Anyway, Doctor, let me catch you up on what happened while you were napping.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Short version is: we crashed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">We fell from a very high place! Whooooosh——! Kaboom! Like that.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Please elaborate.</li><li>......</li><li>I want the whole story!</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Tch, fine. Basically, Doctor, you&#x27;re bad luck. During the attack, something exploded by your seat and you slammed into the wall there and passed out.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t worry, I took care of your wounds. Nothing major. Besides, you&#x27;re healthier now than when you first showed up at Rhodes Island. Nice work, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">Urk... Sorry, Doctor. I should have caught you, but the loud noises scared me...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Can&#x27;t blame you for that. To be honest, I never would have expected these bastards to have anti-air weapons.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>So you thought someone would attack us?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Sure. Did I forget to tell you? My people love to fight, not that any of them could take me.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What about the others?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">When we were going down, everybody else jumped early to stabilize our altitude.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ceobe and I jumped last, to stick with you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, and Lancet-2 should still be on the aircraft.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Where&#x27;s the aircraft?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I think it&#x27;s that way. Should be just over the hill.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Let&#x27;s go check on it.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Sure.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gavial</div><div class="text">See? The aircraft&#x27;s right there.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh? That&#x27;s a lot of smoke. It&#x27;s not in good shape.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I guess it&#x27;s still fixable, though.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ceobe</div><div class="text">Doctor, Gavial, there&#x27;s people with the aircraft!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gavial</div><div class="text">Hm? That&#x27;s...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Please do not approach me. Though I am responsible for protecting Rhodes Island property, I am just a medical tool... Nnng...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">Hey, I think this machine is talking.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">Yeah, not only did such an amazing machine fall from the sky, there&#x27;s another machine that can talk inside it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria C</div><div class="text">Do you think there&#x27;s a person inside?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">No idea. Why don&#x27;t we bring it back? Leader&#x27;s sure to like it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">Sure, let&#x27;s take it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Help!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Stop right there!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">...&amp;% (Who&#x27;s there?!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">You got a death wish? Laying your grubby hands on our stuff.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">...￥%%# (Who says it&#x27;s your stuff? It fell from the sky!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">@#%...&amp; (Yeah, that&#x27;s right! Finders keepers!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Keh, they have a point.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Gavial, what&#x27;re they saying?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Hm? Ah, right. I forgot you guys don&#x27;t speak the language.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re in Sargon, but no one here speaks standard Sargonian.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll translate anything anyone says to you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And for the rest, just use your intuition!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">...&amp;*# (What are you whispering about, you bastards!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I said: if this stuff is yours, I just have to beat you up and it&#x27;ll all be mine!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">&amp;&amp;......! @ (What? This woman is so damned full of herself. Get her, boys!)</div></div></div></div><div class="nav"><span>← Prev</span><a href="level_act12d0_01_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

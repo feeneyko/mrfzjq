@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unfinished Goodbye · Babel</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Babel</a> / <span>BB-ST-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act33side/level_act33side_st01.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Unfinished Goodbye<span class="section-tag">BB-ST-1 · Interlude</span></h1><div class="meta">Babel</div><div class="story-info">Theresa is murdered by the assassins. The Banshees sing their dirge for the &#x27;King of Sarkaz&#x27;. At death&#x27;s door, Kal&#x27;tsit races back to Theresa&#x27;s side, only to find everything long over.</div><div class="story-body"><div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_5_7_shining.png" alt="avg_5_7_shining"></div>
+<div class="narr">A boy cries in his dreams. To weather the blizzard, a girl wraps him within her cloak, and wipes his tears away.</div>
+<div class="narr">Freezing. Gusting. The air screams on.</div>
+<div class="narr">Softly, the Cyclops tells of an epic tale. Far, far away...</div>
+<div class="narr">Through the snowstorm&#x27;s seams, her voice comes.</div>
+<div class="narr">The myriad souls&#x27; calls become harmony with it, the boy&#x27;s whimpers the drum of their beat.</div>
+<div class="narr">This dream is bitter cold. Within, the girl seizes a faint breath. She covers the boy&#x27;s eyes, and closes her own.</div>
+<div class="narr">Even now, even here, for them, the ballad from a thousand years ago is still playing.</div>
+<div class="sticker">......<br>Armies fell upon our home; them I saw from afar,<br>From valleys to hills, our lands they scarred.<br>The King slaughtered, the myriad souls did lament.<br>Yet one sovereign fell, six heroes rose.<br>They blew the horn, led the fight, faced their foes.<br>Alas, the wanderers&#x27; city collapsed,<br>To ruin swift, as the fleeting peace elapsed.<br>When all seemed lost, a black crown appeared,<br>The twins brought hope where dread had reared.<br>Spreads the rift, giving birth to betrayal.<br>An assassin in the heart of tempest; them I saw from afar,<br>A sword to slay the regent king, a spear to pierce the royal ring.<br>Legend ends as justice calls. To righteous fate, the mighty falls.<br></div>
+<div class="narr">&#x27;That is how this episode ends.&#x27;</div>
+<div class="narr">The Cyclops fades into the blizzard of the dreamscape, leaving the child behind her.</div>
+<div class="narr">The boy&#x27;s own cries grow distant from his ears.</div>
+<div class="narr">He wakes.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_thundercloud.png" alt="bg_thundercloud"><div class="cap">bg_thundercloud</div></div>
+<div class="narr">Summer, 1094</div>
+<div class="narr">Outskirts of an abandoned town, Kazdel</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">That is how this episode ends, Ascalon. My story is over.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That is what my people... the Cyclopes bound for the deep north, saw as they gazed their last of Kazdel.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Was that a page from long-lost history? A possible future yet to come...? Or plain meaningless gibbering?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">None knew for the past millennium...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Until they came, and fate&#x27;s rapids begin to narrow, into a surer course...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And now, the fate she saw has drawn before our eyes.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_laccolith.png" alt="bg_laccolith"><div class="cap">bg_laccolith</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t care.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">*cough* I&#x27;m surprised you&#x27;d even hear me out.</div></div></div>
+<div class="narr">Bright red blood creeps along his mask, trickling down his chest.</div>
+<div class="narr">Ascalon&#x27;s eyes narrow a hair. He&#x27;s out of luck.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">You&#x27;re about to die. So I gave you one last token of respect.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">*cough*... *hack*...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those prophecies never did gnaw at you, in all the time we knew each other, no?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%233%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">That&#x27;s why you will never understand... how a greedy soul thirsts to control his fate.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">Choose better last words.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">I know how you hurry to convene with those Babel members. But it&#x27;s not yet time for you to leave. Look—the Catastrophe is near.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah... Funny, I&#x27;m curious now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What was it you found... within the storm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%234%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">Step aside.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">&#x27;No commission left unfinished.&#x27; The rule I set myself back when I was at the Scar Market.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Alive, or—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Urgh!</div></div></div>
+<div class="narr">A dawn-like mist is wound about the Cyclops&#x27;s neck as Ascalon vanishes behind him, leaving his body to dangle over the cliff&#x27;s edge.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">You ever seen your own end, then?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1294_1%232%241.png" alt=""><div class="bubble"><div class="who">Scareye</div><div class="text">I don&#x27;t care for prophecies. We have that in common, hah.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But fact is, none of us can outrun fate. Don&#x27;t you want to struggle out of it? What makes you not? Why can you not? How can you not?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Never forget, you have your place in the prophecies too—</div></div></div>
+<div class="narr">Whimpering. Storming.</div>
+<div class="narr">A plaintive chant rings in their ears, an elegy o&#x27;er the horizon from the Convallis of the Banshees, sucked into the storm&#x27;s eye.</div>
+<div class="narr">Ascalon gives an involuntary shudder. She is ice cold from head to toe.</div>
+<div class="narr">An indescribable pain rips from behind her ears down to the soles of her feet.</div>
+<div class="narr">This nameless elegy. This ill omen.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%237%241.png" alt=""><div class="bubble"><div class="who">Ascalon</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1294_1%232%241.png" alt=""><div class="bubble"><div class="who">Scareye</div><div class="text">Farewell... Kazdel.</div></div></div>
+<div class="narr">A single sigh reaches Ascalon.</div>
+<div class="narr">Her hand tightens fast, until not even the faintest sound will leave Scareye&#x27;s throat again.</div>
+<div class="narr">And then, she lets go.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Scareye</div><div class="text">...Hah—damned fate.</div></div></div>
+<div class="narr">In a blink, the tremendous figure of the Cyclops becomes no more than a speck below the overhang.</div>
+<div class="narr">The mist scatters to the storm. The shadow of a hood goes with it. All vanishes within the teardrops falling from the cliff.</div>
+<div class="narr">Gasps. Rolls of thunder from Catastrophe clouds. Whistles as the sand is swept across the barrens...</div>
+<div class="narr">The sound of everything culminates in silence.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_victoria.png" alt="bg_victoria"><div class="cap">bg_victoria</div></div>
+<div class="narr">Londinium, Victoria</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">Now...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lift your heads, Sarkaz of hers.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you would still see through the calling she bestowed you, here I stand. Come, step forth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may avenge her.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Assassin</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My name is stitched onto my clothes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Stitched by Her Highness Theresa&#x27;s own hands. I can feel it faintly burning right this moment, and I know... what that means.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The mission she assigned us is over.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ll clash with you no more. The Sarkaz do not draw on each other before the invader.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We—pledge our loyalty to you, Regent.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So long as you still hold your zeal and earnestness for the Sarkaz, we will trust you with our lives.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Manfred</div><div class="text">Even though you nearly ruined all the plans we&#x27;d set up in Victoria?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Assassin</div><div class="text">Should the Military Commission put us to death, we will be willing to die.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As long as it could bring a better end...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">An end as she wished.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Manfred</div><div class="text">A moment ago, you were the renegades-in-chief, all but ready to entomb our plans. How can I possibly believe—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">Manfred.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Manfred</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%233%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">&#x27;As she wished&#x27;, you said.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your name, deathmonger.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Assassin</div><div class="text">Julie.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">I will remember it. And I will hand you your final mission.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Guards, assassins, mercenaries, survivors of this sea of bloodshed one and all—you are to enter the Mausoleum of Kings.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You are to render Victoria&#x27;s iron heart as scrap. You are to ambush and wipe out every last Steam Knight.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Julie</div><div class="text">You&#x27;d let us take part in the Commission&#x27;s core plan to enfeeble Londinium?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">Manfred will take good care of you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Julie</div><div class="text">There&#x27;s no chance we leave that place alive, is there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">You&#x27;re welcome to fight for it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Julie</div><div class="text">Very well.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%231%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">...What&#x27;s keeping you here?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Julie</div><div class="text">I&#x27;m just taking it in. I&#x27;m looking at the one who fostered Ascalon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She never rid herself of you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1297_1%233%241.png" alt=""><div class="bubble"><div class="who">Theresis</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Julie</div><div class="text">I swore to follow Her Highness Theresa, with no inkling that the tale of the mixed-blood twins, rewriters of Kazdel&#x27;s history, would end this way.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let alone that this disposable life of mine had a place in it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Farewell, Your Highness Theresis.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I take my hatred of you to the grave.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="narr">Rhodes Island of Babel, Kazdel</div>
+<div class="subtitle">&#x27;Keep going, Kal&#x27;tsit.&#x27;</div>
+<div class="narr">Never, since the day she was born, has this corridor felt so endlessly long to Kal&#x27;tsit.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%236%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Mon3tr!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">(Angry roar)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1307_1%231%241.png" alt=""><div class="bubble"><div class="who">Nameless Assassin</div><div class="text">*cough* *cough* *hack*</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My Dame...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do not bury us. Kazdel&#x27;s soil cannot hold any more traitors.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%236%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Finish him.</div></div></div>
+<div class="subtitle">&#x27;I know that, even left on your own, your step will never falter.&#x27;</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%234%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Amiya! Doctor!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">(Anxious crying)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%235%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">System unresponsive... This is...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mon3tr, cut the door down!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">(Violent roar)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%237%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Mon3tr, meltdown!</div></div></div>
+<div class="subtitle">&#x27;You believe loneliness is yours alone, that you have none of the same kind. Yet, from the day you woke again, we&#x27;ve walked shoulder to shoulder, haven&#x27;t we?&#x27;</div>
+<div class="narr">Immortal empires turned to dust. Elders&#x27; scepters rent in two under Ancients&#x27; rallying cries. Pulses over the sky like a surge. The immutable rhythm of the stars, from resplendent glimmer to dull collapse...</div>
+<div class="narr">Death, rebirth, the all-encompassing cycle—she&#x27;s ever so familiar with it.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">(Agitated howling)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%234%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Theresa—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">—</div></div></div>
+<div class="subtitle">&#x27;...Yet still, one day I&#x27;ll choose to slow down, to stop in place where I am.&#x27;</div>
+<div class="subtitle">&#x27;When I do, Kal&#x27;tsit, don&#x27;t grieve. Keep going.&#x27;</div>
+<div class="narr">Kal&#x27;tsit subconsciously searches her memories...</div>
+<div class="narr">Death, rebirth, the all-encompassing cycle.</div>
+<div class="narr">No.</div>
+<div class="narr">It&#x27;s not—the same this time. Not quite.</div>
+<div class="narr">For the first time, she must bid, to the first who could ever converse with her as an equal, to her dearest friend, farewell.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i01.png" alt="49_i01"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Theresa...</div></div></div>
+<div class="subtitle">&#x27;So, Kal&#x27;tsit, it&#x27;s time to say goodbye.&#x27;</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Amiya... Doctor...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But...</div></div></div>
+<div class="subtitle">&#x27;I always say one day, our wandering is bound to end. One day, the Sarkaz&#x27;s wandering is bound to end...&#x27;</div>
+<div class="subtitle">&#x27;Now your wandering, too... has reached its endpoint...&#x27;</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I knew full well this possibility always existed... Why...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I should have stayed behind—it&#x27;s my...</div></div></div>
+<div class="subtitle">&#x27;Because I believe in Rhodes Island, I believe in Babel... I believe in you.&#x27;</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">......</div></div></div>
+<div class="subtitle">&#x27;Kal&#x27;tsit... I hope the Rhodes can be a place you name home, an Island you may always return to.&#x27;</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="subtitle">&#x27;I already did everything I could do. I won&#x27;t harbor complaint for my own end.&#x27;</div>
+<div class="subtitle">&#x27;Babel&#x27;s mission is concluded, while you and this landship have only just set sail.&#x27;</div>
+<div class="subtitle">&#x27;I am not the same kind as you, Kal&#x27;tsit. I cannot explain away your puzzlement.&#x27;</div>
+<div class="subtitle">&#x27;But I have always been your companion.&#x27;</div>
+<div class="subtitle">&#x27;Then, now, and after...&#x27;</div>
+<div class="subtitle">&#x27;I will always be with you all.&#x27;</div>
+<div class="subtitle">&#x27;Now...&#x27;</div></div><div class="nav"><span>← Prev</span><a href="level_act33side_01_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

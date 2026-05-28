@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guest Room Maze · Somniloquium Serenum</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Somniloquium Serenum</a> / <span>SS-4</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act45side/level_act45side_04_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Guest Room Maze<span class="section-tag">SS-4 · After Operation</span></h1><div class="meta">Somniloquium Serenum</div><div class="story-info">With Eyjafjalla&#x27;s encouragement, Uika finally decides to leave the island to search for Sakiko. In turn, Sakiko finally arrives at Uika&#x27;s residence, but by sheer happenstance, the two have just missed each other.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">When you repeat something countless times over, you grow numb to it.</div>
+<div class="narr">When you repeat the same day countless times over, you fall into its cycle.</div>
+<div class="narr">It&#x27;s imperceptible, inescapable.</div>
+<div class="narr">An interminable, indefinite, impenetrable dream.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_hotel.png" alt="bg_hotel"><div class="cap">bg_hotel</div></div>
+<div class="narr">Every day, she wakes from her bed in the early morn, to the chirp of mountain fowlbeasts.</div>
+<div class="narr">If she wishes to laze about longer, nobody will stop her. She simply sticks her head back under her blanket.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="narr">Once she makes her bed, she heads to the kitchen for a simple breakfast.</div>
+<div class="narr">A fried egg, bread, milk...</div>
+<div class="narr">What she wants to eat, and what she wants to drink, are all up to her in the moment.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ltroom.png" alt="bg_ltroom"><div class="cap">bg_ltroom</div></div>
+<div class="narr">She sits by the piano, pressing a key, bringing its untuned string to the correct pitch, little by little. After some time—however much—it is the next string&#x27;s turn to be tuned.</div>
+<div class="narr">By the time the final string is tuned, the first string has lost its pitch.</div>
+<div class="narr">And so it goes, again and again and again.</div>
+<div class="narr">Uika lies down on the summer-fed meadow, and gazes at the starry sky above.</div>
+<div class="narr">She knows that even if the positions of the stars seem no different from yesterday, in truth, they are constantly shifting about.</div>
+<div class="narr">Two stars next to each other now will, after a hundred million years, become incredibly distant. That even if we assign them meaning, that meaning will be lost.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">Just like the relationship between people.</div>
+<div class="narr">Today, too, that child didn&#x27;t come back.</div>
+<div class="narr">Here, on this deserted island, a dream of smoke and mirrors is built out of nothing but faint memories.</div>
+<div class="narr">Trapped in a cage of recollection, as if but a doll.</div>
+<div class="narr">Obsession and sorrow fill her body. They grow. They grow.</div>
+<div class="narr">But she cannot move.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">At first, I figured she&#x27;d had some flash of inspiration and went out for a walk.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It was only later I learned from the dockworker, she&#x27;d gotten on a ship leaving the island that same day...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%2311%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Why don&#x27;t you go and look for her?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">I&#x27;ve lived out days like today so, so many times, to the point I&#x27;m not even sure if they&#x27;re real or not.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I... I can&#x27;t remember what she looks like anymore. I can&#x27;t remember her name.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe this is where I belong, in the end... Waiting here, silently.</div></div></div>
+<div class="subtitle">Waiting here for her return, or my death.</div>
+<div class="subtitle">There&#x27;ll come a day that the well of my sorrows dries up. There&#x27;ll be no more tears, and no more weeping.</div>
+<div class="subtitle">Some far-flung place nobody cares about—that&#x27;s the best place I can belong.</div>
+<div class="sticker">&#x27;No!&#x27;<br></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%238%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">—!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%2311%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Miss Uika, you&#x27;re crying. That means you haven&#x27;t given up yet, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This isn&#x27;t the ending you want, right?!</div></div></div>
+<div class="narr">At least...</div>
+<div class="narr">At least tell her how you feel, face to face.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%237%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">If I can make out what you mean, I&#x27;m sure she can too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How can you reach her if you don&#x27;t shout at the top of your lungs?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I can hear your voice. Me. Surely she must be able to.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%237%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">I... but with your hearing in this condition, I can&#x27;t leave you by yourself—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Don&#x27;t say that. I&#x27;m a Rhodes Island operator, with all the training that entails. You don&#x27;t have to worry about me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve already done so much for me, Miss Uika, and by all rights we were complete strangers.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You should look deep in your heart and ask yourself: what do you really want to do right now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">(Quietly) I want to find her...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Nothing, really.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">I can read lips, Miss Uika.</div></div></div>
+<div class="sticker">&#x27;Look, you can&#x27;t escape&#x27;<br><br><br>&#x27;I confine you as you weaken—&#x27;<br><br><br>&#x27;You know I want...&#x27;<br><br><br>&#x27;I want... I want...&#x27;<br><br><br>&#x27;I want you so, I want...&#x27;<br></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/41_g5_siestaunbuiltland_d.png" alt="41_g5_siestaunbuiltland_d"><div class="cap">41_g5_siestaunbuiltland_d</div></div>
+<div class="narr">Uika&#x27;s awareness snaps back, only to find herself running with all her might.</div>
+<div class="narr">Her chest burns hard like never before, a sensation that leaves her light-headed, even.</div>
+<div class="narr">The last strand of her sanity asks her the same question on loop:</div>
+<div class="subtitle">If you can&#x27;t remember her name, or even her face.</div>
+<div class="subtitle">How will you find her among all the endless people of this land?</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2311%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">But I want to see her!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t care what it takes, I want to see her again!</div></div></div>
+<div class="narr">Her voice is a step ahead of her legs, flying straight for her heart.</div>
+<div class="narr">And with every ounce of power she has, she runs after her voice.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="narr">Sakiko makes it to the villa in one piece. It is all exactly as Morpheus showed her.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%2310%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Uika—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The same layout, the same decorations... Even the books on the shelves are the exact same.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why...</div></div></div>
+<div class="narr">The floor is spotless. The kitchen boasts an overwhelming array of silverware, and a grand dining table to seat a dozen or more.</div>
+<div class="narr">Sakiko cannot imagine Uika living in a place like this by herself.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%232%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Since it&#x27;s a dream, is it not? You could just take the painful parts and throw them away completely...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">I&#x27;m sure she felt this place was very important to the two of you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">You must be the owner of this villa... Miss Uika just left.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%2314%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">...Where did she go?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">She finally recognized her own heart. She&#x27;s set on finding you.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/65_g3_islandharbor.png" alt="65_g3_islandharbor"><div class="cap">65_g3_islandharbor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">Enthusiastic Boatman</div><div class="text">Wanna get on the boat?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2313%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">Yes, I&#x27;d like a ticket off the island.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">Enthusiastic Boatman</div><div class="text">Oh? Well, you&#x27;ll have to wait a bit. I&#x27;m holding up for another passenger.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That young lady&#x27;s still not back... Hope she found who she was looking for.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2313%242.png" alt=""><div class="bubble"><div class="who">Uika Misumi</div><div class="text">It&#x27;s fine. I can wait—</div></div></div>
+<div class="narr">Halfway through her sentence, Uika forces the words back down her throat. Fortunately, the boatman doesn&#x27;t seem to notice.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">Enthusiastic Boatman</div><div class="text">*sigh* The sea&#x27;s rough at night, and the fog gets thick. It ain&#x27;t good sailing. I&#x27;ve got your safety to worry about, y&#x27;know!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, listen to the signal tower go. The guy running it wants us gone already.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i05_1.png" alt="65_i05_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Uika Misumi</div><div class="text">I can see him up there. He&#x27;s waving a flag at us...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Enthusiastic Boatman</div><div class="text">Heh. Old booze-hound needs the beer I bring him every month.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Safe travels, and don&#x27;t forget—my beer.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Pfft. Doesn&#x27;t mind if I forget anything else, long as he gets his hooch!</div></div></div>
+<div class="narr">With his grumbling over, the boatman heaves his steps onto the boat.</div>
+<div class="narr">The sea wind carries its horn through every corner of the island.</div>
+<div class="narr">As she looks back at this isle of countless joys and sorrows, Uika finds there&#x27;s so much she wants to say.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Uika Misumi</div><div class="text">...Don&#x27;t forget me.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="subtitle">You couldn&#x27;t have forgotten.</div>
+<div class="subtitle">We lived here since we were children.</div>
+<div class="subtitle">I trust that we will meet again—</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Uika—!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*pant*... *pant*... *pant*... *cough* *cough*...</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i05_2.png" alt="65_i05_2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Uika—! UIKAAAA—!</div></div></div>
+<div class="narr">Sakiko&#x27;s voice is already hoarse.</div>
+<div class="narr">The waves crash on and on against the coast, but they carry no response.</div>
+<div class="narr">The boat has already left the island.</div>
+<div class="narr">Now, she is the only one here, alone.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/65_g4_islandharbor_n.png" alt="65_g4_islandharbor_n"><div class="cap">65_g4_islandharbor_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2318%241.png" alt=""><div class="bubble"><div class="who">Morpheus</div><div class="text">A girl who&#x27;s waited day and night finally finds it in herself to set off in search of her partner.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But who could foresee that they&#x27;d pass like ships in the night at the last moment... Tut tut tut, such a pity.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2318%241.png" alt=""><div class="bubble"><div class="who">Morpheus</div><div class="text">Tell you the truth. I never thought she&#x27;d choose to leave.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If she&#x27;d followed the ending I&#x27;d laid out for her, she would have forgotten all about you, and lived a blissful, carefree life here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I see now, I underestimated your influence on her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m a good sport. This round is a draw.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2320%241.png" alt=""><div class="bubble"><div class="who">Morpheus</div><div class="text">Shame, though. With the speed that boat&#x27;s going at, she&#x27;ll be in a nautical pickle pretty soon.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%236%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">What...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2320%241.png" alt=""><div class="bubble"><div class="who">Morpheus</div><div class="text">Making an entire island for the two of you was tiring enough. What, next you want me to create the entire continent of Terra so your pathetic farce can play out over and over?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, the boat&#x27;s about to reach the edge of this dreamland, and once it does, she&#x27;ll fall into the next one.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Another cycle, another reset.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s bound to forget about you in the end.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">No. I&#x27;m going to find a way to catch her—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2315%241.png" alt=""><div class="bubble"><div class="who">Morpheus</div><div class="text">Sorry, out of time.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">Sakiko feels a burst of cold under her feet. Somehow, seawater has crept up to her ankles.</div>
+<div class="narr">Dark clouds gather where the sea and sky meet, punctuated by rays of dazzling light.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Uika—!</div></div></div>
+<div class="narr">The water rises with a fervor. Sakiko senses something dragging her down towards the abyss.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Uika—! Wait for me!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/49_g12_diving.png" alt="49_g12_diving"><div class="cap">49_g12_diving</div></div>
+<div class="narr">Gloom; cold; suffocation.</div>
+<div class="narr">The water strains against her eardrums. What oxygen is left in her lungs slowly dwindles, as does the feeble light from above.</div>
+<div class="narr">Her sight blurs. Salty, bitter seawater forces its way into her mouth, in a bid to occupy the last vestiges of her consciousness.</div>
+<div class="narr">And so, she falls, and falls.</div>
+<div class="narr">Down to the seabed, a place that knows no light.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">&#x27;Saki...&#x27;</div>
+<div class="narr">&#x27;Saki... Saki...&#x27;</div>
+<div class="narr">A voice approaches, though she cannot tell from where.</div>
+<div class="subtitle">Where am I?</div>
+<div class="subtitle">Who is calling for me?</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Come... on... wake up...</div></div></div>
+<div class="narr">It is a familiar voice. One she has not heard in a very long time.</div>
+<div class="narr">The cold, waterlogged seabed is gone; was never here. In its place, dry land, and swirling eddies of dust.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Who...?</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i06.png" alt="65_i06"></div>
+<div class="narr">Sakiko struggles to open her eyes. A pale strand of hair greets her.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mutsumi Wakaba</div><div class="text">Saki. Are you okay?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">...Mutsumi?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mutsumi Wakaba</div><div class="text">Mm. I&#x27;m here.</div></div></div>
+<div class="narr">Such simple words, and yet they bring tears to Sakiko&#x27;s eyes.</div>
+<div class="narr">It&#x27;s no fault of the sand in the air, she knows that. For only she knows just how helpless she feels in this moment.</div>
+<div class="narr">If she speaks now, her voice will break. But she can&#x27;t afford to care about that. All she can think of is to clutch at the final straw she has.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sakiko Togawa</div><div class="text">Mutsumi... I... What do I do...?</div></div></div></div><div class="nav"><a href="level_act45side_04_beg.html">← Prev</a><a href="level_act45side_05_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

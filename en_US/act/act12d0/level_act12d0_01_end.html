@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Falling Objects · The Great Chief Returns</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">The Great Chief Returns</a> / <span>RI-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act12d0/level_act12d0_01_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Falling Objects<span class="section-tag">RI-1 · After Operation</span></h1><div class="meta">The Great Chief Returns</div><div class="story-info">After the fight, Gavial realizes she is up against the minions of an old acquaintance. Then, the aircraft&#x27;s engine is stolen.
+That&#x27;s when Tomimi, a girl who worships the ground Gavial walks on, appears. The party decides to split up.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">Cue. Titecuani! She... she&#x27;s something.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Whaddaya know, you guys are pretty strong! Shame you had to run into me, Gavial!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">Wait... wait, what did you say your name was?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Ga-vi-al!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">Gavial?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_070.png" alt=""><div class="bubble"><div class="who">Archosauria B</div><div class="text">Wait! Look close! That face, that hair! You&#x27;re Gavial, aren&#x27;t you?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I feel like I just said I was!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_071.png" alt=""><div class="bubble"><div class="who">Archosauria A</div><div class="text">It-It&#x27;s Gavial! Gavial&#x27;s back! Brothers! Go, hurry! Tell Clan Leader Eunectes!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">What? Eunectes? Hey! Get back here!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tch. Ran off.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Thank goodness! If you&#x27;d been just a little later, they would&#x27;ve taken me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Where&#x27;s our pilot guy? Uh, his name, uh, Dylan! Where&#x27;s Dylan?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">He tried to fight some of the Archosauria in the middle of it all. They knocked him out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">Oh! Gavial, I found Dylan here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Good. Drag him over. I&#x27;ll take a look at the damage.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">Okay!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Say, Lancet-2, you can fix this aircraft, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Yes! Closure input lots of aircraft knowledge into me before we left.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In principle, following a successful emergency landing, the tools provided should be sufficient for a repair.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Only...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Kay, I asked you to drag him over, not to LITERALLY drag him over.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">Oh. Sorry.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">...Looks like they didn&#x27;t get any kills on us, huh? Wow, who knew this guy&#x27;s underwear would be so gaudy... heh. Yeah, let him have his beauty sleep and he&#x27;ll wake himself up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lancet-2, you were saying? Only what?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Only, the Archosauria we just met stole the engine.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Hah? The engine?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Correct. Before they noticed me, I sighted them from the deck. They found the aircraft&#x27;s engine, pulled it out, and carried it away with them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Come see for yourself.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_aircraft_2.png" alt="bg_aircraft_2"><div class="cap">bg_aircraft_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Hoo, boy. Yeah, that&#x27;s a hole. I don&#x27;t really get how these things actually work, but, uh, I&#x27;m guessing this means it won&#x27;t fly now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Yes, it won&#x27;t fly now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Oh? Doctor, you don&#x27;t look too good.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>None of this looks too good.</li><li>......</li><li>Kal&#x27;tsit&#x27;s gonna kill me!</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor.png" alt="bg_corridor"><div class="cap">bg_corridor</div></div>
+<div class="narr">A short while back</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">A letter?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Yeah. From my homeland. They&#x27;re holding the Mahuizzotia again soon.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">&#x27;Mahuizzotia.&#x27; Strength and honor?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Huh, you know it? Yeah, it&#x27;s what they call the ceremony where they choose the next Great Chief.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I haven&#x27;t heard anyone use that language in a long time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As I recall, though, you left your homeland and then came to Rhodes Island.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Yeah, but there’s this li’l kid I knew who still keeps in touch with me. She’s the one who sent the letter.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I also recall you saying that you left because you were ostracized. If so, the election of the chief shouldn&#x27;t concern you at all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Yeah... hell, no, I&#x27;m not going out to be the next Great Chieftain. Just, the brat seems like she really wants me to come back for a bit, and I haven&#x27;t been back in a bit, and...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Homesickness?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Maybe a little, yeah.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">And why are you requesting to bring Dr. Doctor? From a biological standpoint, the Doctor couldn&#x27;t pass for one of you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">The Doctor&#x27;s been working so hard, y&#x27;know? I figured it&#x27;d be a nice little vacation.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">And what was the purpose of this aircraft requisition form, Blaze?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">Gavial&#x27;s old place is way out in the middle of nowhere Sargon! Who&#x27;d walk that far?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">So instead of walking, you want to use a low-altitude aircraft and risk detection by the Sargon authorities.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">Wait, lemme explain! When I say nowhere, I mean we looked at the maps and Gavial&#x27;s is one of the lest densely populated regions of Sargon. From the intel we&#x27;ve gathered, Sargon doesn&#x27;t even station any forces there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">You&#x27;re correct that the region is Sargon&#x27;s in name only. You&#x27;ve done your homework.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And now, seeing as you&#x27;ve made all your plans, why have you come to me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">B-Because any and all paperwork passes through you...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Are we good or not, Kal&#x27;tsit? If not, we&#x27;ll forget it and move on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">(Quietly) Doctor, maybe we should just call it off. There&#x27;s no way Kal&#x27;tsit&#x27;s gonna agree...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Fine. I&#x27;ve approved it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">Seriously?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Gavial, you&#x27;ve never properly introduced us to your hometown before.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And considering your standing as a core member of Rhodes Island, and the initiative you showed in making this proposal, we can afford to grant Dr. Doctor this leave, given accompaniment by an elite operator.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_017_homura_3.png" alt=""><div class="bubble"><div class="who">Blaze</div><div class="text">That&#x27;s what I like to hear!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Further, I will treat this operation as an on-site field investigation. You may freely select any off-duty operators.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya has been very busy as of late. She is not allowed to go, whether she wants to or not. You will have to tell her this yourself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Keep in mind that you are technically entering Sargon territory. Rhodes Island has very few offices in Sargon. Don&#x27;t make trouble for yourselves, or for Rhodes Island.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Further, Rhodes Island&#x27;s low-altitude aircraft are tremendously important to us, and Sargon is a rough environment. I trust you to bring the vehicle back safe and sound, Dr. Doctor.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Ohhh. Now that you mention it, yeah, that sounds about right.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, relax, Doctor! This is my homeland. I know it like the back of my hand. Lancet-2, we&#x27;ve just gotta find the kiddos who stole the engine and steal it right back, yeah?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Yes... They definitely seemed to have some understanding of technology, at least. They hardly damaged anything else in the removal process.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the event we do get the engine back, I should be able to guide you through reinstallation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">On that note, there&#x27;s some emergency maintenance I must carry out before any of this ends up exploding. Please hold...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Huh? Them? Technology? First I&#x27;ve heard of any of us getting along with technology. We&#x27;re all knuckleheads by nature.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Specifically, only enough to know how to pull out the pipes and cables, but...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">...Wait, hold on. I bet if they&#x27;re her minions...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">Gavial, I&#x27;m hungry!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">All our food reserves should be fine, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">They should be fine, yes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But some systems were damaged by the emergency landing. The storage compartment is currently sealed. I&#x27;ll need some time to unlock it again...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Hang in there a little longer, then, Kay.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">But I&#x27;m hungry nowww!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Fine, then. Let&#x27;s go and...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Gaaaaviiiiaaaaal!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Huh? Oh, crud. I know that voice.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Wow, Gavial! You&#x27;re actually here!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gavial, your hair&#x27;s gotten long!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gavial, your clothes look really good!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gavial, you have a weapon now! How come? It doesn&#x27;t look very good for hitting people!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Gurgh! Yes, Tomimi, it&#x27;s me, you&#x27;re not imagining it. Just let go of me first!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Okay!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gavial, have you been eating okay out there?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did you really become a doctor?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">...*Sigh* What are you doing here, Tomimi?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">So I saw a thing fall out of the sky, and I went to see what it was, and then I saw you!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, is your disease thing better yet? I read that people outside can get Stone Disease really bad. Are you okay?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I&#x27;m fine, I&#x27;m fine. Never better.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Archosauria</div><div class="text">Gavial! You&#x27;re really back!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s good to see you alive and well after all, Gavial!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No mistake, you need to be our next Great Chief!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Dream on. I&#x27;m only on leave. Came back to see how things are going.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Gavial, didn&#x27;t you say you were ostracized from your tribe?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Yeah. Why?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Gavial, who-who is this person?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Huh? Tomimi, you can speak standard Sargonian now? Pretty fluently too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Yep! I learned it just so I could speak with you, Gavial!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Not bad. I guess I&#x27;ll write to you in Sargonian from now on, then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">...So, um, Gavial, who are all these people?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Oh, this one&#x27;s Dr. Doctor. Doctor, for short. Counts as my boss, I guess?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And then the rest are all friends from work.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Gavial&#x27;s boss... are you actually stronger than her?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>No.</li><li>......</li><li>Yeah, way stronger!</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">So how&#x27;d you get to be Gavial&#x27;s boss, then?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gavial, this one looks pretty weak to me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No way!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">I&#x27;ve got bigger problems, Tomimi. Zumama&#x27;s people stole our aircraft engine after the crash. She&#x27;s got minions now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">What&#x27;s an aircraft engine? Is it like one of those motory things? Wait, um... huh? Zumama?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">What about her?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Ah, um, Zumama&#x27;s the chief of a tribe now. There&#x27;s a lot of people who think she&#x27;ll be the next Great Chief, too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Aah... So that&#x27;s how it is. Could&#x27;ve been her crew that took us down, too. She&#x27;s the only one who was into those weird wacky gizmo weapons in the first place.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">...Yeah, yeah! If you wanna find Zumama, the ceremony&#x27;s starting tomorrow, and every aspiring Chief is gonna be at the Temple. Zumama&#x27;ll be there for sure.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">So all we gotta do to find her is head there, huh? Ha! Perfect.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, didn&#x27;t you say your cute little noggin wanted to compete for it too? Go on, show me how far you&#x27;ve come in all these years!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">(Quietly) I still want you to be the Chief, Gavial.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Huh? Whawazzat?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">N-Nothing!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Doctor, emergency maintenance has been completed. Are we setting off now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Nice work, Lancet-2. Yeah, we&#x27;re heading to the Temple next.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Wowww! The machine talks!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">I like to think I&#x27;m ready for it, but it still hurts my heart a little whenever I get that sort of reaction. Not that I technically have a heart...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Aircraft won&#x27;t explode now, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">It won&#x27;t, but it&#x27;s not exactly ideal to just leave it here...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Yeah, true. I don&#x27;t want Kal&#x27;tsit giving me the death stare either.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">I-If I send, um, some of my people out to take it back to my tribe, would that help?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Your tribe? Huh? Hell, I didn&#x27;t realize. So our little girl&#x27;s a full-grown clan leader now, huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Yes! It actually used to be your tribe, Gavial.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Well, damn. No wonder I recognized a couple of faces...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Oh, also! Gavial, we changed the tribe&#x27;s name now! &#x27;Wilderness&#x27;s Will&#x27; is now &#x27;Gavial&#x27;s Will&#x27;!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Hah?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Because we all think you&#x27;re the best, Gavial!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Uh—*cough* *cough*—okay, whatever. I&#x27;ll leave you to it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">Did everyone get that?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Archosauria</div><div class="text">Yeah!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Ah, in that case, I think Mr. Dylan and I will stay with the aircraft.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I understand you&#x27;re going to meet a large number of people. I would only cause problems if I went.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And the aircraft does need guarding.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">What? You&#x27;re not gonna go see the ceremony? It&#x27;s a hell of a treat.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Don&#x27;t worry about it. I prefer the quieter side of things, anyway.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Suit yourself. I guess it&#x27;ll be just me, the Doctor, and, uh, Kay going, then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_411_tomimi_1.png" alt=""><div class="bubble"><div class="who">Tomimi</div><div class="text">And me! And I&#x27;ll bring some of my people with us too!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Off we go!</li><li>......</li><li>What about Kay?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Please wait a moment, Doctor. What about Kay?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">What&#x27;s up, Doctor?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hm? Wait up. Where&#x27;d Kay go?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, huh. You&#x27;re right, she was just here. Where&#x27;d that little rascal run off to?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Archosauria</div><div class="text">When you say Kay, do you mean the one jabbering away over there like she&#x27;s half-possessed?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_2013_cerber_1.png" alt=""><div class="bubble"><div class="who">Ceobe</div><div class="text">I&#x27;m not gonna let you hurt the Doctor, Reunion!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Nooo! Don&#x27;t steal my honey biscuits! Get back here!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_2.png" alt="bg_desert_2"><div class="cap">bg_desert_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Kay appears to be fighting the air... Um, this could be a case of poison-induced hallucination.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Oh! Shit! I forgot to warn you! There&#x27;s a hell of a lot of mushrooms and fruits growing wild along the road here, and more than most of them you can&#x27;t eat. If you do, you end up like that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Forgot the kid was even wilder than me. I bet she snuck off while we were busy talking and helped herself to the buffet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Uh, damn it. Okay. Go tie her up and take her back with you, Lancet-2. She&#x27;ll be fine after a while, probably.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_285_medic2_1.png" alt=""><div class="bubble"><div class="who">Lancet-2</div><div class="text">Leave it to me~</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, one last friendly reminder. Our surroundings are quite hot, but such environments are prone to drastic nighttime temperature swings. Please bring the necessary supplies with you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_187_ccheal_1.png" alt=""><div class="bubble"><div class="who">Gavial</div><div class="text">Oh, nice catch. Doctor, Tomimi, you two make sure you grab what you need from the aircraft.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s a long way to the Temple from here, and the rainforest won&#x27;t have anywhere decent to sleep. Get ready to spend the night in the open.</div></div></div></div><div class="nav"><a href="level_act12d0_01_beg.html">← Prev</a><a href="level_act12d0_02_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

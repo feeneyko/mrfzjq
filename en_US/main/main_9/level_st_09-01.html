@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Storm Assault · Stormwatch</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Main Story</a> / <a href="index.html">Stormwatch</a> / <span>9-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/main/main_9/level_st_09-01.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Storm Assault<span class="section-tag">9-1 · Interlude</span></h1><div class="meta">Stormwatch</div><div class="story-info">Pursuing a case of theft of military Originium products, Bagpipe under the Tempest Platoon arrives at County Hillock, and conducts an assault operation at a certain warehouse from her intel.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="subtitle">&#x27;The hibernating mountains carry smokestacks high,&#x27;</div>
+<div class="subtitle">&#x27;And the tracks run hauling my home with creak and cry,&#x27;</div>
+<div class="subtitle">&#x27;I found an acorn rolling in the gutter all alone, and right by a rivet rusted all of its chrome...&#x27;</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_warehouse.png" alt="bg_warehouse"><div class="cap">bg_warehouse</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">We&#x27;ve entered the warehouse. Investigation team, report status.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Triangle</div><div class="text">Leader. Vital signs to the southeast. Seven shelves away from you, moving within one meter.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Number of heads?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Triangle</div><div class="text">One.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Any Originium response?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Triangle</div><div class="text">None for the time being.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Good. Hold your positions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bagpipe?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Got it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">What are you looking for?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Doesn&#x27;t it sound like someone&#x27;s singin&#x27;?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Don&#x27;t get distracted. This means our target&#x27;s guard is down.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Keep to the plan. Wait for my signal, then you charge. For now, keep moving in.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Five, four, three...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ready—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Bunker destroyed!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Ack—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*cough* *cough* *hack*... Wh—what&#x27;s going on? All this smoke out of nowhere!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%237.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Don&#x27;t move! Stay where you are, raise both your hands up!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">I—I... you&#x27;re... Victorian soldiers?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">What do you mean by that? Aren&#x27;t you Victorian too?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Er...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%237.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">He&#x27;s looking to run. Cello, watch to intercept!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Leader, he&#x27;s not headin&#x27; for the exit, he&#x27;s turned back—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">!!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Triangle! Target heading for the back shelves! If you pick up any Originium response, open fire immediately!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Everyone else, form behind my shield!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Quick!!!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bagpipe, what are you doing?!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Bagpipe</div><div class="text">—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m coverin&#x27; it! Everyone, run!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%234.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">You—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">...!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Triangle</div><div class="text">Leader, no Originium response. That&#x27;s not a bomb under Bagpipe.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Oh! False alarm.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">And the target...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%233.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Sorry, I knocked him a little hard. He won&#x27;t be standin&#x27; for a while.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">And what of the boxes?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">I&#x27;ll take a peek. All potatoes and carrots, and cauliflowers too! I squashed &#x27;em flat. Shame, they seemed just fine for eatin&#x27;.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%235.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Stay alert.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">This one, this one, and this one... they&#x27;re all the same. Leader, it&#x27;s all produce and grains in here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Triangle, watch for anyone else nearing our perimeter.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oboe, you search the warehouse with Bagpipe. Signal on any discovery.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Cello, take this man stuck on the floor and tie him up.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Urgh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Right now, sir, we&#x27;re going to need you to answer a few questions.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">I—I don&#x27;t know anything. I&#x27;m here for sorting the potatoes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Are you from County Hillock?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Yes...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Have you heard of any spectre force?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Spectre... what? *cough*, *cough* *cough*... Doesn&#x27;t force mean people like you lot, all the soldiers?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They took Lowry, Julia and Chris away... is it—is it my turn now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">I want you to calm down.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Listen. We have people who saw a batch of Originium goods enter this warehouse late last night. And now, those goods aren&#x27;t here. You need to give me an explanation.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Explanation? That&#x27;s what you&#x27;re looking for? You&#x27;re not going to just hang me? I—I... *pteuch*.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Hey! What are you spittin&#x27; around for? You&#x27;ve gotta care about hygiene!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Any leads?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">None, it&#x27;s potatoes everywhere. If our information wasn&#x27;t wrong, then they must work a sight fast.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Alright.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bring him. He definitely knows something, he&#x27;s just not willing to open up.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">There it is... you&#x27;re all the same! Dying to find faults in all of us, torturing us... you Victorian oppressor beasts!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Eh? Again? He thinks callin&#x27; another Victorian &#x27;Victorian&#x27; counts as an insult? It&#x27;s flyin&#x27; over my head.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Triangle</div><div class="text">Leader, incoming.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">How many?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Prepare to break up.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(Yes, Leader.)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Triangle</div><div class="text">Update, Leader, they seem to be our own.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">They&#x27;re in here.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(Leader, we&#x27;re surrounded.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(Going by the numbers, yes.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%231.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(If you listen to the voices, there don&#x27;t seem to be too many left outside. If I crack the wall by me, then we&#x27;ve got our chance!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(Don&#x27;t get hasty.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">I see you&#x27;ve had a very fierce confrontation in here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Rita Skamandros, 7th Frontline Infantry Battalion, 2nd Tempest Platoon Leader.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Nice to meet you, Lieutenant Skamm... Skamandros.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">My name isn&#x27;t too easy to remember. You can call me Horn, Captain.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Very well, Horn. I&#x27;m Kelly, Louis Kelly. I&#x27;m sorry, codenames aren&#x27;t our style.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Captain Kelly, you and your troops are presumably also here to investigate this warehouse.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Correct, we&#x27;ve received the tip-off too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Then you ought to understand how grave this situation is. A great deal of illicit Originium goods were stolen off a military transport a couple months ago, and ultimately came to vanish in this region.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Ahem...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">I need not remind you, Captain, with this much ordnance, coupled with recent thefts in surrounding counties—if fallen into felonious hands, the menace posed will reach far beyond County Hillock.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Good, thank you for the run-down. I understand.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">And we&#x27;re very thankful for your cooperation.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Hill!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_248.png" alt=""><div class="bubble"><div class="who">Adjutant Hill</div><div class="text">Sir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Take this young man... this suspect back to camp.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">What? It was mad for us gettin&#x27; this man as our lead!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_248.png" alt=""><div class="bubble"><div class="who">Adjutant Hill</div><div class="text">Sir, her spear is obstructing fulfillment of my duty.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Er...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%237.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bagpipe, let it go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">But our mission—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">—We&#x27;re on Hillock land right now.</div></div></div>
+<div class="narr">Captain Kelly pulls a handkerchief from his pocket, and wipes the sweat on his forehead.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Very glad we could persuade you, Lieutenant. You and this young Vouivre lady, and all others present...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ahem—you must be certainly worn out by your hard journey, dashing here from Londinium.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">It&#x27;s our duty as soldiers of Victoria.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Yes, quite right. Now, if you still have intention to operate in County Hillock...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">We&#x27;re obliged to continue tracking the thieved Originium goods. This is an order from Londinium. I imagine Colonel Hamilton would see sense too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Of course, of course. You may accompany me back to camp.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Leader, do we really have to give him up to them? They have to be doin&#x27; this on purpose! Ever since we touched foot on the outskirt plate, they&#x27;ve been followin&#x27; right behind!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right until now, just as we caught him—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">&#x27;Stationed troops of the Empire have a responsibility to address any threat to public safety that arises within their station.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They haven&#x27;t violated any code.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Ugh... alright.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Captain, he&#x27;s yours. As per code, we may also take part in the interrogation—we hope you recall.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Ha, hahah... yes, quite in line with code.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">N—No... let me go! Don&#x27;t take me!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_248.png" alt=""><div class="bubble"><div class="who">Adjutant Hill</div><div class="text">Heh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Panicked Youth</div><div class="text">Help me... save my soul! I haven&#x27;t done anything... I don&#x27;t know...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Aaarghhh!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Hill...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_248.png" alt=""><div class="bubble"><div class="who">Adjutant Hill</div><div class="text">Tara rabble like him always do make a scene like this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_238.png" alt=""><div class="bubble"><div class="who">Captain Kelly</div><div class="text">Take him away.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%234.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Ugh, really! What gives them the right!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Leader, I think... that wee Feline wants us to help him. He&#x27;s scared to death of goin&#x27; with them.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(......)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Triangle?)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Triangle</div><div class="text">Here, Leader. Still in position, outside in the same tree. They haven&#x27;t noticed me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(Good. Take the reconnaissance group, and keep investigating along nearby transport routes. If you find any leads, immediately report back.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Triangle</div><div class="text">Understood. Are we notifying their barracks?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No need.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Be sure to defend yourselves.</div></div></div></div><div class="nav"><span>← Prev</span><a href="level_main_09-01_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

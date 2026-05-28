@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中央通道 · 愚人号</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">愚人号</a> / <span>SN-6</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act17side/level_act17side_06_beg.html" class="">English</a></div>
+  </div>
+  <h1>中央通道<span class="section-tag">SN-6 · 行动前</span></h1><div class="meta">愚人号</div><div class="story-info">孤独之旅终于看见了转折，随着黄金色的船只出现在猎人们面前，蛰伏在船只上的神秘敌人也有所反应。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bridge.png" alt="bg_bridge"><div class="cap">bg_bridge</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">布雷奥甘，是那把钥匙的主人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他在伊比利亚的黄金时代成为了王公贵族的座上宾，人们曾一度以为他象征着阿戈尔岛民与伊比利亚人和谐共处的开端。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没人知道他在灾难前做了什么，又来不及做什么，但是他确确实实留下了足够多的遗产......以及对你们来说，足够多的方向。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但他已经属于过去，毫无疑问，现在做出选择的是你们。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那把钥匙......布雷奥甘的钥匙遗落在卡西米尔的缘由，是一个我们没必要知晓的答案。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但找到它的，是猎人斯卡蒂。这不是什么巧合，这是必然。你们对海洋天生敏感。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......是的，我把钥匙交给了那个乐队。你会知道她们是什么样的存在。也许阿戈尔人需要争取她们的帮助。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她们也在寻找答案。她们大多年轻，也对海洋的变化感到不适，毕竟她们无法真正离开自己诞生的地方。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是啊......希望我们能够成功。人类有太多问题需要面对，层层累叠的灾难可以轻松撕毁现在的文明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">歌蕾蒂娅，你想单独行动，我不会劝阻你。斯卡蒂与你相似，也许猎人都是相似的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但千万别觉得，自己能解决陆地上的所有问题。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嗯？你问吧，对你，我有问必答。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ishar-mla......？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你在哪里听到的？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g24_cloudy_sea.png" alt="27_g24_cloudy_sea"><div class="cap">27_g24_cloudy_sea</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">我们就快到了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是，海洋......太宽广了，模糊的坐标会带来极大的误差......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......而且海洋比我想的要平静。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">过于平静了，离开那座灯塔后，我们遭遇的袭击反而变得更少了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">甚至......没有风浪。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">这意味着什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">这意味着——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">可怜的小鸟，你在紧张吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">呀！你、你什么时候——别站在我背后！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我没有紧张，我只是......很少很少有人能深入海洋到这个地步，我......我不确定......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">不，你在凝视身后，而非眼前。你在害怕失去，而不是面对未知。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你的长官为你创造了前往斯图提斐拉的契机，接触阿戈尔的契机，不是为了让你这么优柔寡断。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">......我知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你得在战斗来临之前......唔。鲨鱼，你闻到了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">是啊，让这艘舒适的小船微微向右，我们就能看见那艘更大的船。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那里已经是一座巢穴，我们真的要去那里吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">幽灵鲨，你要不要休息一下？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我？我有什么不对的地方吗？为什么这么问？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">你的手在抖。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">嗯？</div></div></div>
+<div class="narr">幽灵鲨看向自己的手。没有握着武器的手，正在海风中微微颤抖。</div>
+<div class="narr">她的意识逐渐明晰，又极快地坠入深海，触碰不得。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我......啊，我这是在激动吗？还是......感动？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......</div></div></div>
+<div class="narr">歌蕾蒂娅默默握住了幽灵鲨的手，斯卡蒂随之效仿，三名深海猎人沉默了片刻。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">欢迎回家。猎人们。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/27_i28.png" alt="27_i28"></div>
+<div class="narr">歌蕾蒂娅默默地走上船头。</div>
+<div class="narr">海风推开夜晚，传递着熟悉的气味。</div>
+<div class="narr">一艘安静的大船，在海面上酣眠沉睡。它是海风的臣民，时代的贵客。</div>
+<div class="narr">而那曾是一个遍地理想的时代，人们的探索精神在它身上体现得淋漓尽致，傲慢亦然。</div>
+<div class="narr">斯卡蒂与歌蕾蒂娅无声地眺望着那艘船。</div>
+<div class="narr">一瞬间她们想起了很多，但最后无疑都回到了自己的过去，童年，故土，与当下船舶摇晃的频率。</div>
+<div class="narr">唯有幽灵鲨微微抱紧了手里的武器，海风微拂。</div>
+<div class="narr">海风会把猎人们带回家。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g16_lighthouse_street.png" alt="27_g16_lighthouse_street"><div class="cap">27_g16_lighthouse_street</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恐鱼</div><div class="text">（沿石面爬行的窸窣声）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">Mon3tr，烧毁它们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（尖啸）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">卡门阁下，我们没有太多时间停留在这里。猎人们的队伍会有危险。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">惩戒军被束缚住了脚步，看来我还是低估了深海教会的渗透程度。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们本该在格兰法洛清理出一片临时阵地后再跟上他们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">我们别无选择。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">如果无法确保格兰法洛，就意味着我们会腹背受敌。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">一个伊比利亚大阵至少有十个连队，三千人规模，惩戒军中的幕僚们足以指挥他们赢下这场战争。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%2310%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">你对惩戒军似乎颇为了解。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">我们打过不少交道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%237%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">那么你的意思是，我们将格兰法洛交给惩戒军，先行前往伊比利亚之眼？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果我们面对的是维多利亚的舰队，我并不反对这个提案。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">否则我们的损失将更加惨重。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%232%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">（独奏）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">Frost女士？你为什么......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">她说，这叫体能训练。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们来自海洋。我们就是海洋。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然......（悲怆的独奏）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">......如果你们愿意帮忙，那么再好不过。你能做什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">让它们听话。听我唱歌。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">你的同伴们......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">不好意思，Dan想借用那座礼拜堂。她们都在那里思考新的曲子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%237%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">音乐？你们的音乐和以前我在莱塔尼亚所听到的大不相同，你们会对这种东西感兴趣？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">（紧凑的独奏）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">音乐，才是生活的意义。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我只是想在演出开始前，清场而已。</div></div></div>
+<div class="narr">Frost缓缓取出了她的吉他。</div>
+<div class="narr">卡门略感讶异。他能感觉到面前这个生物确确实实在思考名为“音乐”的艺术。她的话语里没有任何多余的用意。</div>
+<div class="narr">音乐绝非比喻。将这个词用以比喻其他事物都会让Frost分心。她只考虑音乐，这种能取悦她灵魂的艺术才能引起她的注意。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">恐鱼</div><div class="text">（畏缩的窸窣声）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_2003_Frost_1.png" alt=""><div class="bubble"><div class="who">Frost</div><div class="text">（尝试性的独奏）</div></div></div>
+<div class="narr">那些潜藏着的恐鱼，环绕在她的身旁，观察，审视，判断。</div>
+<div class="narr">它们不敢轻易靠近。它们嗅到了熟悉的味道。它们意识到眼前的吉他手只是空壳。她悠远的联系在它们血脉馈赠的深处隐隐作响。</div>
+<div class="narr">即使这里仍是陆地，它们却在瞬间感觉自己回到了海洋。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">恐鱼</div><div class="text">（困惑打转的窸窣声）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%234%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">多么......神奇。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这些与大地本身息息相关的生物，在它们眼中，人类与恐鱼是否毫无区别？</div></div></div>
+<div class="narr">Frost没有回答，她对旋律如痴如醉，对激情本身要求严苛。</div>
+<div class="narr">凯尔希知道，这个问题是问自己的。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%237%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">凯尔希，这也在你的盘算之中？让她们坐镇海岸，让惩戒军深入大海？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">您愿意这么想，那我就是这么想的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%232%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">但是惩戒军甚至没来得及为我们准备好一艘船。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">凯尔希</div><div class="text">海岸上还有一艘。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">从格兰法洛计划废止开始，它已经等了很多年了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">圣徒卡门</div><div class="text">......必须先斩断留在陆地上的恶根。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我还是一名审判官。我不会坐视潜伏在伊比利亚的邪恶在我眼前溜走。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g21_goldenboat_deck.png" alt="27_g21_goldenboat_deck"><div class="cap">27_g21_goldenboat_deck</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">唔啊！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">你还好吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%233%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">松、松手，别这么抱着我！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">可是不抱着你，孱弱的小鸟，你根本没法爬上这么高的甲板呀。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">不，我不是这个意思——啧，算了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">怎么了？</div></div></div>
+<div class="narr">审判官艾丽妮只是怔怔地看着眼前的景色。</div>
+<div class="narr">漆黑的海面，昏暗的光线。六十年的时间仿佛在船桅处停滞不前。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">这里就是......斯图提斐拉，“愚人号”......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">满载学者与军人的旗舰，陨落王族在海洋上的行宫......和书本上的记录......差别很大。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">走了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">等、等等！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这艘船这么大，你要在这里找什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">布雷奥甘是个阿戈尔人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这把钥匙，一定藏着一个阿戈尔人想要留下的线索。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">钥匙？那么锁在哪里？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">正打算找。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">这么大艘船，六十年就这么漂泊在海上，你打算怎么找——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">也许你这样年轻的伊比利亚人没有接触过太多这样的运输工具。即使有布雷奥甘的协助，它也被制造得如此粗糙。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">你......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">一路走来，海洋是否温柔，你心里有数。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那么我倒想请教你一个问题，这艘船，“为什么没沉”？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">你是说——</div></div></div>
+<div class="narr">脚步声。沉重的，黏稠的脚步声。</div>
+<div class="narr">在这本不该有什么活物的甲板上，出现了一道影子。</div>
+<div class="narr">不，艾丽妮立刻斥责了自己的想法。歌蕾蒂娅的质询同时也是疑问。岸上，海里，她已经见过了那么多的敌人。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_452_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">......</div></div></div>
+<div class="narr">在看清敌人的一瞬，天赋异禀的年轻审判官艾丽妮，本能的反应是，窒息。</div>
+<div class="narr">而在她回想起如何呼吸的时候，歌蕾蒂娅已经一步上前。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_452_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">——（尖锐的咆哮）——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">竟然能躲开。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">它想逃。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">想都别想！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......什么......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">它躲到了船舱里！我们要追吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......是的，它躲到了船舱里。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可它怎么会躲进船舱里？这里可是海的中央。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">怎么办？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不止一只。这艘船上不止一只海嗣。恐鱼更多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们得分头行动。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">我们去追。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">我向下走。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">向、向下，你们怎么知道这艘船的构造——？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%233.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">不知道，切开就是。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">呃......这可是伊比利亚先贤最重要的遗产！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">你呢，小鸟？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">我......我有义务监视你们，我和你们一起走。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">斯图提斐拉上有很多谜题，它既然能保存得这么完整，为什么六十年间从没试过回到伊比利亚？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">身为伊比利亚的审判官，我必须得到真相。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">要牵着手吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">你、你什么意思？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">你是一颗才华的果实，但和你的敌人相比，你的努力和天资都变得不值一提。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我担心一个不留神，我们就失去你了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">......别太瞧不起人，阿戈尔人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">她就交给你们了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">没问题。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">鲨鱼。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">嗯？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">你想起了什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%233%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......海风告诉我，告诉我，有一座雕塑。它在哭泣，它在等我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以在这艘船上找到它吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">歌蕾蒂娅</div><div class="text">当然，快些吧，鲨鱼。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我等着你。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">雕塑？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">嗯，我们一边欢迎死者，一边找找它藏身的地方吧，斯卡蒂。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">真高兴你还记得我的名字。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g23_goldenboat_pass.png" alt="27_g23_goldenboat_pass"><div class="cap">27_g23_goldenboat_pass</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">......真是......富丽堂皇的风格。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可是，怎么会这么干净......这里纤尘不染，看，地板甚至在反光。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">也许是有人坚持打扫。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">谁？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">不知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们说要追踪那只怪物，你们真的追得到它？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">气味不会骗人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">尽管这里尽是腐臭的味道，肯定有不少——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">恐鱼</div><div class="text">（勤劳的窸窣声）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">恐鱼！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">这里果然被这些怪物当作巢穴了......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我来吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">恐鱼</div><div class="text">（在原地打转的窸窣声）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">——等等！幽灵鲨！气味在我们脚下！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">审判官艾丽妮</div><div class="text">呃——</div></div></div>
+<div class="narr">Ishar-mla。</div>
+<div class="narr">Ishar-mla。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g22_goldenboat_hall.png" alt="27_g22_goldenboat_hall"><div class="cap">27_g22_goldenboat_hall</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">唔，刚才的冲击......幽灵鲨，还好吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......幽灵鲨？劳伦缇娜！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你在看什么？镜子？这里怎么会有一面镜子？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......镜子被打碎了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">这里是怎么回事？伊比利亚人的水上运输工具需要一座宫殿吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">和罗德岛差别真大。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">这面镜子有什么特别的吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我看见了。</div></div></div>
+<div class="narr">起初，那是这面破碎镜台的点点亮光。很快，这点点光亮化作了实影，那是它的眼。</div>
+<div class="narr">海嗣早在这里等待。孤坐在这黄金的大厅。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_458_1%231%241.png" alt=""><div class="bubble"><div class="who">海嗣</div><div class="text">......Ishar-mla，La-tina，Louu-tina，Laren-tina......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">......这只幼小的......不，它们不能用体形判断力量。它是海嗣，又一只，毫无疑问。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">还有恐鱼，恐鱼群正在聚集！幽灵鲨！</div></div></div>
+<div class="narr">幽灵鲨置若罔闻。她怔怔看着镜子。和镜子后的海嗣。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......你记得我？</div></div></div>
+<div class="narr">海嗣微微点头。它困惑地看着幽灵鲨与斯卡蒂。它在思考。</div>
+<div class="narr">为什么她们与“过去”不同？她们怎么了？怎么帮她们从累赘的血肉中解脱出来？</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">幽灵鲨！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%233%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">别乱想！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%231%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">我没乱想。</div></div></div>
+<div class="narr">语气变了。</div>
+<div class="narr">斯卡蒂惊讶地看着幽灵鲨。对于她在盐风城时所表露出的片刻清醒，斯卡蒂始终没能从歌蕾蒂娅或是凯尔希那里得到一个确切的答复。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">劳伦缇娜，你......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%231%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">劳伦缇娜，是啊，劳伦缇娜。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">看，就在武器上的这一条经卷里，我写下自己的名字挂在上面的时候，我甚至还能记得我出生的地方。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啊啊......清醒的梦境。真是，又过了这么久。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">斯卡蒂</div><div class="text">幽灵鲨。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%231%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">嗯，一会再感慨吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">盐风城也好，这艘陌生又熟悉的水上运输工具也罢，真希望唤醒我的，是阿戈尔穹顶的光辉，而不是你们这些丑陋的怪物。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_458_1%231%241.png" alt=""><div class="bubble"><div class="who">海嗣</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%231%241.png" alt=""><div class="bubble"><div class="who">幽灵鲨</div><div class="text">谢谢你安静地听我说完。等等，你不会也想开口称呼我们为同胞吧？怪别扭的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">来吧，你也小睡片刻如何？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">沉进意识的泥沼，放弃生命的大权。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_458_1%231%241.png" alt=""><div class="bubble"><div class="who">海嗣</div><div class="text">——（尖啸）</div></div></div></div><div class="nav"><a href="level_act17side_05_end.html">← 上一段</a><a href="level_act17side_st06.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

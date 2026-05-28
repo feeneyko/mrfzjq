@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>探查岩洞区域 · 慈悲灯塔</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">慈悲灯塔</a> / <span>14-5</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_14/level_main_14-04_end.html" class="">English</a></div>
+  </div>
+  <h1>探查岩洞区域<span class="section-tag">14-5 · 行动后</span></h1><div class="meta">慈悲灯塔</div><div class="story-info">W在与雇佣兵携手战胜诡异怪物后，只身闯入了与赦罪师有关的古老遗迹内部。被俘虏的厄尔苏拉抓住了时机，从赫德雷的手中逃脱。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/50_g18_originiumcave.png" alt="50_g18_originiumcave"><div class="cap">50_g18_originiumcave</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1335_1%231%241.png" alt=""><div class="bubble"><div class="who">长相恐怖的怪物</div><div class="text">（怪异的嚎叫）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">咱们的武器一点用都没有！该死的......这怪物是死不掉吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">瞄准一点打！往它的脑袋上招呼！我就不信它能有多结实！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">它动作也太快了！根本瞄不准！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">吸引一下它的注意力！我从它背后试试！</div></div></div>
+<div class="narr">想要偷袭的佣兵绕到了怪物庞大的身躯背后，怪物只是甩了甩尾巴，便将他摔到了岩壁上，轻松得就像赶走身上的跳蚤。</div>
+<div class="narr">连续的攻击没能对它造成什么伤害，巨大的振翅声响起，炽热的风狂乱地冲击着山洞里的一切，让空气更加稀薄。</div>
+<div class="narr">土石震动，尖刺拔地而起，冲向在场的所有人。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">吵死了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">短腿蛾子！安静点！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1335_1%231%241.png" alt=""><div class="bubble"><div class="who">长相恐怖的怪物</div><div class="text">（吟唱般的鸣叫）</div></div></div>
+<div class="narr">怪物第一时间锁定了伤害的来源，庞大的身躯完全不影响它动作的敏捷。</div>
+<div class="narr">只是换了一次弹的工夫，怪物已经冲到了W面前，利牙几乎贴到了她脸上。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">不知道......是谁把你生成这副样子——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但想吃我，你的这张丑脸，得长得再大一点才行！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">还是吃炸弹吧！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">呼......呼......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">它......死了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%237%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">脸都炸烂了，活不了了吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">你、你没事？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%237%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我一向很擅长把控炸弹的距离。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">......我有个猜测，W。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">会不会萨卡兹以前有个失落的王庭叫炸弹魔，你是炸弹魔王庭最后的公主之类的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">哈哈，真好笑。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">可这到底是什么玩意？看上去可不像什么正经动物！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我听说哥伦比亚有些疯子会把好几种动物的身体缝到一块去——该不会是他们搞的吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%238%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">不巧的是，我还听说过一批会做类似事情的萨卡兹疯子。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（小声）有巫术的味道，赦罪师造出来的怪物吗......为什么会在这种荒山野岭里？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这种东西出现在这肯定不是巧合，山洞里面估计还有别的东西。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">所以我们的人，是被这个东西......吃了吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%238%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">那就只能剖开肚子来检查一下了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个东西，是死透了吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这家伙还是成群的吗！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">它们把洞口堵住了！W！现在咋办！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">逃！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">行动开始后四十八小时</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/43_g2_giantmonsterspine.png" alt="43_g2_giantmonsterspine"><div class="cap">43_g2_giantmonsterspine</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%2310%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">几点了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%231%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">外面的时间对你来说还有意义吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%231%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">行行好吧，就当是我的职业病，知道时间心里会踏实点。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%231%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">下午六点，离我们坠落在峡谷里过去了两天。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%237%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">嗯......两天。够做很多事了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">赫德雷，你还记得吗？有一次，我们三个接了一个去偷什么萨尔贡帕夏秘宝的任务，我们偷到了东西，结果被一百来号人追杀。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们躲到了一个山洞里，也是整整两天。饿着肚子，不敢生火，不敢出去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%238%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">嗯，我还记得是伊内丝帮你缝的伤口，不然你很可能挺不过那时候。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%238%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">......哈哈。那时候我说，天快亮了，让我晒会太阳呗，这样伤好得更快。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%231%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">我一定阻止你了。敌人还在外面，我们不能暴露行踪。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%238%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">不，不是你阻止我，是伊内丝笑话我。她说，疤痕商场的佣兵，居然会贪恋太阳。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%231%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">疤痕商场隐藏在卡兹戴尔地区的地下，确实不见光。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%234%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">后来我当了军事委员会的军令长，“少校”，得到了驾驶这具骸骨的机会。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">带着那帮年轻人在卡兹戴尔和伦蒂尼姆之间穿来穿去的时候，别说晒太阳了，日光都像是被抛到我们身后。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以我不可能回到过去的日子里了。萨卡兹都回不去了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%234%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">......厄尔苏拉？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">怎么回事——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%232%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">他们来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%237%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">骸骨？动起来了？</div></div></div>
+<div class="narr">恍惚之间，巨兽骸骨仿佛重新动了起来。但很快，赫德雷意识到在动的并非神经束和骨片。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%237%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">......钉子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%238%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">哈哈......船长和船，本来就是一体的。</div></div></div>
+<div class="narr">组成“生命脊椎”的，从来就不止巨兽的遗骸，还有这一排排钉在骨架上，用来将死去的生物组织组装成“运输船”的长钉。</div>
+<div class="narr">其中有一枚，钉住了脊椎上最关键的一节。她的法术浸润过它。</div>
+<div class="narr">她和这具骸骨，本来就已被巫术连接。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%238%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">王庭军侦察术师的法术连接到了这具骸骨，我能感觉到。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">别着急，它还不会醒过来，但凭借这一点连接，还有这枚钉子上存留的巨兽的能力，够我离开这了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这枚钉子本来就是我的，我的骨头和它连着呢，我就带走了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">巨兽的能力直接作用在人身上会怎么样呢？偶尔找回一点过去的疯，感觉也还不错。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%233%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">脊骨在裂开......不行！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1067_1%238%241.png" alt=""><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">我说过，赫德雷，你会为你的选择后悔的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不......又或者说，你会将这一切都当作历史中避无可避的一部分？</div></div></div>
+<div class="narr">重剑穿刺裂隙，替代那枚掉落的长钉，堪堪撑住了脊椎最关键的部位。</div>
+<div class="narr">而只是这一瞬间，他们的囚犯就已经挣脱了铁链。</div>
+<div class="narr">厄尔苏拉从肋骨的碎裂处跳了出去，和骨片还有损坏的神经纤维一起，被持续不断燃起的火光吞没。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4088_hodrer_1%233%241.png" alt=""><div class="bubble"><div class="who">赫德雷</div><div class="text">厄尔苏拉！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">厄尔苏拉</div><div class="text">“厄尔苏拉”......漂泊在历史碎片中，醉心于救人的英雄。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我有没有同你说过，这个名字可能更适合你？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/50_g17_wunderpass.png" alt="50_g17_wunderpass"><div class="cap">50_g17_wunderpass</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">长相恐怖的怪物</div><div class="text">（愤怒的嘶吼）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">W小队成员</div><div class="text">它们到底有多少只！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">W！前面好像是死路！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我也没打算从前面逃，我只是给我的炸药，留点空间——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">卧倒！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">它们......被炸死了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">希望炸下来的那几块石头够砸碎它们的脑袋。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">它们为什么会守在这里？是在保护什么东西吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我哪知道！你们是不是真的觉得我能和怪物聊得来？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">咳......所以，我们应该是真的发现了什么不得了的东西？“吊塔”他们应该也是被这种怪物吃掉的吧。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">“吊塔”</div><div class="text">别咒我......我还活着呢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2312%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你还活着！什么情况？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">我们来这边巡逻的时候发现这里有个洞穴，担心里面有什么密道之类的怪东西，就来检查了一下......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">结果遇到了那几个怪物！“轮胎”“刺盾”“螺母”全都被吃了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">剩下的人拼了命地跑，不知道为什么那几个怪物一点也不敢往这边追，我们也没法出去，结果被困到了现在！</div></div></div>
+<div class="narr">该死的，一会我要去把那几个怪物的皮剥下来送给伊内丝做衣服......</div>
+<div class="narr">你们在里面发现了什么？</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">我看看，向那个方向走，过了那几个蒙面死人，再往右边的分岔，我都布置了记号——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">蒙面死人？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">几具骷髅，有年月没人动过了，估计是几年前从伦蒂尼姆跑出来的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">要说有什么奇怪......他们都把自己的角砍了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">砍去双角的......蒙面尸体？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">嗯，把脑袋包得严严实实，大概是哪个部族的传统？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">妈的。不是你们疯了，就是我疯了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">你得罪过的老熟人？别那么紧张，他们都死得不能再透了——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">带我去看，马上！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/50_g17_wunderpass.png" alt="50_g17_wunderpass"><div class="cap">50_g17_wunderpass</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">喏，就是这里。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%233%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">到底怎么了，W？我从没见你这个样子过。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">闭嘴。</div></div></div>
+<div class="narr">数具尸体倚靠着洞壁，W俯下身去，仔细检查着这几个死去已久的人，不放过任何一处可能是线索的痕迹。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">衣服下的身体都已经高度白骨化，都是重伤致死，没什么疑问。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们的遗体似乎当年就被人整理过，估计是他们的同伴？不过看这些灰尘，都已经是好几年前的事了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嗯，墙角还有个小祭坛，没有巫术的痕迹，应该只是单纯用来纪念的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......只有他们？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们......这些刺客怎么会在这里？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只有这里的几具？这附近还有没有其他的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">什么意思，还该有谁？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">W！喂，W！你又发什么疯？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">到底怎么回事？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">刺客？W说这些人是刺客？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/50_g17_wunderpass.png" alt="50_g17_wunderpass"><div class="cap">50_g17_wunderpass</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%233%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">呼......呼......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">“吊塔”</div><div class="text">W，等等我们！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这附近我们都看过了，没其他可疑的东西——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">他们的衣服......我认识。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这些该千刀万剐的叛徒......他们本该死干净了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们在这里，就意味着——</div></div></div>
+<div class="narr">不......</div>
+<div class="narr">该死，不可能的！简直荒唐透顶！</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">......W，我听说，特蕾西娅殿下的遗体被......从巴别塔偷走了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">别问我！我怎么知道！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">特蕾西娅殿下在巴别塔遇袭之后再次露面，就是在伦蒂尼姆。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这里......离伦蒂尼姆很近。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">闭嘴，我不需要你提醒！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1336_1%231%241.png" alt=""><div class="bubble"><div class="who">W小队成员</div><div class="text">接下来怎么办？我们是不是应该......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你们回去，告诉伊内丝，战备等级提到最高，其他的她会处理好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我，哼。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我要把这些年一直没做完的事情......收拾干净。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_wild_a.png" alt="bg_wild_a"><div class="cap">bg_wild_a</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1307_1%231%241.png" alt=""><div class="bubble"><div class="who">无角的萨卡兹</div><div class="text">没有意义了，佣兵，我们之间的战斗毫无意义。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">战争已经结束了！我们之间的生死不会对既定结果产生一丝一毫的影响！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1343_1%237%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你说没意义就没意义了？你手上沾着她的血！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你，还有你的同伙，活着的那些。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我会找到你们所有人，不管你们逃到什么地方，我都会找到你们，把你们的骨头一根根地抽出来。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1307_1%231%241.png" alt=""><div class="bubble"><div class="who">无角的萨卡兹</div><div class="text">我的罪孽，我比任何人都要清楚！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">就算今天没有在这里遇到你，我也会自己了断自己的性命！你觉得你来动手能平息你那不值一提的愤怒的话，就动手吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不管怎么样，你来迟了，佣兵。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你救不了她。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1343_1%233%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">他妈的，给我闭嘴！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="subtitle">我承认我犯过很多错，但至少在这件事上，我绝不会犯错。</div>
+<div class="subtitle">当年的叛徒我已经杀完了，我记得他们每个人的死法，甚至是最后的表情，但为什么还有人会死在这？</div>
+<div class="subtitle">凯尔希说过，殿下是被赦罪师“复活”的，他们为什么还需要一个活着的特蕾西娅？</div>
+<div class="subtitle">除了特雷西斯要冒充萨卡兹的伟大领袖的计划，他们还有什么打算？</div>
+<div class="subtitle">真是够了......特雷西斯，赦罪师，我对你们的脑子里的怪点子没有兴趣，但你们玷污了一位绝对不该玷污的人。</div>
+<div class="subtitle">所以你们每个人都得死，我发誓！</div>
+<div class="subtitle">他妈的，这究竟是什么鬼地方？这里还有扇门？</div>
+<div class="subtitle">给我......炸开！</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/50_g6_sarkazancientruins.png" alt="50_g6_sarkazancientruins"><div class="cap">50_g6_sarkazancientruins</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_412_1%233%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">咳咳咳......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这是......什么东西......</div></div></div>
+<div class="narr">难以想象，狭窄的洞口连接的是这样一个宽阔的山洞，终年不见天日的洞穴里阴气逼人，遍地皆是蒙尘的甲胄与武器。</div>
+<div class="narr">怪异的结晶体点缀在整个空间之中，熟悉又陌生的巨大纹样从墙面一直延伸到地下，涂画着让人胆寒的符号。</div>
+<div class="narr">恍惚间，W生出一种怪异的感觉，她觉得并非是自己在打量周遭的一切，而是......这巨大的地下结构正在凝视着她。</div>
+<div class="narr">铛——</div>
+<div class="narr">钝器相撞的声音响彻洞穴。</div>
+<div class="narr">铛——铛——</div>
+<div class="narr">W听出来了，那是重物劈碎骨头的声音。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1332_1%231%242.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">何人......造访......</div></div></div></div><div class="nav"><a href="level_main_14-04_beg.html">← 上一段</a><a href="level_main_14-05_beg.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

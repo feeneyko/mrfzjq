@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>乱局 · 将进酒</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">将进酒</a> / <span>IW-7</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act15side/level_act15side_07_beg.html" class="">English</a></div>
+  </div>
+  <h1>乱局<span class="section-tag">IW-7 · 行动前</span></h1><div class="meta">将进酒</div><div class="story-info">挑山人如愿以偿与掌柜决斗断过往，却不料加入战局的杂人越来越多。乱斗中，酒盏被打落山崖，老鲤不得已，只能先一步涉险寻觅。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_g07_fairyland_2.png" alt="25_g07_fairyland_2"><div class="cap">25_g07_fairyland_2</div></div>
+<div class="narr">......唔。</div>
+<div class="narr">头疼头疼......何事如此喧哗......嗯？</div>
+<div class="narr">啊......原来是落子声响，叮叮当当。</div>
+<div class="narr">棋罢不知人换世，梦醒只道是何年......何年......何年......</div>
+<div class="narr">呃......</div>
+<div class="narr">......怎么酒又没了。</div>
+<div class="narr">这都是何苦呢。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_g06_mountainroad_d.png" alt="25_g06_mountainroad_d"><div class="cap">25_g06_mountainroad_d</div></div>
+<div class="narr">尚冢摸了摸脖子上的膏药，这是他的习惯。</div>
+<div class="narr">十年如一日地挑起扁担，上山下山，这也是他的习惯。</div>
+<div class="narr">取江峰确实很高，很险。高到没有人烟，险到万籁俱寂。</div>
+<div class="narr">数不清这是在尚蜀看见的第几个春天，他抬头远眺，只见人踪尽灭的山道那头，有一个人。</div>
+<div class="narr">一个他等了很久的人。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">挑山人</div><div class="text">......我们终于还是再见了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%231%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">方才见过。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%236%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">那时你没有带刀，就不算见过。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">那现在我带刀来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......话先说明了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我知道错不在你。我也知道，那个雨夜，死的不止是我的儿子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">你当然知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">你收养了他的女儿，她现在怎么样了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......我打算让她接我的班。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%236%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">是打算接镖局的班，还是像你这些年做的，安安分分当个老板娘？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%235%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">都行，看她喜欢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%235%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">找着心上人没？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%235%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">没呢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">可惜了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你活不到看她出嫁的那天。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......也许今天我们不用打打杀杀的呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">不可能，我知道你的为人，你心里有愧，但我心里有怨。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">怨了十年。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......所以呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">所以你一开始就没打算今天赢我。酒楼茶馆客栈，哪一个不都是为了给你的女儿留条退路？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你知道镖局是个得罪人的行当。你也知道，如果你不在了，镖局会是什么样。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%236%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">别忘了，你挂刀而去，不守规矩，于情，大家体谅你，可于理，你还是个叛徒。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">那夜之后，你若是背负着那些罪过，带领镖局继续前行，我又怎么会叛出镖局！？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我儿走镖，也是有所觉悟的，我何尝不知？可你的行为，开客栈开餐厅，难道不是践踏他们的死吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是你！一蹶不振，逃避过去！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">是啊......我是知道的，但咱们话说得有点多了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">行裕镖局总镖头，问霜客，郑清钺。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......尚家棍，尚冢。</div></div></div>
+<div class="narr">早春，垂暮，树影婆娑，落雪如银。</div>
+<div class="narr">一阵风起，一把刀落。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......唔。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%236%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">你实在是歇息得太久了，郑清钺。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%231%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......未必是我歇息得久了，也许是你爬山爬得太多，步法又精进了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">谁知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">可你这样的英雄好汉，下半辈子却注定无法行走，也实在可惜。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%236%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......只是刀势太快，雪光晃眼，被你稍微擦破裤腿，我就无法行走了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">下一刀，你挡不住。你拿的，毕竟不是家传的宝棍。只是根破木棍罢了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%235%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">——爹！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%233%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">夜儿！？你怎么......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%234%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......你果然是杜遥夜。转眼间，已经长这么大了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唔。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%239%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">二位好闲情，天色渐晚，还有空在这......比武练习。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%234%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">是你。你在这里做什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">不瞒尚师傅你说，你腰间那只盏，是我一朋友托我寻来的。我要找亭子，也和那只酒盏分不开呀。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我怕刀剑无眼，二位切磋之间......误碰了酒盏，得不偿失。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%231%243.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">爹，你这是在做什么——！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......夜儿，我......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">十年前，行裕镖局接了一单大镖。但是路上遭遇暴雨，在荒野上被土匪袭击。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为了保货，郑清钺放弃了同行的镖师，十几个弟兄死于非命，其中有我的儿子，也有你的......亲生父亲。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">郑清钺见死不救。他不仅见死不救，到头来，他也没把货物保住，没把镖局名声保住。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%236%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">我——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">甚至再后来，他对镖局之落魄视而不见，逃避失败，你知道吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在那之后，你的母亲也离开了尚蜀，回了老家。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">杜遥夜......这些，你当真知道吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%233%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">夜儿。这没你的事，爹这就——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%239%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">你就是......尚师傅吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是叛徒尚冢。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%235%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">你以为本小姐是什么人？一无所知地像个傻子一样在温室里长大到今天？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啊，我亲爹亲娘的事情，我都知道。郑老头这些年做了什么，怎么做的，我比你更清楚。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%235%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">所以，今天我便是要告诉你们——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——镖局也好酒馆也罢，迟早是要姓杜的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">麻烦二老，不要现在给我找麻烦。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%232%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......你要是不让开，是要吃苦头的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%236%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">——！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%239%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">有话好好说......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%234%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......铜钱剑？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">笑话。难道你要在我面前卖弄什么术法不成？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%238%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">欸，免了免了，我可不是擅长近身战斗的人......只是......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">这玩意，你要便拿去，接着。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%233%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">——！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%236%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">——休想！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">郑清钺！你还敢分神！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%235%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">——别对爹出手！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">唔，碍事！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%231%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">呃！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">夜儿！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">尚冢，你这老糊涂，竟然对晚辈动手！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">——！</div></div></div>
+<div class="narr">叮的一声。</div>
+<div class="narr">扁担一撇，压下刀光，可郑清钺的刀，却不可避地偏向了别处。</div>
+<div class="narr">而那酒盏又实在是坚硬，若非如此，天底下有什么瓷器，是挨了郑清钺一刀还能完好无损的？</div>
+<div class="narr">可是这一刀，却把那只漆黑如夜的酒盏，打飞了出去。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%233%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">——酒盏！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%231%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">别管我们！忙你的去吧！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%235%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">可你......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%236%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">这是家务事！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%239%241.png" alt=""><div class="bubble"><div class="who">老鲤</div><div class="text">......好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">坚持一小会，马上就有人来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">夜儿，不能让他去！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%235%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">这老匹夫想要你命啊，你还要管那破玩意！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">杜遥夜说得对。十年前，你也是从山崖上弄丢了这只酒盏。如今，再来一次，滋味如何？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%236%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">尚冢......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">要我让开，办法简单。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%236%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">啧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%235%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">到此为止！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%233%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">郑前辈！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">——酒盏被击落山崖，那个龙门人已经去找了，二位，动作快！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%236%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">感谢前辈。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">太合。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%232%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">知道。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%237%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">——嘁。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%239%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">......杜小姐这是做什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%239%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">你不能去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%236%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">......为何？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%231%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">......梁大人和姓鲤的，还有两位看着就不近人情的朝廷特使。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">总要选边站的，我想通了而已。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">再说，我答应过姓鲤的了， 江湖人一诺千金，也是规矩。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%237%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">夜儿！别胡闹！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%232%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......人真多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">今天本不该来这么多人。但是，无妨......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">做个了断，有你我就够了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">——啧！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%231%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">杜小姐，你应该知道我们是秉公办事。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%236%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">我看未必有那么“秉公”。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%236%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">请让开。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%236%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">不。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%231%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">那就失礼了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%239%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_455_nothing_1%231%241.png" alt=""><div class="bubble"><div class="who">乌有</div><div class="text">且慢且慢，这么一个大老爷们，就这么对一个姑娘家出手，不好吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%236%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">——廉家阴晴扇，果然好功夫。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%236%241.png" alt=""><div class="bubble"><div class="who">乌有</div><div class="text">......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%235%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">不识抬举。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">公子，没事吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%235%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">......没事。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_455_nothing_1%2311%241.png" alt=""><div class="bubble"><div class="who">乌有</div><div class="text">呃，疼疼疼，竟然能把这么大块石砖随手抛出......真是可怕......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%234%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">敬酒不吃吃罚酒，无话可说。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">弩箭！是谁？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1021_kroos2_1%231%241.png" alt=""><div class="bubble"><div class="who">克洛丝</div><div class="text">我在这里哟。看错方向啦。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%233%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">你是......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">不要碍事，兔子。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%239%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">罗德岛是不打算协助司岁台了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1021_kroos2_1%234%241.png" alt=""><div class="bubble"><div class="who">克洛丝</div><div class="text">不打算。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你们也许有你们的道理。但是年和我们相处了很久，我清楚她的为人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_297_1%232%241.png" alt=""><div class="bubble"><div class="who">左乐</div><div class="text">兽心难测，为人又算的了什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1021_kroos2_1%238%241.png" alt=""><div class="bubble"><div class="who">克洛丝</div><div class="text">也许算不了什么，但起码要算个我吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_455_nothing_1%237%241.png" alt=""><div class="bubble"><div class="who">乌有</div><div class="text">还有我。夕小姐点破迷障，也算给了我一记当头棒喝......我这人稍微有点喜欢躲事，不过好就好在，我还是知恩图报的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%231%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">......廉家阴晴扇。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_455_nothing_1%238%241.png" alt=""><div class="bubble"><div class="who">乌有</div><div class="text">上次被你吓着了，不敢动手，这次倒是有机会领教领教。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_299_1%232%241.png" alt=""><div class="bubble"><div class="who">太合</div><div class="text">......嗯......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">你们要抢你们的盏，就滚一边儿去。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">这只酒盏对镖局意义重大，要是就这么搁置一旁，我和死了有什么区别？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%231%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">你现在本就和死了没什么区别。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_300_1%234%241.png" alt=""><div class="bubble"><div class="who">郑掌柜</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%235%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">好好好，现在你的眼神才像郑清钺的眼神，是因为女儿在这儿，还是因为镖局颜面？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你总算是一个想活下去的人了，这样我们的胜负才有意义。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_296_1%231%241.png" alt=""><div class="bubble"><div class="who">杜小姐</div><div class="text">......尚冢。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">若是你的儿子在天之灵，知道你今天如此作为，他会高兴吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_302_1%233%241.png" alt=""><div class="bubble"><div class="who">挑山人</div><div class="text">别拿那套话来诓我，他就是活着，站在这儿，他也拦不住他老子！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/25_g09_teahouse.png" alt="25_g09_teahouse"><div class="cap">25_g09_teahouse</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%231%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">......慎师傅，为何在此？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%232%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">把那几人送到山顶，我就下山了。想着迟早会遇到梁大人的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">梁大人不也果真来了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%237%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">过了许久了，我来近处看看。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%237%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">那宁小姐那边？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%237%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">察觉到了，或许一早就察觉到了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">书房失窃，多半是她的小心思吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%234%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">......还请梁大人劝劝宁小姐。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">其他几位先不提，那位姓白的老陶工，绝对不能出手。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%231%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">白天师......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%235%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">他攥一把天雷洒向人间，就等同司岁台和礼部撕破了脸皮，天师府的一双脚，也不知道站哪儿好了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%232%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">有劳慎师傅操心了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%232%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">唉......我就是个船夫，操什么心。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">以前戍守过几年北疆，天寒地冻没事儿干，就和袍泽弟兄扯些家国大事，聊着玩。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">既然大家都是一心向炎，不过些许小事上差之毫厘，大没有必要失之千里。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%231%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">此乃匹夫之责。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%237%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">我是匹夫，梁大人也算匹夫？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%235%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">大地厚广，万物自由。普天之下，皆为匹夫。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%235%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">唉......梁大人希望我怎么做？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%239%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">希望慎师傅保尚蜀太平。如果最后出了什么岔子......希望慎师傅抢在宁小姐和那五人有所行动之前，先一步息事宁人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_294_1%231%241.png" alt=""><div class="bubble"><div class="who">老船夫</div><div class="text">有句老话叫作尽人事以待天命。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_295_1%2310%241.png" alt=""><div class="bubble"><div class="who">梁洵</div><div class="text">可惜了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">梁某人从大炎朝堂之上学来的第一句话，便是“天命在人”。</div></div></div></div><div class="nav"><a href="level_act15side_06_end.html">← 上一段</a><a href="level_act15side_07_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

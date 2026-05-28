@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lighthouse Control Room · Stultifera Navis</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Stultifera Navis</a> / <span>SN-5</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act17side/level_act17side_05_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Lighthouse Control Room<span class="section-tag">SN-5 · After Operation</span></h1><div class="meta">Stultifera Navis</div><div class="story-info">The remaining Church of the Deep cultists reach an agreement with Thiago. Kal&#x27;tsit and Carmen are delayed, and there is no time to wait at the Eye of Iberia. The Hunters and Irene decide to go ahead and locate the great ship.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">We&#x27;re almost at our destination.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">What? You&#x27;d never would&#x27;ve reached the Stultifera in one piece without me. The children of the sea would&#x27;ve ripped you apart, crushed you, or bound your limbs as they dragged you off to their nests.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">You&#x27;re not like Quintus.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">What might could you be talking about? My skin? This sack of flesh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">None of that matters.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">What are you trying to accomplish?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">And what are YOU trying to accomplish, Hunter? Your kind already loathe your enemies while simultaneously doubting the purity of your own blood. But still... you pretend to be calm.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What are you trying to get out of me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">Silence. A wise choice. Ægir are not a sociable lot, it is known. But it seems there are exceptions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or, are you just a bit of an unpopular grump?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%231%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">I can answer your question. Quintus wouldn&#x27;t, nor will other humans. But the Seaborn will. Like Heralds, we come to understand things. We are not limited by the way humans think.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g21_goldenboat_deck.png" alt="27_g21_goldenboat_deck"><div class="cap">27_g21_goldenboat_deck</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_445_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">I don&#x27;t need your riddles.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%237%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">Hmm...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Before coming here, I was in the midst of translating a literary classic from Ursus. It was about race and nations. About history. I was putting it into Iberian and Victorian.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Take a look, Mister Hunter.</div></div></div>
+<div class="narr">Ulpianus&#x27;s gaze follows the woman&#x27;s hand, his eyes subconsciously drawn towards the ocean.</div>
+<div class="narr">A pitch-black sea. Dense with dark clouds. Oppressive. And yet, a vague outline of the starry sky is visible.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_449_1%2310%241.png" alt=""><div class="bubble"><div class="who">Amaia</div><div class="text">Even the Ægir rarely look out across the ocean from the water&#x27;s surface. Different races, different countries. The land is fractured in every sense, and its conflicts are neverending.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But when you look over the boundless sea, do you see anything representing those divides?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g20_lighthouse_core.png" alt="27_g20_lighthouse_core"><div class="cap">27_g20_lighthouse_core</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Tch... These damn monsters!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Jordi! Are you alright?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">(Slithering sounds, rubbing against the wall)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%239%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">G-Get away from me—!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Seems like activating this facility has made these poor creatures realize that this place doesn&#x27;t make a very good nest.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">High Inquisitor!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Keep ascending, Ægir. Your hands are for wielding tools, not fire and steel.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The plan is unchanged. Go with Irene and find what the Inquisition and the Hunters are seeking.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">I, I know! Please be careful!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g19_lighthouse_front.png" alt="27_g19_lighthouse_front"><div class="cap">27_g19_lighthouse_front</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Do you really think we can find that ship?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">It can only pass through Iberia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I don&#x27;t understand... If it is a place like Rhodes Island, why hasn&#x27;t it tried to return in sixty years?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">We too are lost, unable to find a way back home. Is that not so?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sea Terror</div><div class="text">(Sounds of stirring, slapping the water)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">The children are increasing in number.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">...Are you alright?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">Me? Why do you ask?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You didn&#x27;t speak a single word on the way to Iberia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">Have you always seen me as a chatterbox, Skadi?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">......</div></div></div>
+<div class="narr">Skadi stares deeply into Specter&#x27;s eyes.</div>
+<div class="narr">When she&#x27;d finally found Laurentina on land, her eyes were clouded over.</div>
+<div class="narr">Then she saw it in Sal Viento. A fragment of Laurentina as she was. But it was short-lived. After returning to Rhodes Island, she seemed to have fallen back into the abyss.</div>
+<div class="narr">But now, Skadi begins to find herself unable to distinguish which corner of Specter&#x27;s mind she is currently dealing with.</div>
+<div class="narr">She has an ominous guess.</div>
+<div class="narr">One that has always swirled through her mind.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">What&#x27;s the matter?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">No need to overthink this, Skadi.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And the same goes for you, my sleepy little mermaid. We don&#x27;t have much time. You will awaken.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">Will I?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%234.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">You will.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">For the time being... Go with Shark and take out the small fry. Their numbers are endless, so remember to adjust your breathing and conserve energy.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You should already know that I prefer it that way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%232%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">...Must we be in such a hurry to perform again? The storm is not yet ready.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Heh, but it seems our dance partner won&#x27;t be kept waiting.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g20_lighthouse_core.png" alt="27_g20_lighthouse_core"><div class="cap">27_g20_lighthouse_core</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Tch, there&#x27;s no end to them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%238%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Doña Irene!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">You&#x27;re still alive! So that flash of light was from the High Inquisitor&#x27;s lantern after all!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Um, he wanted us to continue on... But what exactly should we do? Keep searching for the ship&#x27;s location?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">I was originally planning to wait for the technicians to arrive, but seeing how you got this big fella started all by yourself—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">Hiss... Hiss...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">—Make every second count!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g17_lighthouse_alley.png" alt="27_g17_lighthouse_alley"><div class="cap">27_g17_lighthouse_alley</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">Thiago? So you&#x27;re finally seeing clearly.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_451_1%239%241.png" alt=""><div class="bubble"><div class="who">Thiago</div><div class="text">Why haven&#x27;t you fled? The Penal Battalion and that Inquisitor have been lying in ambush in town.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">Then why haven&#x27;t your proud townspeople returned?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_451_1%236%241.png" alt=""><div class="bubble"><div class="who">Thiago</div><div class="text">......!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">The Inquisitors have already taken away all the confused, directionless residents of Gran Faro, and you already know what&#x27;s going to happen to them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You know all too well.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_451_1%237%241.png" alt=""><div class="bubble"><div class="who">Thiago</div><div class="text">But I can&#x27;t sit by and watch Gran Faro go up in smoke. I have to do whatever I can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">You? Fight the Inquisition? Fair enough, Thiago. But that will only hasten the town&#x27;s demise. Iberia will never tolerate an act of treason.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">While we welcome all into our fold, but the weak do not have that right. This &#x27;determination&#x27; of yours is but a sick joke your mind is playing on you. You understand nothing. Who do you think you&#x27;re talking to?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_451_1%234%241.png" alt=""><div class="bubble"><div class="who">Thiago</div><div class="text">Who? If I&#x27;d cared enough to investigate, you would&#x27;ve been flushed out by the Penal Battalion long ago.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell me then, what can people like you offer Gran Faro?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">In the end, this town is... a mere human settlement.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What we seek to offer up to this land is of a much higher calling than your meaningless baubles.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">(A slithering sound emerges from cracks in the building)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">You&#x27;ve been followed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">Hiss...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%231%241.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Hah, these Sea Terrors have pretty sharp senses.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_453_1%231%241.png" alt=""><div class="bubble"><div class="who">Bizarre Cultist</div><div class="text">An outsider? We will allow it. Your flesh and blood shall become nourishment for our wounded. We all give back to this land.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g20_lighthouse_core.png" alt="27_g20_lighthouse_core"><div class="cap">27_g20_lighthouse_core</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Tch, the nethersea brand has already reached this far. The walls, the stairs, it&#x27;s all over the place!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are you still not done yet? They&#x27;re getting closer!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Almost there!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How does this make any sense? Even after all these years, the signal-receiving devices are still operable... But why? How?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, the logs—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">—Woah, there it is! Now let&#x27;s take a look—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Sea Terror</div><div class="text">Hiss...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Ugh—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Their numbers are exploding! They&#x27;re moving through the nethersea brand, as if they&#x27;ve merged with the ground entirely!)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(At this rate, even Maestro and the Hunters won&#x27;t be able to stay in this branded place for much longer...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">(Rough sounds of slithering across the floor)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Damn it— Underneath us! Jordi!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Wh-What?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Continue.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%237%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Ah, um... Okay...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Abyssal Hunters!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">You&#x27;re too weak. Swarms like this require swifter movements. Spare yourself the energy to breathe.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Like so.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Urgh...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">How much longer, Ægir?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%237%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Th-There are no records in the logs of how to operate these information terminals, so I&#x27;ll have to keep searching—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">—There&#x27;s some data here... I don&#x27;t understand what it means, but it keeps popping up!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Keeps popping up? Even if that&#x27;s from the Inquisition&#x27;s last attempt, that should&#x27;ve been years ago!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%237%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">I, I&#x27;m not sure. I assumed the data loss was caused by a power outage, b-but—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If my hypothesis is right...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s a ship that&#x27;s been sending signals to this lighthouse for decades!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">What...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">How far away it is?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%237%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">I know, I&#x27;m looking... Ugh, where are the navigation records—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">What is it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">...It&#x27;s very close.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How can it be... so close?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Waaaah!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Wh-What happened?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">I&#x27;m afraid the underground portion of the tower has been swallowed up by the nethersea brand.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">We need to make our decision, now!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Decision? What decision? If we have the means to locate the ship, then we will go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">No! We should eradicate the Sea Terrors to ensure that the Penal Battalion&#x27;s reinforcements can arrive safely!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Impossible. You will merely wear yourselves out before the stronger prey can even join the hunt.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or do you mean to say that Iberia has hundreds upon thousands of people willing to hold the line to their dying breath, like the High Inquisitor below us?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">No, but—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Opportunity waits for no one.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Have you confirmed the coordinates?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Ah, um, I can determine an approximate range, but I don&#x27;t know why it&#x27;s spinning around, or if that means—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">It is being kept afloat by aberrant ocean currents. See that square surrounded by Seaborn? That&#x27;s what the ship looks like now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">But, that ship is the only vessel we have.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">You can have it. We don&#x27;t need it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">No.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Go with them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%232%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">High Inquisitor?! What did you just say?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">The Eye of Iberia has already been activated. There should still be some working safeguards in place.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lord Carmen will arrive to purge the evil remaining along these shores. We don&#x27;t have time to waste on these endless hordes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Th-Then, I&#x27;ll stay with you, sir!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">No. You ought to accompany them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You should go see the ocean.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">I...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">What saved your life, what let the rescuers find you... wasn&#x27;t me. It was the Scriptures you hold in your hand.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Make the right choice. Do not bring shame to Iberia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Understood, High Inquisitor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I will become Iberia&#x27;s eyes, and return the Stultifera to our country&#x27;s embrace.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Then go.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I look forward to seeing the moment you pass down the correct verdict.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%234%241.png" alt=""><div class="bubble"><div class="who">Inquisitor Irene</div><div class="text">Yes, High Inquisitor!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">You should leave too. Go with them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Sir... I don&#x27;t want to. I want to stay here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">It&#x27;s too dangerous.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">I don&#x27;t know a single thing about that golden vessel. The best I could do is bask in its magnificence, but... I don&#x27;t think that&#x27;s where my duty lies.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I, um, this might be a strange thing to say, but I... I only felt my own worth when I was exploring this lighthouse, so—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please, let me stay here.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g19_lighthouse_front.png" alt="27_g19_lighthouse_front"><div class="cap">27_g19_lighthouse_front</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Exactly one hundred down. But nothing has changed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">They&#x27;re like stars in the sky.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Breaking the encirclement would be simple, but defending the lighthouse? How long would we be slashing away?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1023_ghost2_1%234%241.png" alt=""><div class="bubble"><div class="who">Specter</div><div class="text">What a fine, colorful carpet they make as their carcasses dissolve.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A carpet of life... Ah, this must be the most beautiful carpet in the land.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">(True, the nethersea brand is spreading, which means...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Your weapons cannot burn them, but mine can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">That&#x27;s only a temporary solution. Cauterizing the tips of the seagrass won&#x27;t stop it from growing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">It&#x27;s good enough. Grab your people and get out of here. Steer the ship out, or you won&#x27;t be able to get your bearings.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%235.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">You realize what that means.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%232.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">You don&#x27;t need to tell me, Ægir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%231.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Very well. Do your best to survive, High Inquisitor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Shark, Skadi!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">That&#x27;s the ship...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_474_gladiia_1%232.png" alt=""><div class="bubble"><div class="who">Gladiia</div><div class="text">Yes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After so long spent waiting on land, we are finally about to return to Ægir. We...</div></div></div>
+<div class="narr">Gladiia&#x27;s words slow to a halt.</div>
+<div class="narr">Her hand caresses her neck. On her well-concealed skin is a patch that is rough to the touch.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/ac18_13_2.png" alt="ac18_13_2"></div>
+<div class="narr">The ship is right in front of her eyes. —No, don&#x27;t be hasty, Gladiia. The ocean is still dangerous. Otherwise, it would not have trapped the three Hunters ashore.</div>
+<div class="narr">But without a doubt, her heart is smoldering.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g20_lighthouse_core.png" alt="27_g20_lighthouse_core"><div class="cap">27_g20_lighthouse_core</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">They&#x27;ve left.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">That&#x27;s right. Which means we&#x27;re stranded here until the Penal Battalion&#x27;s reinforcements arrive.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2311%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">You&#x27;ve done well, Ægir, so you&#x27;ve earned the right to answer a question.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%237%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Ah, o-okay! I swear to answer truthfully!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Did you make your own decision to leave the shore, and come here with us?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re just an ordinary person. Janitor or whatever, you are no warrior. Few can wander out to sea, let alone witness a battle against the Sea Terrors.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yet... Look, your expression doesn&#x27;t shake at all under the light of my lantern. What are you thinking? What do you want?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2311%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I can&#x27;t even remember ever seeing my mother or father. Everyone always told me I&#x27;m an Ægir, and that we came here to repair the lighthouse. But it&#x27;s all ruined.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I... Before all this, I didn&#x27;t know a single thing. I was lost and confused. To be honest, when the Sea Terrors came, Thi— Someone told me to leave as soon as possible. But...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Truthfully, I didn&#x27;t even know where I could go.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because I&#x27;m an Ægir, all I can do is keep my head down as I trudge through life. And, um... just so you know, I&#x27;m actually a chapel nurse, not a janitor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But that doesn&#x27;t really count as work, does it? All the things Mr. Elysium talks about, the way he acts... Maybe that&#x27;s what it really means to live life upon this land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s why... I felt like this was an opportunity.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Are you not afraid of death?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2313%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">I don&#x27;t think there&#x27;s anyone who isn&#x27;t, sir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">I should be frank with you. The nethersea brand has already completely engulfed the coastline. We don&#x27;t have much time left.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Oh.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Lord Carmen and Dr. Kal&#x27;tsit may have their methods, but I&#x27;m not so optimistic.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When the others left, we were basically condemned to death.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2311%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Is... that why you insisted on me going with them?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">It&#x27;s too late to regret it now. You chose to defy me, of your own free will. But even if you die here, your death would be by no means meaningless.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">You&#x27;re not shaken.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%2312%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Haha... Just a little bit, maybe. But even if I went with them, wouldn&#x27;t I still have nine-to-one odds of dying?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As long as I stay here in this lighthouse, I can at least feel like I&#x27;ve already—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Don&#x27;t be in such a hurry to give up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Eye of Iberia should have its own defenses. Go start them up.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4042_lumen_1%238%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Ah, alright. But, where will you go?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Now...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We are alone at sea, far from our homeland.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Again and again we arrive on this little reef, the weight of our lives and of our vessels so much heavier than the place itself.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g19_lighthouse_front.png" alt="27_g19_lighthouse_front"><div class="cap">27_g19_lighthouse_front</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_457_1%231%241.png" alt=""><div class="bubble"><div class="who">Sea Terror</div><div class="text">...Hiss...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Swarms of slithering sounds)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_183%231.png" alt=""><div class="bubble"><div class="who">High Inquisitor Dario</div><div class="text">Between the ocean and Iberia, there is no such thing as justice... or evil.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Only sword and lantern—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Only me.</div></div></div></div><div class="nav"><a href="level_act17side_05_beg.html">← Prev</a><a href="level_act17side_06_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

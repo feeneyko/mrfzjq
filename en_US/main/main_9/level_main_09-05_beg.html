@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dublinn · Stormwatch</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Main Story</a> / <a href="index.html">Stormwatch</a> / <span>9-6</span></div>
+    <div class="lang"><a href="../../../zh_CN/main/main_9/level_main_09-05_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Dublinn<span class="section-tag">9-6 · Before Operation</span></h1><div class="meta">Stormwatch</div><div class="story-info">The colonel thanks Horn for helping him find the Dublinn-supporting rabble, while committing acts of indiscriminate military terror upon Taran homes in order to root out Mandragora. As the mood stretches wire-thin, the ballroom abruptly suffers a bombing attack.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_manorindoor.png" alt="bg_manorindoor"><div class="cap">bg_manorindoor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Colonel.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">We meet again, Skamandros.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">You don&#x27;t seem one bit surprised.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Surprised?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, from the first I met you, I have not been one bit surprised—you were bound to mingle with this rabble, simply because of that cheap sympathy you learned from your noble etiquette classes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">You shadowed us?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">I&#x27;d rather term this rational management.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Regardless of anything, I must thank you. If it weren&#x27;t for your leading the way, I wouldn&#x27;t have such a sublime opportunity to net all these rot-eating vermin in one fell swoop.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You hide fairly deep most of the time, don&#x27;t you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I confess I&#x27;m quite curious. What made you so audacious as to gather up? Could it be that from the outcomes of your last few pathetic, negligible sneak attacks, you mistakenly believed County Hillock was already under your control?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Wildly Ambitious Baron</div><div class="text">A-Ahem... Colonel, sir, I believe there may be some misunderstanding at play here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">That is wrong, Baron Bolton. There is no misunderstanding between us whatsoever. I am pristinely clear about your confidential lowly dealings.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Wildly Ambitious Baron</div><div class="text">It&#x27;s only some of my good friends and family gathered here today. That, I can guarantee you on my very name—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Shut up kindly, good sir. The honor you&#x27;ve inherited from your ancestry purchases nothing in my eyes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Pretentious Noblewoman</div><div class="text">Y—You have some nerve saying that!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">The one dishonoring your so-called noble reputation isn&#x27;t me by far. Who are they, reveling in the position and wealth Victoria accords them, then turning to secretly collude with the most lowly rebels of them all?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Pretentious Noblewoman</div><div class="text">This is out-and-out slander!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">I&#x27;m starting to be sick of this blather now. You rabble should behave as the rabble outside, weeping in the light of a blaze while you confess your own wrongdoings.</div></div></div>
+<div class="narr">Just as he said, from outside the window come wails and cries, the glass reflecting speckled points of fire.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%235.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(Leader, look outside! It&#x27;s not just in here, he&#x27;s got the Tarans from the whole block surrounded too.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(He&#x27;s not exaggeratin&#x27; at all. He&#x27;s cowerin&#x27; ordinary residents with military force.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(I&#x27;ve been around that street before—a huge portion of them are elderly and children!)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(With methods suddenly this radical, it seems there&#x27;s some other information he has a hold on. He&#x27;s very likely to have hidden intel about the spectre force from us.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(Nothin&#x27; from Triangle?)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(No comms at all since afternoon.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(Flip. Could somethin&#x27; have happened to them?)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">(There&#x27;s no point in worrying. What&#x27;s more pressing right now is we should hold the troops back as much as we can.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">(We can&#x27;t stay trapped in here, at least...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">You, the Vouivre over there. You are not to think of breaking out through the wall. Before my questioning bears fruit, no one is allowed to leave this room.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%232.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Ugh, he spotted me!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G6_decisivebattlealley_n.png" alt="21_G6_decisivebattlealley_n"><div class="cap">21_G6_decisivebattlealley_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Come out! I see you! No movement, I want you to kneel here and behave!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">Agh!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Is there anyone else in your home? Speak up!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">N—No...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">You&#x27;re not hiding anyone? I&#x27;ll see for myself. Listen, so long as I see you move a muscle, no matter what you&#x27;re trying at, I will immediately shoot your head through.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">*Whimper*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%236%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">What are you doing?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Who are you, coming from nowhere and running in front of my crossbow? Watch your own head!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wait, hold on, I recognize you. You&#x27;re that guard of honor from Adams&#x27;s group, aren&#x27;t you? I saw you at the New Year do. Your group didn&#x27;t get any order to move. What are you doing here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%235%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I... I...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have another assignment nearby I&#x27;m on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Fine, then, each to their own. Don&#x27;t you start getting in my way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(That lass called Bagpipe told me I could step forth too, change the situation.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Can I, though...? I have to try, at least...)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did they... do something wrong, to be treated this rough?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">You&#x27;re asking me? Why don&#x27;t you go ask them?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">*Sob*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">What are you crying for? Wasn&#x27;t it you lot, harboring thugs, giving them food and drink, feeding them information?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%236%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Do you have evidence?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Evidence? You want evidence? Do the wounds on the 9th and 13th count? Each one of their bodies still warm?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Some died by eerie Originium Arts, some died by makes of crossbows and sabers identical to the ones we carry, and some had traces on their necks left behind by farming tools.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Our heads cut off with threshers like wheat, bodies crushed thin and flat by tractors like plowed land—have you ever... pictured that? The devastation?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Ulp...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">That&#x27;s right, you should want to puke. I saw with my own eyes, and I recognized who that head used to belong to, and for an entire afternoon, I puked. I couldn&#x27;t stop.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">They... why would they treat their own like this... this is too cruel!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Hah, damn right you are. Behaving never suited them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now you understand this serves them right, don&#x27;t you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">What are you still blanking out for?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">So... these are all bad people? Just because... they&#x27;re all Tarans?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">*Sob*... agh... I haven&#x27;t done a thing, Sir...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">She&#x27;s crying.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Her husband already passed away from Oripathy, and her child&#x27;s only pushing ten... is someone bereft like this really going to be a murderer?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">How have I not gotten it through to you?! They&#x27;re all one kind, do you understand? Even if this woman and her child haven&#x27;t done anything yet, they&#x27;re all together in this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If it wasn&#x27;t a Taran, in front of you all, but some other Victorian citizen...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Would you still insist on treating them all as thugs?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">If... I&#x27;m just saying, if, from the very beginning, there were never those discriminatory laws, if Tarans could&#x27;ve earned as much as anyone else, gotten the same chance at healthcare...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wouldn&#x27;t none of this conflict have ever happened?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Alright, guard of honor, if you love asking questions so much, keep asking. There won&#x27;t be an answer. Nobody&#x27;s got any way of answering you. I&#x27;m essentially done searching this house by now anyway, so it&#x27;s onto the next one.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey! I said I was going, not that you could stand up!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">*Sob*... Ah... don&#x27;t take me, Craig can&#x27;t be without me...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Shut it with all the sobbing! Wailing about your child all day long just so I can go soft on you, is it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Just let her go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Eugh, you. Fine, I&#x27;m busy anyway. I can afford to ignore this woman.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But just to warn you, you might be protecting them now with all your kind heart, but be careful they don&#x27;t blow you sky-high without blinking the moment your head is turned.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t you forget, after all, you and them aren&#x27;t the same kind. Have you seen the looks in their eyes before? In their eyes, no matter how you behave, you&#x27;ll always be one of us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Just go... Please.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">*spits* Don&#x27;t say I didn&#x27;t warn you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Phew... you&#x27;ve not been harmed, no?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">(Shakes head)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%239%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">It&#x27;s lucky. After me and Saoirse talked, I couldn&#x27;t shake this nervous feeling, and I had to come back and take a look.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So it really can be a bit of use... to stand up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Come on, I&#x27;ll help you back inside. For tonight... no, tomorrow as well, don&#x27;t go out, please. There&#x27;s ruffians outside, as well as... um, at any rate, Hillock won&#x27;t be as safe for these next few days.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right, and where&#x27;s your boy...? Craig? He&#x27;s not at home?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">Craig... he... *gulp*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">He&#x27;s been taken away by the soldiers, hasn&#x27;t he?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_243.png" alt=""><div class="bubble"><div class="who">Sorrowful Woman</div><div class="text">I... I don&#x27;t know...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%236%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I need to go and find him.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_manorindoor.png" alt="bg_manorindoor"><div class="cap">bg_manorindoor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Hill!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_248.png" alt=""><div class="bubble"><div class="who">Adjutant Hill</div><div class="text">Colonel, we&#x27;ve just apprehended this one in this corridor outside, right as he was attempting to dive out of the window.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Frightened Youth</div><div class="text">I&#x27;m sorry, I&#x27;m sorry...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Let me guess, this boy is some follower of yours, preparing to send word to somebody or other?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Wildly Ambitious Baron</div><div class="text">I... (Wipes off a cold sweat)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_176.png" alt=""><div class="bubble"><div class="who">Greedy Businessman</div><div class="text">I want a lawyer! I know the Mayor and quite a few Members too... Let me go, you have no authority to keep us held like this!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">It seems my guess was dead on. Every one of you has some involvement.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may speak. All I need to know is where your co-conspirators are hiding.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How about this, then. I&#x27;ll count to three—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Frightened Youth</div><div class="text">Aaaargh! Don&#x27;t, don&#x27;t kill me!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Pretentious Noblewoman</div><div class="text">My goodness... Why must you have me see such cruelty?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">You can&#x27;t be doin&#x27; this!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Really? Skamandros, tell your subordinate, do I have the right to be doing this?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%236.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">Leader...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Provisional administrative law... In the event we are unable to receive direct orders from Londinium, Colonel Hamilton is the highest acting commander of the County Hillock barracks, and does possess the authority to impose martial law on the whole city.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">I know! But if he&#x27;s seriously goin&#x27; to do this, then he&#x27;s essentially declarin&#x27; a formal war on the hidden army!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%232.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">I fear that one thing they&#x27;ve said is right. We are already situated within in a war.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_222_bpipe_1%237.png" alt=""><div class="bubble"><div class="who">Bagpipe</div><div class="text">But we barely know more than nothin&#x27; about that army.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re stark open and they&#x27;re still in the shadows. No matter what, I don&#x27;t feel now was good timin&#x27; to open fire first.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Timing! They never picked any timing when they launched attacks on us unilaterally.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Colonel, even if you won&#x27;t take any suggestion from our team, I still must express clear opposition to the course of action you are about to adopt.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Very thankful for your one scrap of self-awareness shown.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In honesty, I&#x27;m not fond of doing this either. As long as they&#x27;d left me another choice, I would never be willing to break the Empire&#x27;s laws.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yet we&#x27;re out of time. The hidden enemy is closing in with each step.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Isn&#x27;t this as you said too, Skamandros? You, too, came to drag the ghosts out into the sunlight!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If we don&#x27;t seize this opportunity, and force all the remaining conspirators out, then we will have lost County Hillock before the morrow.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Colonel, I believe the more critical the juncture, the more each step we choose will lead to divergent results.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m sure, there are many innocents among those present. You can take them away first, and then...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">No, I have no time to squander on pointless interrogation. Right now, on this very spot, these rabblesome dregs will make clear where in the world their members are hidden!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hill, do it! We&#x27;ve tarried for long enough—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_239.png" alt=""><div class="bubble"><div class="who">Bard Williams</div><div class="text">...Colonel.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1%236.png" alt=""><div class="bubble"><div class="who">Hamilton</div><div class="text">And who in Hell&#x27;s bloody bells are you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_239.png" alt=""><div class="bubble"><div class="who">Bard Williams</div><div class="text">Please arrest me. I am Baron Bolton&#x27;s guest, and will know much more than any of these poor young people, rendered near-unconscious.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Wildly Ambitious Baron</div><div class="text">Seamus! What are you doing stepping up?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1%236.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Seamus... Seamus Williams. You&#x27;re that bard?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_239.png" alt=""><div class="bubble"><div class="who">Bard Williams</div><div class="text">I am, Colonel.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Very good. I&#x27;d been meaning to look for you, so as to keep you from continuing to incite those imbeciles with your blither.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_229_1%231.png" alt=""><div class="bubble"><div class="who">Horn</div><div class="text">Williams...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_239.png" alt=""><div class="bubble"><div class="who">Bard Williams</div><div class="text">You need not fear, ma&#x27;am. I ought to thank the Colonel, for just a moment ago, I worked out how my poem should conclude.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_227_1%232.png" alt=""><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Seize him!</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/21_I2.png" alt="21_I2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Horn</div><div class="text">A... ball? Where have I seen this...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Colonel Hamilton</div><div class="text">Hill! Order those posted outside to find the rabble who broke that window...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Bagpipe</div><div class="text">No, this isn&#x27;t right.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s a sound... comin&#x27; from the ball!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Horn</div><div class="text">What?!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Bagpipe</div><div class="text">Get down!!!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G6_decisivebattlealley_n.png" alt="21_G6_decisivebattlealley_n"><div class="cap">21_G6_decisivebattlealley_n</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_241.png" alt=""><div class="bubble"><div class="who">Victorian Soldier</div><div class="text">Who—Who was that? Where did you show up from?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Argh—! It&#x27;s—It&#x27;s you lot! G—Go inform the Colonel double-time, 4th has run into the thugs, in an alley by the square—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_244.png" alt=""><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">This group has been annihilated.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Leader, the nearby Taran blocks have all been occupied by ours.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Wounded Youth</div><div class="text">You lot are...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Wounded Youth</div><div class="text">It—It&#x27;s you?! You&#x27;re the... the one we&#x27;ve been waiting for!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You actually gave your hand to me... I...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">There&#x27;ll be no one else to oppress you again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And you&#x27;ll never need anyone&#x27;s arm to lean on again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From this moment on, you can walk freely upon this soil, by your own power.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Wounded Youth</div><div class="text">Thank you... oh, thank you! Everything I did, it really was right!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;ll be a day for us Tarans... when we can have our own city, we can walk heads held high in the streets, we&#x27;ll never be given injust treatment again!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">Yes. It is precisely for that day that we come.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_242.png" alt=""><div class="bubble"><div class="who">Wounded Youth</div><div class="text">Leader, you have to see! It&#x27;s—It&#x27;s the fire we lit in your service!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">The ballroom...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_244.png" alt=""><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">According to the report Madam Mandragora gave, the barracks&#x27; top brass are all in there.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, an explosion of that scale would only give the barracks&#x27; arrogance pause. Unfortunately, it could never wipe them out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">Apart from the barracks, who else is there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_244.png" alt=""><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">Some locals who will us well. They learned of some of our inside matters, and the heads&#x27; thoughts are, for the overall picture, we can&#x27;t leave anyone alive to tell tales.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_244.png" alt=""><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">They also said, if you won&#x27;t make a move, they will themselves.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_231.png" alt=""><div class="bubble"><div class="who">&#x27;The Leader&#x27;</div><div class="text">...In the end... my fire is quicker.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell them, I know what should be done—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll take the ballroom.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_244.png" alt=""><div class="bubble"><div class="who">Dublinn Soldier</div><div class="text">Yes, Leader—your fire will break these shackles that have chained us for centuries!</div></div></div></div><div class="nav"><a href="level_main_09-04_end.html">← Prev</a><a href="level_main_09-06_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

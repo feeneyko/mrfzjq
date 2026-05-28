@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maelstrom · Ato</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Ato</a> / <span>AT-6</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act44side/level_act44side_06_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Maelstrom<span class="section-tag">AT-6 · Before Operation</span></h1><div class="meta">Ato</div><div class="story-info">Hoshiguma escapes and encounters Detective Koretou in an alley on Nita Street. Rather than leave Higashi as Koretou advises her, she resolves to fight Mifune and face the sins of the past head-on. Just then, Hoshiguma hears Momoka&#x27;s call.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/64_g4_kajistreet_dusk.png" alt="64_g4_kajistreet_dusk"><div class="cap">64_g4_kajistreet_dusk</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1916_1%231%241.png" alt=""><div class="bubble"><div class="who">Tired Police</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1915_1%231%241.png" alt=""><div class="bubble"><div class="who">Frustrated Police</div><div class="text">Don&#x27;t just stand there! These scoundrels aren&#x27;t half as well-behaved as the suspect!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1914_1%231%241.png" alt=""><div class="bubble"><div class="who">Tired Police</div><div class="text">...I&#x27;m tired.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1915_1%231%241.png" alt=""><div class="bubble"><div class="who">Frustrated Police</div><div class="text">You think I&#x27;m not?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1914_1%231%241.png" alt=""><div class="bubble"><div class="who">Tired Police</div><div class="text">I mean, I really am tired.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We and a whole bunch of scum couldn&#x27;t catch one bloody woman. Kuso. Kuso.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She wouldn&#x27;t touch a hair on our heads. The real scum are the ones she knocked out with her sheath, all of them have a rap sheet ten thousand ri long.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And we&#x27;re working with these scum against her, while she knocks them out one-by-one...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kuso... Kuso!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Koretou keeps saying, &#x27;it&#x27;ll get better&#x27;, but I&#x27;ve been on the job for almost ten years, and I don&#x27;t see things improving one bit—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Savage Ninja</div><div class="text">Out of the way, cop!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1915_1%231%241.png" alt=""><div class="bubble"><div class="who">Frustrated Police</div><div class="text">Shougo!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How dare you attack a police!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1915_1%231%241.png" alt=""><div class="bubble"><div class="who">Savage Ninja</div><div class="text">I told you to get out of the way—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Frustrated Police</div><div class="text">Why you—</div></div></div>
+<div class="narr">They stare into each other&#x27;s eyes.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Excuse me, officer. May I pass?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or, I could commit assault on an officer of the law. Or murder. I&#x27;m not picky at the moment.</div></div></div>
+<div class="narr">The officer sighs and stands aside, putting his empty hands where Hoshiguma can see them.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1915_1%231%241.png" alt=""><div class="bubble"><div class="who">Frustrated Police</div><div class="text">Thanks. For Shougo.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/64_g1_jindastreet_d.png" alt="64_g1_jindastreet_d"><div class="cap">64_g1_jindastreet_d</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Repeating Broadcast</div><div class="text">Ding, dong, ding, Lingones Department Store♪</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Everything you want, you&#x27;ll find it here, Lingones Department Store♪</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1908_1%231%241.png" alt=""><div class="bubble"><div class="who">Eager Staff</div><div class="text">Come in, have a pint! We have just the right lager for an Oni like you—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or, if you prefer the more traditional stuff, we have a fine collection of imo shochu for you to pick from...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Fashionable Man</div><div class="text">Take this, ojou-san.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Out of the way.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Fashionable Man</div><div class="text">What&#x27;s the hurry? Are you looking for the most precious thing on Terra, the stepping stone to &#x27;happiness&#x27;—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wait... you&#x27;re the Ao-Oni of Kinsekikai?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Fashionable Man</div><div class="text">May I ask where Momoka-san is?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Are you a fan? Or are you after Mifune&#x27;s bounty?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Fashionable Man</div><div class="text">Neither. I just want to ask a favor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Can I ask you to &#x27;disappear&#x27; me like Momoka-san? Maybe that&#x27;ll make me go viral like her!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1909_1%231%241.png" alt=""><div class="bubble"><div class="who">Excited Onlooker</div><div class="text">It&#x27;s the Ao-Oni!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Can I get a pic?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Out of the way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1909_1%231%241.png" alt=""><div class="bubble"><div class="who">Excited Onlooker</div><div class="text">Wait, Ao-Oni-san—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1908_1%231%241.png" alt=""><div class="bubble"><div class="who">Eager Staff</div><div class="text">Uh... Ao-Oni-san, we&#x27;re just a drinking establishment...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">One Moeshima Black, to go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1908_1%231%241.png" alt=""><div class="bubble"><div class="who">Eager Staff</div><div class="text">The Moeshima Black production line shut down a few years ago. May I interest you in the newest offering from the same maker? It&#x27;s their premium line, which I&#x27;m sure you&#x27;ll be happy with—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Fine. Whatever.</div></div></div>
+<div class="narr">While the clerk gets the liquor, Hoshiguma stands with her back against the storefront, gazing coldly at the crowd that has begun to gather.</div>
+<div class="narr">A city is a big place, whether it&#x27;s called Lungmen or Mitsukue.</div>
+<div class="narr">The death of one man does not move the heart of the whole city, much less the death of a yakuza figurehead.</div>
+<div class="narr">One man has died. Many still live.</div>
+<div class="narr">But the people who still live, this city that they live in, has nothing to do with her anymore.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/64_g3_jindaalley.png" alt="64_g3_jindaalley"><div class="cap">64_g3_jindaalley</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">No one is following.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is a good place.</div></div></div>
+<div class="narr">Hoshiguma opens the bottle, and the smell of alcohol gushes out.</div>
+<div class="narr">Just smelling it is enough to make her light-headed.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">This one&#x27;s for you, Uncle Tessai.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh... how could this stuff taste so thin, when it&#x27;s so expensive and the alcohol content so high?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is the second time I&#x27;ve drank to someone. The first was to my father at my old home.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The kaidan chasers must be thrilled about the Ao-Oni drinking with a dead man.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kaidan... hah.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The story of me and Higashi ended when I chose to step up for what was right, when I really didn&#x27;t know what it was.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It was stupid, even though I survived. Ch&#x27;en, too, faced the same choice, and she survived as well, but I still think it&#x27;s stupid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You should have met Ch&#x27;en Hui-chieh, Uncle Tessai.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s a true kyou, although they pronounce it a different way in Yan. But it refers to the same thing: Someone who&#x27;s willing to stand in the way of an army a thousand strong, armed with nothing more than a sword.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This one&#x27;s to her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I&#x27;m not like her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s brave. Unlike me—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hah, awkward, isn&#x27;t it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I&#x27;m scared... I can&#x27;t deny it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m not worried about my own life. But what about other people? Those I&#x27;m trying to protect? What about...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...What about my home?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Honestly, I should just set out for Lungmen right now, and never look back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s a big deal, an L.G.D. officer suspected of murder in Higashi. That&#x27;d make a headache for everybody, from Missy to Mr. Lin to Madam Fumizuki to Mr. Wei.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They won&#x27;t abandon me. I know what kind of people they are, and they know me well.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I caused this.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Will my new home suffer for the trouble that I caused?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How could I keep calling it home, in that case?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or I could draw my sword and become a real Oni. A killer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kill Kinbee, kill any of his men who dare draw on me, kill any police who stand in my way...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Turn into a nightmare that roams the streets of Mitsukue, become a true monster, become the kaidan after all.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Take vengeance. Go with the tide, embrace the times, become the maddest of the revelers, and become exactly what he...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, exactly what everyone in Mitsukue wants me to be.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s no way out. Every path leads to a dead end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is the bottle empty already?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">You certainly can hold your drink, Hoshiguma-san.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Who&#x27;s there?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Where are your men?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I came alone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Where&#x27;s Uncle Tessai&#x27;s body?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">In police possession. Cause of death was a sword wound, but it was not your sword that did the deed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Then why are your men after me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Orders from above.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Are you here to arrest me too?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">No, I&#x27;m here to drink with you.</div></div></div>
+<div class="narr">Without waiting for an answer, the policeman sits down on the ground and takes out a small glass from his pocket.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Damn, this stuff is strong.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%231%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">You want to try to convince me to come quietly, so you can carry out those orders from above?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Then, get you out of Mitsukue and back to Lungmen.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Against the orders of your superiors?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why do you think I had you taken into custody the moment you entered Mitsukue?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%235%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I would have done the same, if a gang leader who had committed a major crime in Lungmen twenty years ago came back.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Is that all?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">What else could it be?</div></div></div>
+<div class="narr">The policeman looks straight into Hoshiguma&#x27;s eyes.</div>
+<div class="narr">When he realizes that Hoshiguma is not joking or hiding anything, he suddenly punches her in the face.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%237%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I can&#x27;t believe you forgot.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Diet candidate killed by the Kinsekikai was named Koretou.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%2310%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%237%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">That was for my uncle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kono bakayaro. His murder would not have gone ignored all these years, if you didn&#x27;t stupidly claim responsibility for your stupid yakuza honor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Sorry...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">It&#x27;s a little too late for that. There&#x27;s nothing I can do about Mifune now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He&#x27;s in cahoots with one of the most powerful Diet member. How else could a yakuza have gained so much influence over the police?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The best I can do—the best the police can do is to let you go, so he won&#x27;t get what he wants.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">And Uncle Tessai&#x27;s death will be nothing more than a footnote in the Ao-Oni kaidan legend and the Haunted House, and nothing will ever get resolved. Same as it was back then, am I right, Detective Koretou of the Spiritual Affairs Station?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">You say you don&#x27;t want him to get what he wants, but all you&#x27;re doing is helping him.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">You think Mifune is behind the kaidan.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">You don&#x27;t sound surprised.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">A cop is a cop, even if he&#x27;s from the Spiritual Affairs Station. I can smell where the rot is coming from, even with this chained collar around my neck.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">So you&#x27;ve made peace with the chains?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">All you need to worry about is filling your own stomach with fried meatchop with rice. Not all of us are the same.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you know how much it costs to get a house that can barely squeeze a family of four in Mitsukue?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I&#x27;m not sure I want to know.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">If you&#x27;re willing to pay off my loans and take my wife and kids to Lungmen, sure, I&#x27;ll turn your old home upside down.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or, if you&#x27;re absolutely certain that it&#x27;ll be a fatal blow to Mifune, I could potentially see myself jumping on this gamble of yours.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now, it&#x27;s your turn to answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you plan on paying off these loans that I&#x27;m not even sure I could free myself of before I die, or is there a greater power than the Diet, enough to take Mifune out once and for all?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I&#x27;m doing my best to help you. Recognize good faith when you see it, Ao-Oni.</div></div></div>
+<div class="narr">The policeman angrily downs the last bit of liquor left in the cup.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Come with me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">No.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Give me a reason.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%235%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I...</div></div></div>
+<div class="subtitle">I want my sacrifice to mean something, but everything in Mitsukue is denying it.</div>
+<div class="subtitle">What else is left for me in this empty city?</div>
+<div class="subtitle">It&#x27;s time to go.</div>
+<div class="subtitle">It&#x27;s time to go home.</div>
+<div class="subtitle">I hope Missy had a better summer in Siesta than I did here—</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">...guma!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Who&#x27;s there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%236%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Who&#x27;s what? What are you talking about?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">...Hoshiguma!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ghost-san!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%239%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Momoka?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you hear Momoka&#x27;s voice, Koretou?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%237%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Momoka? The idol? Isn&#x27;t she supposed to be with you? I was going to ask where you hid—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Momoka&#x27;s Voice</div><div class="text">I&#x27;m over here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%236%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">This way!</div></div></div>
+<div class="narr">Hoshiguma runs in the direction of the voice.</div>
+<div class="narr">Koretou sighs and follows her.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%2310%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">There&#x27;s no one here. But the voice is getting closer—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Momoka&#x27;s Voice</div><div class="text">Over here! This way!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%239%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Momoka?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What—</div></div></div>
+<div class="narr">...What are you doing in a TV?</div>
+<div class="narr">Neither Hoshiguma nor Koretou say it out loud.</div>
+<div class="narr">A shabby TV set lies outside a tiny shop. It is hard to tell what the shop does, or if it is even open at all.</div>
+<div class="narr">Inside, Momoka is yelling something at Hoshiguma.</div>
+<div class="narr">She is not looking at Hoshiguma, but knocking on something in front of her, as though she is trying to break the TV screen and climb out.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_towerinside.png" alt="bg_towerinside"><div class="cap">bg_towerinside</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1918_1%233%241.png" alt=""><div class="bubble"><div class="who">Momoka</div><div class="text">You&#x27;re there, right, Hoshiguma?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I&#x27;m here! Can&#x27;t you see me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1918_1%238%241.png" alt=""><div class="bubble"><div class="who">Momoka</div><div class="text">I can&#x27;t see you, but I can hear you!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, I&#x27;m so relieved... I thought it was all over...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*sob*...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Hold the tears. Where are you? What&#x27;s going on with this TV?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1918_1%2322%241.png" alt=""><div class="bubble"><div class="who">Momoka</div><div class="text">Kichisei and I are being held prisoner at Kinbee&#x27;s base—</div></div></div>
+<div class="narr">Bzzt.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/64_g3_jindaalley.png" alt="64_g3_jindaalley"><div class="cap">64_g3_jindaalley</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%239%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Momoka?!</div></div></div>
+<div class="narr">The TV goes dark.</div>
+<div class="narr">A cold wind blows through the gaps between the buildings, and Hoshiguma&#x27;s sword hums in its sheath.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Koretou.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I was agitated by Uncle Tessai&#x27;s death and forgot a few things. My bad.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But what about you? Did you really think I&#x27;d hidden Momoka?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kichisei too. I guess she&#x27;s not important to you, nothing more than an inveterate pachinko gambler.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Hoshiguma—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">What&#x27;s one or two innocent lives to you, as long as you get this troublemaker out of town? After all, they&#x27;re already knee-deep in this Kinbee mess. Why bother?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">We&#x27;ll do our best to protect them—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">The people who died in the Haunted House, Uncle Tessai, that yakuza killed in Kajimachi a few days ago... since when have you been any good at protecting anybody?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="narr">It is Hoshiguma&#x27;s turn to punch the detective in the face.</div>
+<div class="narr">The detective stumbles back a few steps before steadying himself.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I don&#x27;t need you to remind me of my failures.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you&#x27;re not a troublemaker to me. You&#x27;re my trump card, the only thing that can hurt Mifune, the only thing standing between him and total control of Mitsukue.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%237%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">And the way you play it is to get me out of the city?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">It&#x27;s the best a cop can do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%235%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">A cop, eh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">You&#x27;re a cop too. You know the limitations.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Go back to Lungmen, Hoshiguma. Your &#x27;particular individual&#x27; and the L.G.D. will take care of things for you.</div></div></div>
+<div class="narr">Hoshiguma instinctively reaches into her pocket, where her L.G.D. badge is.</div>
+<div class="narr">But the first thing she feels is something soft, the ribbon that Tessai gave her after removing it from Hannya. A gift from her friends, bearing their best wishes.</div>
+<div class="narr">For some reason, she feels like she can smell the sea breeze of Siesta.</div>
+<div class="narr">The haystacks of the Victorian plains.</div>
+<div class="narr">The aroma of Lungmen&#x27;s downtown restaurants.</div>
+<div class="narr">...And the scent of Kajimachi&#x27;s old wooden houses.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re right.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%237%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Good, you&#x27;ve seen the light. Now hurry up and—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I mean, you&#x27;re right that the L.G.D. would take care of things for me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe I&#x27;ve been too cautious... too concerned about bothering my friends.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">What do you mean?</div></div></div>
+<div class="narr">Hoshiguma does not answer. She takes the sword and sheath from her belt, and begins wrapping the ribbon around the handle.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">You&#x27;re going to use the sword? For what?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%234%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I have a promise to fulfill.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%237%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">You&#x27;re going to rescue them?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t be sil—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%233%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Missy would probably be angry enough to burst a few blood vessels if I just went back to Lungmen with my tail between my legs, assuming I had a tail. And I&#x27;d never be able to look Lin Yühsia in the eye again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for Ch&#x27;en... I still have to fight Chi Xiao with the reforged Hannya. I can&#x27;t very well go back empty-handed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Aren&#x27;t you afraid that you&#x27;ll regret it for the rest of your life, like twenty years ago?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%235%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Uncle Tessai said that Hannya was imbued with the secret art of the temples. But I didn&#x27;t have the discipline to suppress the madness in my Oni blood.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Discipline, madness... don&#x27;t you think all that&#x27;s a little vague?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t know what would&#x27;ve happened twenty years ago if the secret art was there, and I don&#x27;t care. I don&#x27;t need it now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As long as this ribbon touches my hand, Hoshiguma will never fall to bloodlust.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for regrets, the only thing I regret is that I tried to shoulder everything myself, but I was obsessed my sacrifice meaning something.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Why do you think you have to do this? Is it because you&#x27;re a cop, or because you&#x27;re yakuza?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%2311%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Cop? Yakuza?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">None of that matters.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I promised Momoka, that&#x27;s all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%231%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Oh, and since I&#x27;m going to rescue them, it&#x27;s more likely than not I&#x27;ll run into Mifune at some point... and I&#x27;ll go find him if I don&#x27;t. There&#x27;s something I have to ask him.</div></div></div>
+<div class="narr">Hoshiguma sees a light begin to appear from within the policeman&#x27;s sunken, world-weary eyes.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">You&#x27;ll fight him?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">I&#x27;m not looking for a fight, but I&#x27;m not sure there&#x27;s a way out of it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Put a gash or two in him for me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%232%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">You don&#x27;t even have to ask.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is that enough, though?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">Like I said, I&#x27;m a cop.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%231%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%232%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I&#x27;m going back to the station.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll do my best to fend off pressure from upstairs, as long as there are no corpses.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1044_hsgma2_1%231%241.png" alt=""><div class="bubble"><div class="who">Hoshiguma</div><div class="text">Words cannot express my gratitude.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1898_1%233%241.png" alt=""><div class="bubble"><div class="who">Detective Koretou</div><div class="text">I hope I live up to it.</div></div></div></div><div class="nav"><a href="level_act44side_st02.html">← Prev</a><a href="level_act44side_06_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

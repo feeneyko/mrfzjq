@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Front Stage, Back Stage · Lone Trail</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Lone Trail</a> / <span>CW-3</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act25side/level_act25side_03_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Front Stage, Back Stage<span class="section-tag">CW-3 · After Operation</span></h1><div class="meta">Lone Trail</div><div class="story-info">Maylander emerges victorious amidst the intrigue. Saria and Ifrit encounter Silence as the dust settles.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/29_g9_headquarter.png" alt="29_g9_headquarter"><div class="cap">29_g9_headquarter</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">I feel like I&#x27;m a kid in a classroom, having a science lesson for the first time. It&#x27;s no hyperbole at all to say that &#x27;science is the future of Columbia.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I regret not being able to stay longer and hear about your other projects.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%231%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">You are always welcome at Rhine Lab, Mr. Jackson.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">Thank you, Director Jara. I hope my visit didn&#x27;t cause too much inconvenience.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%231%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">Kind of you to say so. It was a pleasure to be your tour guide today.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">Having the famous Marianne Blake as a tour guide alone makes this trip to Trimounts worthwhile.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Between the two of us, I&#x27;m a pretty big fan of yours.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have an autographed poster of your debut film on the office wall.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%2310%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">Really?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">A present from my wife when I was elected.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kindly make a note to follow up with the special district government about Rhine Lab&#x27;s application for a new research facility.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Vice President&#x27;s Secretary</div><div class="text">Will do, sir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">I guess that will be it for today, Miss Jara.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%231%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">I wish you a pleasant stay at Trimounts.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%235%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thank you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">May the sun shine on the next day, as it has today.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Reporter</div><div class="text">Come on, mash that photo button!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Vice President! What did you think about your trip to Rhine today?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_529_1%231%241.png" alt=""><div class="bubble"><div class="who">Rhine Staff</div><div class="text">Ask your questions in order, please! We have ten minutes, there&#x27;s no rush.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Reporter</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_249_mlyss_1%231%241.png" alt=""><div class="bubble"><div class="who">Muelsyse</div><div class="text">You heard me right. I&#x27;m clapping.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Vice President&#x27;s Visit Bolsters Rhine Lab’s Claim as Industry Leader&#x27;... the headlines write themselves.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The tour concluded without incident. The Vice President will leave Rhine Lab in ten minutes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Doctor.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_cherunder_2.png" alt="bg_cherunder_2"><div class="cap">bg_cherunder_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%231%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">I got the map you sent, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So there&#x27;s a secret passage that leads right to the underground structure, but it&#x27;s not in the plans that Muelsyse gave you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Leave it to me!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve been sitting here twiddling my thumbs while you and Rosmontis have fun with the power armor up there. Didn&#x27;t even see a shadow.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Saria is coming for me?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then I have to go to the underground structure too. The Vice President is leaving in a few minutes, right? We can&#x27;t take any risks.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Whisper) Ifrit moving out, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">I&#x27;m back.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent B</div><div class="text">How are things up there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">Not sure. I didn&#x27;t quite make it up to the surface, but there was no commotion.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m guessing the attack failed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent B</div><div class="text">What about us?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">We activated the jammers and aren&#x27;t supporting any other units... I don&#x27;t think anyone is coming here. Ferdinand&#x27;s route was very well-concealed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s carry out the plan. It&#x27;s almost time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The explosives?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent B</div><div class="text">Set up while you were scouting... two tubes of advanced plastic explosives, enough to breach the containment structure.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You know, I thought Ferdinand wanted to come back to Rhine Lab. But this is the liquified Originium pipeline used by his Energy Section.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">The Colonel says he&#x27;s stuck in the same boat as us. He has no choice.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent B</div><div class="text">Don&#x27;t really see the point of blowing this up now, though...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Vice President should have left Rhine Lab by now. What good will blowing up the Originium pipes in the underground structure do?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">The Colonel has his plans. All we need to do is follow orders.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who goes there?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Agent B</div><div class="text">A... kid?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%231%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">Looks like the Doctor&#x27;s intel was good.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, you, I don&#x27;t know why you&#x27;re hiding here, but I think you oughta surrender now.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/29_g11_monitoringroom.png" alt="29_g11_monitoringroom"><div class="cap">29_g11_monitoringroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%236%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">We lost contact with all units?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Yes, sir. Sudden comms failure.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Vice President and his retinue, the press... no sign that anything is amiss. Looks like our guys were neutralized before they could move.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Reports indicate that our operations within Rhine are also being disrupted by the sudden appearance of some power armor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%233%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">Hmph.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">We&#x27;re also losing signal from the cameras on the streets.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re losing control of the scene, sir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, our best laid plans are like a sieve to the intelligence network of the Maylander Foundation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s not surprising that they&#x27;re able to respond, given how hastily this assassination plan was hatched.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Should we pull out, sir?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They&#x27;re bound to trace the trail back here, sooner or later.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">No hurry...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Vice President said he would like to &#x27;have a nice chat with top researchers.&#x27; I intend to oblige him.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Situation at C1 and C2?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Still in position. Signal stable.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">Activate the remote control on the top-right of the panel, Riker.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Yes, sir.</div></div></div>
+<div class="narr">The remote control Blake referred to is a mundane mechanical button, fitted with an old-fashioned safety lock.</div>
+<div class="narr">The soldier enters the password, and the cover pops open, revealing the red button.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">What is this, sir?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">Remote control for the explosives that will blow up the containment around the liquified Originium pipes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">......!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">Look at the screen. According to the routes that Ferdinand provided, the Energy Section has several liquified Originium pipelines running through the west wing of Rhine Lab.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rhine Lab Engineering does a thorough job.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In addition to standard safety measures, there are also underground containment structures that prevent chain reactions in the event of a leak.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The original plan was to cause a leak with an explosion, creating a chance for operatives on the ground to approach Jackson.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">By chance, however, Jackson&#x27;s convoy will cross over one of these pipelines on the way back.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_cherunder_2.png" alt="bg_cherunder_2"><div class="cap">bg_cherunder_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Agent A</div><div class="text">You&#x27;re Rhine Lab staff?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I heard the Defense Section has a lot of bad-tempered people, but I&#x27;m surprised they would hire a kid so young.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I told you to surrender. I didn&#x27;t say you could talk.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll try to short stop of turning you to ashes. The Doctor and Saria may want to question you, after all.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Agent B</div><div class="text">Wait, is that a flamethrower?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Stop! There are liquified Originium pipes all around us!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ifrit</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So that&#x27;s what&#x27;s going on...</div></div></div>
+<div class="narr">The flaming-red Savra girl makes her decision in a split second. She re-engages the flamethrower&#x27;s safety lock, and swings it hard at the one on the left.</div>
+<div class="narr">Then she charges towards the one on the right, and catches the side of his face with her fist.</div>
+<div class="narr">In the time it takes for a flame to flicker, Ifrit is back on her two feet again, dusting off her palms.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%231%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Agent A</div><div class="text">Grgh...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Agent B</div><div class="text">I think my nose is broken...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Run, kid...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%239%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">What?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s that sound?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Damn, he started the countdown...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Less than one minute left—</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/29_g11_monitoringroom.png" alt="29_g11_monitoringroom"><div class="cap">29_g11_monitoringroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Can C1 and C2 make it back?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">Their contributions will be remembered, as well all others who give their lives this day.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">But Colonel... it&#x27;s an entire convoy. Five cars, a dozen people in the retinue, possibly even Rhine staff members and reporters, and other passersby...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">You have your orders, Riker.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">But I...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%231%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">I&#x27;ll hit the switch myself. That&#x27;s my job. Your job is to report as soon as you get a signal from C1 and C2.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I won&#x27;t defend myself if I stand trial for this someday.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So I&#x27;m not going to waste my time explaining myself to my soldiers now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">Columbian Soldier</div><div class="text">Yes, sir.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We have the signal!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Vice President&#x27;s convoy is reaching the target area on the west side of Rhine Lab.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Colonel?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%233%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">......</div></div></div>
+<div class="narr">Blake places his hand on the cold mechanical button. A chill runs up his finger, and he pauses for a couple of seconds.</div>
+<div class="narr">The soldier glances at his superior officer, whose brow is furrowed behind his sunglasses.</div>
+<div class="narr">The soldier realizes that his commander is even more anxious than he is.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_899_1%237%241.png" alt=""><div class="bubble"><div class="who">Blake</div><div class="text">(Whisper) Damn it all to hell!</div></div></div>
+<div class="narr">Blake presses the button.</div>
+<div class="narr">There is no sound, only an explosion on some of the screens.</div>
+<div class="narr">On the tiny screen, the collapsing streets were like foam boards underneath bubbling flame. Then the screen goes black, the camera destroyed by flying debris.</div>
+<div class="narr">There is no sound, but Blake and the soldier could hear the deafening boom in their heads.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%239%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The surface should be close, but I can&#x27;t see the path with all these stone slabs in the way...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, are you two okay?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh no, a chain explosion.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%234%241.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Ifrit?!</div></div></div>
+<div class="narr">Ifrit hears a familiar voice through the echoes of the explosion and the falling rubble.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%236%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">Saria? I&#x27;m here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%236%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">I hear you... hang in there!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have a lock!</div></div></div>
+<div class="narr">Ifrit can hear Saria&#x27;s voice shaking. Something touches her fingertips in the darkness. Calcium crystals? Saria&#x27;s Originium Arts.</div>
+<div class="narr">Like a stream of water, the crystals fill the gaps in the rubble, then expand, releasing a sickening crack—</div>
+<div class="narr">Saria has forced an opening in the collapsed structure.</div>
+<div class="narr">A hand reaches down from above. Ifrit grabs it and feels it pull her up, while the calcium tunnel shatters behind her.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/29_g8_alley_n.png" alt="29_g8_alley_n"><div class="cap">29_g8_alley_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%233%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">Don&#x27;t move.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%236%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">I&#x27;m fine, just a little dusty.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%234%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">Your face... were you crying?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%233%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">I-I wasn&#x27;t crying! Just a little anxious, that&#x27;s all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%236%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">Alright.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%237%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">Your hands are dusty too, Saria. You&#x27;re making my face even dirtier.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%233%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">Oh, sorry.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And these two?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%231%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">They were the ones who planted the bomb that blew up the liquified Originium pipelines, so I brought them out.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I couldn&#x27;t stop the explosion...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%237%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">You did well.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You really did.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%235%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_896_1%238%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">What is it, Ifrit?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%235%241.png" alt=""><div class="bubble"><div class="who">Ifrit</div><div class="text">Silence? What are you doing here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%235%241.png" alt=""><div class="bubble"><div class="who">Saria</div><div class="text">...Silence.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_895_1%235%241.png" alt=""><div class="bubble"><div class="who">Silence</div><div class="text">Why are you here?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/29_g7_mainstreet_n.png" alt="29_g7_mainstreet_n"><div class="cap">29_g7_mainstreet_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%239%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">Mr. Vice President, Mr. Pavard, it&#x27;s safe to go now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%233%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">The convoy?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%239%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">Just a couple of mechs blown up. No need to worry.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%232%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%239%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">This car has been modified by the Engineering Section. It may not look much, but you can trust it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I hope you brought your driver&#x27;s license, Mr. Pavard. We&#x27;ll take a special passage on the east side. We&#x27;ve planned a new route for you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The rest of your retinue will return in small groups once the dust has settled.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%237%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">Was the explosion expected?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%231%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">No, we wouldn&#x27;t have allowed an explosion of this size to occur if we knew about it in advance.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But Rhine Lab and the Maylander Foundation&#x27;s work isn&#x27;t done until you&#x27;re back safely at your residence... the enemy has more than one plan, and we have more than one contingency.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%235%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">Very good.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I just don&#x27;t want to see &#x27;Another Triton?&#x27; in the headlines tomorrow.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_893_1%231%241.png" alt=""><div class="bubble"><div class="who">Jara</div><div class="text">There&#x27;s no need to worry, we already have a plan in place for the press.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once again, I wish you a pleasant stay in Trimounts.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">Jackson</div><div class="text">Thank you.</div></div></div></div><div class="nav"><a href="level_act25side_03_beg.html">← Prev</a><a href="level_act25side_st02.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的罗盘 · 出苍白海</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">出苍白海</a> / <span>EP-7</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act39side/level_act39side_07_end.html" class="">English</a></div>
+  </div>
+  <h1>我的罗盘<span class="section-tag">EP-7 · 行动后</span></h1><div class="meta">出苍白海</div><div class="story-info">安纳斯塔西奥紧追不舍，胡安娜不得已将船开入正在喷发蒸汽的峡谷之中，众人之间的对决一触即发。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g8_oldcabin.png" alt="57_g8_oldcabin"><div class="cap">57_g8_oldcabin</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">伊西多！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">伊西多</div><div class="text">......唔......呃！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——咳咳咳！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%234%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">所有人都去甲板上！我来掌舵，帕斯卡拉，你和温蒂看着蒂奇！</div></div></div>
+<div class="narr">审判庭的船追上来了，伊西多，快醒来，站起来——</div>
+<div class="narr">等等，你的胳膊怎么了？</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%234%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">......我......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">——啧，又追上来了，极境，伊西多，还能用剑吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">我剑断了，但我用旗子也能打人！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......唉，谁会在战场上拿旗子当武器啊......</div></div></div>
+<div class="narr">伊西多捂住了自己的右臂，剧痛还没有消退。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">一只左手够用了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">好——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g6_olddeck_1.png" alt="57_g6_olddeck_1"><div class="cap">57_g6_olddeck_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2313%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">他们又在装炮弹了！小心！</div></div></div>
+<div class="narr">风吹来背后盐船上的呐喊。</div>
+<div class="narr">“——开炮！！”</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">我们还是不够快。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">我们能赶在他们追上之前驶进骸礁峡谷吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">哪怕不能，我也绝不会停船。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%236%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">可是现在船体受损严重......我早上只来得及修补了一部分，刚才那一下几乎打穿了半个船舱！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2316%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">而且伊西多的炼金装置都炸了，没有罗盘，我们进了骸礁峡谷，还怎么出来？</div></div></div>
+<div class="narr">伊西多隐约感到手套之下，仍有心相原质在活跃地涌动。</div>
+<div class="narr">他或许毁了自己的一只手臂，但他没有毁掉所有人的生机与希望。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%236%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">......总还有办法的。</div></div></div>
+<div class="narr">伊西多望向骸礁峡谷，遍地的骨骸正在他眼中快速放大。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g6_olddeck_1.png" alt="57_g6_olddeck_1"><div class="cap">57_g6_olddeck_1</div></div>
+<div class="narr">一千米。</div>
+<div class="narr">征服宣告号已经无需转向，胡安娜紧握住舵轮，几乎将木柄压出裂缝。</div>
+<div class="narr">她俯下身子盯着正前方，仿佛那可怖的骸礁峡谷是她的猎物。</div>
+<div class="narr">五百米。</div>
+<div class="narr">尖锐的盐粒划过胡安娜的脸颊，留下一道刮痕。</div>
+<div class="narr">帕斯卡拉在劲风与盐尘中挣扎着挤动眼睛，也只能从缝隙间堪堪瞥见身后迫近的巨帆。</div>
+<div class="narr">一百米！</div>
+<div class="narr">本应是苍白的骨骸被涌动的微生物染成了明亮的赤红。</div>
+<div class="narr">哪怕在被海水淹没之前，这片土地上也不曾有过如此鲜明的色彩。</div>
+<div class="narr">五十米。</div>
+<div class="narr">蒸汽从骨骸的孔隙中喷涌而出，密集而激烈。</div>
+<div class="narr">末端，明亮的赤红晕开，像是喷溅在空气中的血雾。</div>
+<div class="narr">十米。</div>
+<div class="narr">所有人都屏住了呼吸。</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/57_i09.png" alt="57_i09"></div>
+<div class="narr">征服宣告号轰鸣着驶入了峡谷，在它身后，紧追着它的行迹，自峡道两侧层叠的骨骸中爆发出几十道蒸汽柱。</div>
+<div class="narr">风帆被随意撕扯开来，如同一张薄薄的纸被撕裂。</div>
+<div class="narr">在蒸汽的冲击下，紧追在其后的盐船，数十米长的庞然大物，像玩具般分崩离析。</div>
+<div class="narr">高大的桅杆拽着破烂的风帆倾颓下来，横架在峡道之间，却又在转瞬间被蒸汽拦腰斩断，直直扎进盐地。</div>
+<div class="narr">木屑与骨渣乘着气流飞扬，一场尖锐而致命的飞雪。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%236%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">他们的船，被蒸汽击毁了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2318%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">鳞屎在上，活了，活了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%236%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">等等。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g4_newdeck_2.png" alt="57_g4_newdeck_2"><div class="cap">57_g4_newdeck_2</div></div>
+<div class="narr">盐尘被蒸汽冲开，几人分明看到，又一艘盐船跨过前船的残骸，向他们追来。</div>
+<div class="narr">桅杆上，审判庭的旗帜猎猎飘扬，安纳斯塔西奥就站在旗帜之下，他比旗帜更鲜明。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">追上来了。算他们有种。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那就让他们都埋在这里。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g4_newdeck_2.png" alt="57_g4_newdeck_2"><div class="cap">57_g4_newdeck_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1590_1%234%241.png" alt=""><div class="bubble"><div class="who">鲁斯</div><div class="text">准备钩索！</div></div></div>
+<div class="narr">数十条钩索接连抛出，它们大多疲软地落入盐地，但也有那么几条死死地咬住了征服宣告号船身上的空隙。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1590_1%234%241.png" alt=""><div class="bubble"><div class="who">鲁斯</div><div class="text">征服宣告号比我们的船要重，别用力拉，让它把我们拖拽过去！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">离得够近了就跳，把船抢过来！</div></div></div>
+<div class="narr">紧绷的绳索吱呀作响，两艘船都震颤着。船员们掏出武器，估量着两船之间的距离。</div>
+<div class="narr">这时，一只舵轮从征服宣告号的船尾旋转着飞出，两船间的绳索应声断裂。</div>
+<div class="narr">眼尖的船员立马认了出来——</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">惊恐的船员</div><div class="text">是胡安娜！</div></div></div>
+<div class="narr">踏着这声惊慌的呼喊，一个黑色的身影纵身一跃，落在盐船上！</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2313%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">这么个抛钩索法，连盐鳞都抓不住！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这才多久，我教你们的东西全忘了吗！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1590_1%234%241.png" alt=""><div class="bubble"><div class="who">鲁斯</div><div class="text">她要抢我们的舵轮！拦住她！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2313%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">饿极了的盐鳞也比你们更会打架！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">都把刀握紧点！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%233%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">不要杀了胡安娜！我们找到罗盘就好！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1590_1%234%241.png" alt=""><div class="bubble"><div class="who">鲁斯</div><div class="text">哈维尔，事到如今，你怎么还说得出这种话？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">惊恐的船员</div><div class="text">她是来杀我们的，不杀她我们就死了！杀了她我们还能拿赏！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1592_1%231%241.png" alt=""><div class="bubble"><div class="who">嚎叫的船员</div><div class="text">哈维尔，我从头到尾都没看错你，你就是胡安娜的一条宠物！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我不管了，我要活命，我要过好日子——你要是不想要这笔赏金，我要！</div></div></div>
+<div class="narr">胡安娜抡起手中的舵轮砸在迎面冲来的海盗身上，那人没吱一声就瘫软下去，但她身后的海盗只是更狂暴地冲了上来。</div>
+<div class="narr">哈维尔被落在人群最后，他将手中的武器握得越来越紧，却仍旧站在原地不动。</div>
+<div class="narr">半晌，他才憋出一句呼喊——</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%233%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">我说！找到罗盘就好，不要杀了胡安娜！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">可我会杀了你，哈维尔。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1592_1%231%241.png" alt=""><div class="bubble"><div class="who">嚎叫的船员</div><div class="text">别再发号施令了哈维尔，你以为自己是个什么东西！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">杀了胡安娜，拿她的人头换钱！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="narr">像是人永远无法摆脱自己的影子那样，伊西多一回头，再次看到了身后的安纳斯塔西奥。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%237%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">你在这里。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">教士们，列阵，进攻！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">习武教士</div><div class="text">是！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%232%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">极境，你和温蒂保护舵轮，别让他们控制了船！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%236%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">小叶，启动攻击模式！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">哈！你竟然把我给棘刺的防水靴踢飞了！别以为通讯员就不会打架了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">习武教士</div><div class="text">啧，把你那臭拖把条子拿远点！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">别这么说我的旗子，我原来每周都拆洗一次的！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%237%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">伊西多，你已经两次几乎杀死我，从未有人做到过。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你为何如此期盼我的死亡？你那因我的妨碍而没能实现的欲望——那比所有人都更强烈的欲望——是什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">我没有欲望。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%239%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">......怎么会？凡人皆受欲望驱使。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">那你呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%239%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">我首当其冲。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">如果你也被欲望驱使，那你就没有资格以控制欲望的名义杀人......哪怕你是审判庭的人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%232%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">审判庭？不。我曾经多么渴望那位审判庭的教士能杀死我，终结我罪孽的生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但他亲口否认了自己审判我、杀死我的资格......也否认了我死去的资格。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可你还有资格轻松地死去，伊西多。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">我一点也不想死。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%237%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">你不想死，可你已被最为强烈的欲望所沾染，不是吗？你已经丧失了为人的自由意志。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">即便活着，也已堕入不得不作恶的境地，想停下却身不由己。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你为何用手套遮掩自己残损的右臂？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">被欲望所操控的人，总是不愿意承认，自己狂热追逐的事物，正将自己引向毁灭。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你已无法回头，被欲望操控之人无一能够回头。我会将你杀死，防止你犯下更多罪孽。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但在此之前，你该看清自己的欲望，正视它！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这样，你还能作为一个清醒的人，在抗争中死去。</div></div></div>
+<div class="narr">安纳斯塔西奥的剑伴着一声锐响划开空气，刺向伊西多的右手。伊西多几乎扭断了腰才勉强避开，但剑尖仍划破了他的手套。</div>
+<div class="narr">心相原质化作纤细的条带，从伊西多手套的裂口间渗出，飘向峡谷的各个角落。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%2310%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">......怎么回事？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%236%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">啊，罗盘，原来在这里。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我看守这孽物许多年，从未见它如此热切地回应谁的欲望。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">多么强烈的欲望，伊西多，而你甚至不自知。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">如果你懂一点炼金术，安纳斯塔西奥，你就会知道它不是在回应谁的欲望。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">心相原质在炼金术师的操作下离开罗盘，加入环境中的物质循环，再回到罗盘，由炼金术师解析它从循环中带回的信息。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这是罗盘的基础运作原理，无关欲望。</div></div></div>
+<div class="narr">伊西多读过太多炼金术典籍，也听过太多奥卢斯的教诲，这些原理他即使倒立着也能倒背如流。</div>
+<div class="narr">但他还是忍不住要质问自己，这便是罗盘的全部，心相原质的全部吗？</div>
+<div class="narr">他分明没有做任何操作，手臂上的心相原质为何自发地开始飘散？</div>
+<div class="narr">他难道不想知道，它在回应什么？</div>
+<div class="narr">他难道不想知道，自己想要什么？</div>
+<div class="narr">恍惚间，安纳斯塔西奥的剑已然钉入了他的左肩。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%232%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">——呃！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%233%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">你的欲望呢，伊西多？曾经驱使你杀死我的强烈欲望呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你难道真要作为欲望的傀儡死去，而自己都不知道那究竟是什么？！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g8_oldcabin.png" alt="57_g8_oldcabin"><div class="cap">57_g8_oldcabin</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">高大的习武教士</div><div class="text">找到了！她还背着个人！抓住她！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">追击的习武教士</div><div class="text">上！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2314%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">......！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呃......好沉......跑不快......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">......帕斯卡拉，你把我放下，自己先跑......快！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2316%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——唔！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">......帕斯卡拉？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2311%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">......帕斯卡拉！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你这样跑不快，我们都会被捉住的！你把我放下来自己跑！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2316%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">不......！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">什么......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2313%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">我不放！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......你把你的毯子给我盖，把你的水给我喝，还哄我睡觉......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我......我不放！！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">你......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">我们撞上什么东西了，船体在偏移，我控制不住！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%236%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">让开，我来把船推正！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%235%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">你怎么——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%236%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">相信液氮大炮！我可能控制不好推力，极境你把稳了舵轮！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">明白！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g4_newdeck_2.png" alt="57_g4_newdeck_2"><div class="cap">57_g4_newdeck_2</div></div>
+<div class="narr">骨质的刀剑铿锵作响，盐鳞皮护甲碰撞出坚硬的声音。一名船员吼叫着站到了胡安娜面前。</div>
+<div class="narr">他身后的船员同样扯下身上的护甲，围成一圈血肉的墙，当中正是胡安娜和第一位上前挑战的船员。</div>
+<div class="narr">胡安娜短暂地愣神，随即心领神会，笑了起来。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2310%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">......唔，你们还记得这个传统？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1591_1%231%241.png" alt=""><div class="bubble"><div class="who">拼死的船员</div><div class="text">当然，胡安娜，当然！这都是小的时候你教给我们的，挑战首领的方式！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但你的命值一大笔赏金，有了它，我下半辈子就不用再干什么危险的活了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2313%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">——来！</div></div></div>
+<div class="narr">舵轮抡出一个带着风声的圆，撞上他裸露着的胸膛，所有人都听到了那声闷响。</div>
+<div class="narr">那人的胸膛塌陷下去，他只发出了几声模糊的气音，就倒在甲板上。</div>
+<div class="narr">踩着他的血，有更多人狂野地吼叫着，举着武器向胡安娜劈来！</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1592_1%231%241.png" alt=""><div class="bubble"><div class="who">嚎叫的船员</div><div class="text">杀！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%234%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">——喝！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1591_1%231%241.png" alt=""><div class="bubble"><div class="who">怒吼的船员</div><div class="text">——啊啊啊！！</div></div></div>
+<div class="narr">又一个船员冲了上来。但在直面胡安娜双眼的那一刻，他产生了一丝犹疑......</div>
+<div class="narr">斧子凝滞了一瞬，随即舵轮向那人飞来，他的下半身留在了甲板上，而苍白的盐漠贴向他的双眼。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%234%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">临阵胆怯，不够坚定！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个时候犹豫，等于送死！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——还有谁？</div></div></div>
+<div class="narr">一个有些瘦弱的船员举着长刀，踩着鲜血，走了上来。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%231%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">哦......小洛米，你也在。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">瘦弱的船员</div><div class="text">是，首领，我来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%231%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">拿了赏钱，你打算干什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">瘦弱的船员</div><div class="text">我有一个女儿，全留给她！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2313%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">好！那么来，战胜我，完成它！</div></div></div>
+<div class="narr">瘦弱的船员咽口唾沫，举刀砍向胡安娜，却被胡安娜反手击中。</div>
+<div class="narr">船员的一只手臂掉在地上，血液喷射出来，溅了一地。</div>
+<div class="narr">她的另一只手，始终紧握着长刀不放。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%2313%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">来，举起你的武器，继续！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">瘦弱的船员</div><div class="text">啊......啊......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——啊！！！</div></div></div>
+<div class="narr">她再度生出勇气，举刀冲向胡安娜，但沉重的舵轮先一步挨上了她的额头。</div>
+<div class="narr">突然，有人推开了瘦弱的船员。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%231%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">等等。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">瘦弱的船员</div><div class="text">......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%231%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">让我来吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1588_1%231%241.png" alt=""><div class="bubble"><div class="who">瘦弱的船员</div><div class="text">......你不是不让我们杀胡安娜的吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%231%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">不，我是你们的首领，走到现在这个局面，你们要做的事就是我要做的事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我是首领，我该保护你们，而不是躲在你们身后，看着你们送死。</div></div></div>
+<div class="narr">哈维尔抽出自己的武器，一脚踩进血泊里。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%236%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">胡安娜，出手吧。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g8_oldcabin.png" alt="57_g8_oldcabin"><div class="cap">57_g8_oldcabin</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2314%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">哈......哈......呕——！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">你已经要脱力了，就在这停下吧。我好点了，我也能打了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2314%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">哈......哈......这帮该死的经棍简直就像一群闻到血味的盐鳞一样......甩都甩不掉......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">习武教士</div><div class="text">终于停下了？你偷了多少不属于你的东西，现在还在这里喋喋不休？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">抓住这个窃贼，还有这个强盗，把她们带回审判庭！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">蒂奇</div><div class="text">......咳......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2310%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">......“窃贼”？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“不属于我”？</div></div></div>
+<div class="narr">捡起一把掉落在舱内的长刀，帕斯卡拉扑向面前的习武教士，狂怒地刺向他们。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2313%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">放屁，都是你们！我本来可以好好生活，都是你们找上我，把我赶出去！......我的家族只是没落了，你们就觉得我变得卑劣了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">习武教士</div><div class="text">她在说什么？......杀了她，她疯了！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4163_rosesa_1%2313%241.png" alt=""><div class="bubble"><div class="who">帕斯卡拉</div><div class="text">我那天只是想回家，拿回我小时候的东西，那不是偷！那是我奶奶给我做的手环！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我拿自己的东西有错吗？你们凭什么就给我扣上窃贼的帽子？凭什么不论我做什么、说什么，哪怕求你们——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我求你们说我想在镇子里找份工，好好生活，你们都永远认定了我就是个贼！要把我赶出去！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">好啊，现在我真的是个贼了，你们满意了？你们满意了？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">鳞屎的审判庭！你们没资格宣判什么东西是不属于我的！！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%2312%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">啊啊啊啊啊——！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我感觉船在飞！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%232%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">客观描述的话，它确实有几秒在飞，液氮大炮的力度可能太大了......但没关系，我有一台小水炮在辅助减速......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%2312%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">太快了......前面那根骨头我躲不开了，再用你的水炮帮帮忙！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avgnew_400_weedy_1%236%242.png" alt=""><div class="bubble"><div class="who">温蒂</div><div class="text">这么粗的骨头一炮未必能轰开，还是做好受冲击的准备！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我刚修好的船......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1587_1%231%241.png" alt=""><div class="bubble"><div class="who">习武教士</div><div class="text">这里还有人！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_450_1%237%241.png" alt=""><div class="bubble"><div class="who">极境</div><div class="text">你又是来干什么的！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">辛苦你再修一次了，温蒂。这些家伙交给我来处理。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g4_newdeck_2.png" alt="57_g4_newdeck_2"><div class="cap">57_g4_newdeck_2</div></div>
+<div class="narr">哈维尔的武器对上舵轮，沉闷的声响在峡谷中回荡，他的双臂开始发麻。</div>
+<div class="narr">他迟疑着，在攻击的间隙断断续续地憋出一句话。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%236%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">胡安娜......你......现在在做什么......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">斩杀叛徒。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%236%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">不......胡安娜！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果是斩杀叛徒，你根本不用遵守什么传统！你可以直接杀了所有人，难道你做不到吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%233%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">你想让所有人都明白，只有怀着勇气与决心直面你，我们才算是证明了自己的选择？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是吗？是吗！！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%238%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1579_1%236%242.png" alt=""><div class="bubble"><div class="who">哈维尔</div><div class="text">呼......呼......胡安娜......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1581_1%231%242.png" alt=""><div class="bubble"><div class="who">胡安娜</div><div class="text">哦，哈维尔......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你既然看出来了，那还不拼尽全力？</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/57_g7_olddeck_2.png" alt="57_g7_olddeck_2"><div class="cap">57_g7_olddeck_2</div></div>
+<div class="narr">伊西多的左臂因疼痛而颤抖，长剑已然脱手。</div>
+<div class="narr">此刻，在安纳斯塔西奥不停的诘问之下，一种更剧烈的疼痛席卷了他。</div>
+<div class="narr">他看见逸散出去的心相原质同盐尘与蒸汽一并漂流过后，又重新向他汇聚过来。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">你问，我想要什么。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我想要胡安娜能如愿驶向她几十年来梦寐以求的大海。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我想要帕斯卡拉能够吃饱，而不是总在半夜被饿醒。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我想要温蒂能平安回去继续她的研究，想要极境赶上他念叨了很久的那场演唱会。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%237%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">我只看到你们前赴后继，互相撕扯着奔向毁灭。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这场悲剧最初起源于谁？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是那个丝毫没有记住大静谧所带来的伤痛，只欲求曾经体验过的刺激，执意奔向毁灭的胡安娜。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她的欲望又将帕斯卡拉拖入深渊，那个只是想吃饱的小女孩，如今却为了荣华富贵而盗窃审判庭的禁物。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">还有你的同僚们，你不假思索地说出想要他们的生活回归正轨时，可曾想过他们因何而沦落至此？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是因为你，伊西多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">胡安娜的欲望感染了你，你又用这欲望感染了你无辜的同僚们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%236%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">......我知道。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">人与人之间就是会互相影响，互相感染，这没什么不好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我在雅隆的那几天，遇到的每一个人都只会埋下头，关上窗，谁也不愿意和谁多说一句话。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们或许是受审判庭的教诲而活成了那副模样，又或是灾祸的阴翳始终没能从他们的心头消去......我不清楚。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可有一点我很清楚，没人应该活成那副模样。</div></div></div>
+<div class="narr">安纳斯塔西奥将剑从伊西多肩头抽出。</div>
+<div class="narr">伊西多看见逸散的心相原质染着蒸汽的红晕，钻回他的手套中，重新在他的右臂上流淌。</div>
+<div class="narr">有一瞬间，他感到整片骸礁峡谷中的热流，都在他的右臂上奔涌。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%232%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">继续说，伊西多，如果你终于下定决心要揭开自己的伪装，我会听你告解。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">拜老师所赐，很长一段时间里，我都以为人与人相处的终点就是海嗣那样的吞噬与同化。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......以为别人会这样吞噬我，我也会这样吞噬别人，总有人会被他人的欲望推搡着、被他人的判断裹挟着，丧失自我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">加入罗德岛之前的那几年，我始终都在尝试避免这样的情况发生......就像雅隆的镇民那样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但直至今日我才意识到，那些年的我费尽心思去保护的“自我”，一直都是一片空白。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哪怕攒下了点钱，我也一直过着和流浪时一样的生活：穿一样的衣服，吃一样的饭，待在一样的地方，做一样的事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我根本不知道自己想要什么，或许什么都不想要。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1582_1%237%241.png" alt=""><div class="bubble"><div class="who">安纳斯塔西奥</div><div class="text">能一片空白地活着，不幸福吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那样的人才最自由，不是吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不像现在的你，除了像祸害你的同僚们那样，将越来越多无辜之人拖入深渊，已经别无选择。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1577_1%235%241.png" alt=""><div class="bubble"><div class="who">伊西多</div><div class="text">胡安娜给过我离开的机会，是我自己选择留下，我们都不后悔。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以，既然是我把极境和温蒂牵扯了进来，我也要给他们一个选择去留的机会。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果你要杀掉他们，那我就先杀掉你。</div></div></div>
+<div class="narr">伊西多清晰地感受到，心相原质混沌的涌动逐渐变得规律，它每一次在他的手臂上泵动，周遭的骨骸中便有蒸汽喷出。</div>
+<div class="narr">他恍然意识到，从塑金台上抢救出的心相原质，此刻正在右臂上忠实地履行着原本的职责。</div>
+<div class="narr">他想带着同伴离开这片索命的骸礁峡谷，于是心相原质便为他指明骸骨中热流奔涌的方向。</div>
+<div class="narr">伊西多扯下手套。</div>
+<div class="narr">流淌的心相原质填补了法术能量在他皮肉上蚀出的每一处沟壑与空洞。</div>
+<div class="narr">这冰冷的物质，如今就是伊西多温热的血肉。</div>
+<div class="narr">他用右手拾起长剑，直指安纳斯塔西奥的脸。</div></div><div class="nav"><a href="level_act39side_07_beg.html">← 上一段</a><a href="level_act39side_08_beg.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

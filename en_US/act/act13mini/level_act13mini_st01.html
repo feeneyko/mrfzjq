@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Turn Left, Turn Right · It&#x27;s Been A While</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">It&#x27;s Been A While</a> / <span>level_act13mini_st01</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act13mini/level_act13mini_st01.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Turn Left, Turn Right<span class="section-tag"> · Interlude</span></h1><div class="meta">It&#x27;s Been A While</div><div class="story-info">Xiaohei is unlucky to be separated from Xiaobai and Ah Gen after landing in Lungmen. Staying at Hung&#x27;s for the time being, he takes on an assignment to search for a lost pet.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rooftop_2.png" alt="bg_rooftop_2"><div class="cap">bg_rooftop_2</div></div>
+<div class="narr">It&#x27;s been raining the entire day, and though it&#x27;s stopped by evening, the air is still somewhat damp.</div>
+<div class="narr">Gloomy clouds gather, forming a pitiless wall through the sky. The glistening moonlight finds nowhere to spill down, and the light from the surface nowhere to shine up.</div>
+<div class="narr">I&#x27;m sick of this weather.</div>
+<div class="narr">Achoo—!</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">I just wanted to take a nap up here. This sucks. The roof&#x27;s all wet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*sniff* *sniff* Hmm? This box here&#x27;s still dry inside.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Climbs into box)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Aha... getting some sleep in this weather has its own charm though.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Downstairs Commercial</div><div class="text">Big sale on fresh produce today! Don&#x27;t miss our Buy One Get One Free special! The lowest prices in downtown Lungmen, as thanks to our loyal customers!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Turns to the left) Hiss—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Downstairs Neighbor</div><div class="text">I&#x27;ve told you a billion times! Stop wasting time after dinner and do your homework! You never see any other Perro taking it as slow as you do!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Turns to the right) Grrr—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Downstairs TV</div><div class="text">With the forecast being humid in the coming days, we remind all citizens to follow fire safety rules. High humidity can easily lead to electrical fires. Be careful around live currents, and inspect household devices regularly!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Springs up) Just shut up! You can&#x27;t speak that fast and expect people to understand you!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="narr">He lies back down in the box, beneath an overcast night sky, all manner of sounds filtering through his ears, but never what he&#x27;s hoping to hear.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Xiaobai...  Ah Gen... where are you right now?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Xiaohei? Are you up on the roof? It&#x27;s dinnertime! You&#x27;ll catch a cold up there—it just rained today! Come down!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Roughly rubs eyes)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Alright! I&#x27;ll be down in a moment!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodesroom.png" alt="bg_rhodesroom"><div class="cap">bg_rhodesroom</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">I&#x27;ll lay the table for you, Hung. How many are eating tonight?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">No need, Waai Fu set everything out already.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Then is there anything else I can help with?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Hm...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Come here, you&#x27;re all wet!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You were on the roof again, weren&#x27;t you, Xiaohei? No wonder I couldn&#x27;t find you anywhere. Aak, bring Xiaohei a clean towel, quick!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_226_hmau_1%236%241.png" alt=""><div class="bubble"><div class="who">Aak</div><div class="text">Here, punk, catch. Yeah, don&#x27;t thank me!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Hmph, like I ever would!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Alright, alright, settle down. Wipe your hair off and let&#x27;s have dinner.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Waai Fu</div><div class="text">Come on, Xiaohei! I&#x27;m putting this giant rib in your bowl. Felines your age are in the middle of your growth spurt, so you can&#x27;t skimp on nutrition.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Ah, Waai Fu, let me get the door. I&#x27;ll be right there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%234%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Well, well, fancy seeing you here, Xiaohei.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haha, I could smell it from the hallway. We&#x27;ve got steamed ribs tonight, don&#x27;t we?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Yup, Hung went to the market early this morning to wait in line for them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_243_waaifu_1%234%241.png" alt=""><div class="bubble"><div class="who">Waai Fu</div><div class="text">Hmph! You&#x27;ve got a sharp nose, Uncle Lee, but unfortunately so do I. Fess up, what&#x27;s that bottle you&#x27;re hiding behind you?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_225_haak_1.png" alt=""><div class="bubble"><div class="who">Aak</div><div class="text">Yeah, hand it over and no one gets hurt.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">*sigh*. I was passing by the Syuns&#x27; wineshop after a job well done. Old Syun pushed four tael of huangjiu onto me as thanks, and you know how stubborn he is. Had to take it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let me be absolutely clear, I did not go and buy this myself.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Well, I, for one, am thankful to Mr. Syun. I just used up the last of my cooking wine today, so this is just perfect. Xiaohei, could you put that bottle in the cupboard under the kitchen counter for me?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Got it, Hung.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%235%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Hey! I see what you did there, Mr. Well-Behaved! I didn&#x27;t even get to drink any yet! And you, fluffball, what&#x27;re you playing along with him for?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_243_waaifu_1%233%241.png" alt=""><div class="bubble"><div class="who">Waai Fu</div><div class="text">Hahaha, nice work, Xiaohei!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodesroom.png" alt="bg_rhodesroom"><div class="cap">bg_rhodesroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Pffff. Aren&#x27;t you a lively little rascal when you&#x27;re all fed? Not bad, I like it. Good kids take their meals seriously.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Puts head down and eats)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">That reminds me, er, Xiaohei...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Puts down bowl)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did you find anything out, Mr. Lee?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%235%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Er, concerning your inquiry, nothing&#x27;s on the horizon as of yet...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Oh, I see...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">(Whisper) Boss, why are you bringing this up at the dinner table?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Look, Xiaohei. Actually, I&#x27;ve got another little thing I was hoping you could pitch in for. Would you be willing to help a detective out here?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Go ahead, Mr. Lee! I&#x27;m listening!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">So here&#x27;s the deal. The Yuans&#x27; daughter lost a pet, found herself at a loss, and eventually left the task to me. After a bit of nosing around, I&#x27;ve got some reports of sightings at the eatery street on Naam Ping Bay.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I&#x27;m all tied up with work lately, and just can&#x27;t get around to it. So I&#x27;m wondering if you could go take a look for me? Would you mind?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">No problem, just leave it to me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Good. Here&#x27;s a photo of the pet. Don&#x27;t lose it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Wha-What kind of animal is this? I&#x27;ve never seen it before...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Never? Well, that&#x27;s strange.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s a cloudbeast. Rich or poor, everyone here loves keeping one around the house.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Can I take a look, Xiaohei? Let me see... All black... a storm cloudbeast. You don&#x27;t see coats that color every day.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Storm?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Because it&#x27;s dark like a storm cloud. That&#x27;s how we distinguish them in Yan. There&#x27;re a lot of cloudbeast owners, so we ended up telling them apart by color.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">White ones are snow cloudbeasts, red ones are sunset cloudbeasts, and there are some multicolored ones too, with their own special names.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Ohh. Okay, I see. I think I understand.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">So you said you&#x27;d never seen one before? Did nobody keep any, back where you&#x27;re from?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">No, um! It&#x27;s just, the ones I&#x27;ve seen are—are—it&#x27;s not coming to me right now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Oh—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Mr. Lee, Hung, I&#x27;m done eating. I&#x27;ll be going to bed for now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Hey, why the hurry to run away? Remember, early day tomorrow. I&#x27;ll take you to Naam Ping Bay.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Got it!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">What, what&#x27;s with that face, Hung?!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Boss... what are you thinking, asking our guest to do our jobs for us?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">*sigh* More hands make lighter work.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">Boss!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%231%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Enough. Are you trying to make me feel ashamed?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let me ask you. The boy was up on the roof again, wasn&#x27;t he?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">...He was. How&#x27;d you know, Boss?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Caught a little of that damp smell from him just as I came in, and it&#x27;s not like it&#x27;s been raining indoors.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We may not have known each other long, but I can tell. He always escapes to the roof to get away from people whenever something&#x27;s weighing on him. On one hand, I imagine he misses his friends too much, can&#x27;t get over it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And on the other, he&#x27;s cooped up in your place all day with nothing to do. He&#x27;s too restless to just sit there.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">But he&#x27;s still a kid. Leave him out of work.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Heheh. He&#x27;s a kid, and yet he isn&#x27;t. Hung, have you ever fought him?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">What, are you saying the boy knows kung fu?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Exactly, and he&#x27;s good enough to go toe-to-toe with any adult. He was so nerve-wracked when I first found him, he threw some moves out at me. Bold, feisty ones.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Hung</div><div class="text">That&#x27;s not exactly common. What kind of place would raise children like that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_322_lmlee_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lee</div><div class="text">Heh, good question. I&#x27;d like to find out too.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_station.png" alt="bg_lungmen_station"><div class="cap">bg_lungmen_station</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">PA</div><div class="text">Greetings to all tourists. Please remain behind the one-meter line. Form an orderly queue as you come through, and avoid blocking traffic. The current time is 2:45 in the morning. Lungmen welcomes your arrival.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">This is Lungmen, then? They&#x27;ve got all these lights on in the dead of night, it&#x27;s a marvel. Scampering all our way out here&#x27;s been worth it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">Is this your first time here too, Rockrock?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Yep. The style of this place feels nothing like at home.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">Do you think something&#x27;s special about it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">It&#x27;s really... youthful here, I think, really lively.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It feels unreal, seeing so many bustling about through the gates. Almost like... like that disaster a few years back never left a mark.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">I think... the city&#x27;s simply able to heal itself. Just like people.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">True. It was hard-hit, but in a city as hearty as this, you only need to blink and there&#x27;s new blood again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Only question is, even with no scars on the surface, what about the wounds within?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">I think... it&#x27;ll be fine. People have short memories.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2311%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">*sigh*... Don&#x27;t listen to anyone who tells you that. Memories don&#x27;t disappear just &#x27;cause you say they do. What happens is time passes, and people don&#x27;t want to bring them up anymore.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">Mhm, I know. Grown-ups all have things they don&#x27;t want to talk about. They shut it all up inside them and let it slowly digest.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">You&#x27;ve... got a little too much wisdom in you, I think.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Rockrock, wait for us!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Ah Gen, this place is so magical! I&#x27;ve never seen a city that could move before!)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Haha, you&#x27;re right. I never thought I&#x27;d see the day when a city could migrate like an animal.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Xiaobai! Ah Gen! Where have you been? We&#x27;re almost at the front of the line! Do you still have all the papers I got for you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Sorry to keep you hanging for so long. Xiaobai needed to go to the bathroom, and it took forever for us to find the right place.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_604_1%232%241.png" alt=""><div class="bubble"><div class="who">Biu</div><div class="text">Biu!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">This place is too crowded! Just now, I even ran into—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Let&#x27;s save it for later. Quick, we need to get in line.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">What did you run into?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">It couldn&#x27;t be something dangerous, could it?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">No, not at all. No need to worry, you two.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Ah Gen, I know you&#x27;re a kid who never gets flustered, and your Originium Arts are plenty strong enough to protect you and Xiaobai. Yes, we don&#x27;t need to worry for you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But if you&#x27;re not even willing to tell us about the danger you run into, that&#x27;ll only make us more worried.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">We already really appreciate that you were okay with paying for our trip, Rockrock.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let alone the fact that we were lucky enough for you to rescue us in the first place. I couldn&#x27;t have gotten us away from those ferocious &#x27;tunepincers&#x27; no matter what.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">Tune-pincers?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">You&#x27;re messing it up again. They&#x27;re called &#x27;gloompincers.&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Haha, silly me. Anyway, we&#x27;ve already given you so much trouble on the way. We really are sorry if we made you worry any more than that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Well, then do you have anywhere to live once you&#x27;re in Lungmen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%2310%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Um... not yet.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">I guessed you&#x27;d have a hell of a time looking. Come stay at the Rhodes Island branch office for the first while, then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">I... I guess we&#x27;ll have to take you up on that offer. If there&#x27;s anything we can help with, no matter what, just say the word.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Oh, come on, honestly. We&#x27;ve been along the entire way together. You can afford to be a little less polite with us than that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">That&#x27;s right, Mr. Ah Gen. And we&#x27;re not even on a very demanding mission this time. We&#x27;re mostly in charge of escorting some local patients to the landship for treatment.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">I bet you&#x27;re wondering, seeing as Suzuran&#x27;s so young, but she joined up before I did. As old hands go in this company, she gets amazing work done.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%234%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Rhodes Island really is an incredible place. Heading anywhere and everywhere, just to rescue the sick and dying...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Yeah! I&#x27;m scared of getting shots at the hospital, but even I know how hard all the doctors and nurses there are working.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">That&#x27;s not the only thing we do, either. There&#x27;s some other... huh? Looks like it&#x27;s our turn. Oh well, you&#x27;ll find out soon enough once we get to the branch office.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Yup. Xiaobai, Ah Gen, let&#x27;s go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Victorian Merchant</div><div class="text">Fie! Where did all these L.G.D. people well up from?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_201.png" alt=""><div class="bubble"><div class="who">Bolívarian Tourist</div><div class="text">Didn&#x27;t you see it on the way in? Someone used Arts to freeze some border-hopping fugitive to a railing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Victorian Merchant</div><div class="text">What?! You&#x27;re joking!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_201.png" alt=""><div class="bubble"><div class="who">Bolívarian Tourist</div><div class="text">Can it, huevón. You&#x27;re up at the gate. Get going.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_177.png" alt=""><div class="bubble"><div class="who">Victorian Merchant</div><div class="text">Eh? Oh... very well, very well. Tsk, how out of the ordinary.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/31_g2_luo_reception.png" alt="31_g2_luo_reception"><div class="cap">31_g2_luo_reception</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">So is this where Rockrock&#x27;s company works, Ah Gen? That man has stones growing out of his stomach. I bet that hurts...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Don&#x27;t stare at people&#x27;s illnesses. It&#x27;s impolite.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Ah! I&#x27;m sorry, Mister, I didn&#x27;t mean to.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Patient</div><div class="text">Haha, it&#x27;s alright, kid. We&#x27;ve gotten plenty of funny looks in our time. We know you don&#x27;t mean bad.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Excuse me, do you know, um, where we can find Operator Rockrock?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Patient</div><div class="text">Sure, just inside Xiaoyuan&#x27;s ward. Keep going straight ahead, then turn left and you&#x27;ll be right there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Thank you, Mister.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Bye! I hope you get better soon.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Patient</div><div class="text">Uh, better?! Hahahaha, thank you, kid, I, uh, appreciate the kindness...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">(Did I say something wrong? That man was really forcing his laugh.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">(Shakes head) Let&#x27;s just go find Rockrock and Suzuran for now.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ri_1.png" alt="bg_ri_1"><div class="cap">bg_ri_1</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Miss, I&#x27;m not going to the landship. I&#x27;m still super fine. Let me stay here, pleaaase.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Listen now, Xiaoyuan. The office doesn&#x27;t have the resources to cope with the current state of your illness anymore. We can only get a good hold of your condition once we transfer you to the landship.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">There are a lot of patients your age on the landship, Miss Xiaoyuan. You&#x27;ll get to meet lots of new friends there if you go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">I... I&#x27;ll wait until my Sixty-Seven&#x27;s back. I want to go with him, *whimper*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Sixty-Seven?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">Sixty-Seven ran off. I can&#x27;t leave on my own. I—I want to wait for him.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Ah Ping, have we ever had any patients go missing here?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Office Operator</div><div class="text">No, Sixty-Seven&#x27;s her pet. It went missing last year, and she&#x27;s been obsessing over it ever since, searching the whole time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">Let me stay here, Miss. Please, pretty please? Just give me a bit more time, I know I can find him... *whimper*</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%2312%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Oh, Xiaoyuan, let&#x27;s not cry now. Wipe your tears away.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Office Operator</div><div class="text">We sent people out looking, but Lungmen&#x27;s a big place, and it was never going to be easy finding a single pet. Plus, we&#x27;re always short on staff. We couldn&#x27;t keep it up for long.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%237%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Well, what do we do? We&#x27;re not going to drag her back with us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">(Bawling)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t! I don&#x27;t wanna leave! Don&#x27;t take me away!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">Um, how about we help search too?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">But we don&#x27;t have many hands to spare as is... and there&#x27;s other patients set up for landship treatment that we need to transfer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides, we have to head back next week on the dot, or else we&#x27;ll be holding a lot of people back from getting help.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_358_lisa_1.png" alt=""><div class="bubble"><div class="who">Suzuran</div><div class="text">What do we do...? We don&#x27;t have any other options.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Ah Gen, can we go and help search?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">I&#x27;m not sure about that. We don&#x27;t know this place at all.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Oh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Do you really want to?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">I just think that... Miss Rockrock&#x27;s helped us out so much, I want to help her out too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Yeah, it&#x27;s about time we returned the favor. Let&#x27;s see what we can wrangle, then.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rockrock, would you be okay with letting me and Xiaobai help with the search?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%235%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">You lot...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Please, let us give it a shot.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Ah Gen&#x27;s amazing. It&#x27;ll be okay.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Logistics Operator</div><div class="text">Rockrock, are you here? There&#x27;s a small malfunction with the imaging equipment in the consulting room. Could we ask you to come take a look at it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4040_rockr_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">Hold on, I&#x27;ll be right there!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Alright, then. But if you run into any trouble, notify me right away.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Okay, we&#x27;ll be sure to.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hello, Xiaoyuan. I&#x27;m Ah Gen, and this is my cousin Xiaobai.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">(Continued sobbing)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Xiaoyuan, just calm down. Listen to me, okay?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Don&#x27;t feel too down... We&#x27;ll help you out!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%235.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">...I&#x27;m sorry. I—I&#x27;m being really selfish, everyone&#x27;s been looking for so long even though they&#x27;re so busy. I shouldn&#x27;t be asking you too.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">No, it&#x27;s okay. None of us would want to part with our friends.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Yeah. So we&#x27;ll help you as much as we can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">R—Really?! This is a photo of him, he&#x27;s really cute and friendly, he&#x27;s gotta be hiding somewhere.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">We&#x27;ll take good care of this photo and do everything we can to find him for you, but I want to be clear. There&#x27;s a chance... it might not turn out like you&#x27;re hoping.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">That&#x27;s right, Xiaoyuan. Parting&#x27;s one of those things in life you can&#x27;t avoid. No matter what, you have to chin up and be brave, and you can never let it hurt you, okay?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_045_nn_1%231.png" alt=""><div class="bubble"><div class="who">Xiaoyuan</div><div class="text">(Sobbing) Mm-hm, one more, just one last try. If I can&#x27;t find him, I... I&#x27;ll stop looking, I&#x27;ll listen... I&#x27;ll go to the landship with you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%233%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">And that&#x27;s that. Xiaobai and I will head out tomorrow to ask around.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%233%241.png" alt=""><div class="bubble"><div class="who">Rockrock</div><div class="text">I appreciate it. Get some rest for today. I&#x27;m popping out for now.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Just settle down.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Mrrraah!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Stop struggling!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Sshaaa!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">(Picks up)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Mrew—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Mr. Lee, it&#x27;s me, Xiaohei. I caught the storm cloudbeast, I&#x27;ll be back at the agency in a moment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Huh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She already found her pet?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But... hmm, okay. I&#x27;m coming back now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s weird. Where&#x27;d you come from, then? You look just like the picture.</div></div></div>
+<div class="narr">The storm cloudbeast fidgets uncomfortably as it&#x27;s lifted by the scruff of its neck, lashing out to try and escape from Xiaohei&#x27;s grasp, but at the same time baring its own bony ribs at him.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">You sure haven&#x27;t eaten properly in forever. Hmm... let&#x27;s take you back for now and get you a proper meal.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">This street&#x27;s so busy! Are we starting the search from here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Yeah. We should find plenty of stray critters with all these eateries. Food&#x27;s abundant here. It&#x27;s easy to find meals.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">But can animals eat human food?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">It&#x27;s not good for them, but it&#x27;s not like they know that. All they care about is not starving.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">...I hope Xiaohei isn&#x27;t starving here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">He wouldn&#x27;t. He can take care of himself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t let your imagination run wild. I bet you&#x27;re hungry too, being out this early. Look, Rockrock slipped us a good handful of the local money after we passed border inspection, so let&#x27;s go find something to eat for now.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Okay...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Two cups of soya milk to go, please. Thanks.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor A</div><div class="text">Here, careful.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Hey, there are a lot of stray animals around here, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor A</div><div class="text">Yep. All up and down the street every day, absolutely filthy. They&#x27;re nightmares.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Have you seen a black-colored cloudbeast recently, then?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor A</div><div class="text">Don&#x27;t remember. Not the sort of thing you pay attention to when you&#x27;re busy all day.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%231%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor B</div><div class="text">Exactly. Who knows what germs and parasites those things might be carrying? We&#x27;re already being kind enough not killing the damn things.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">(Clutching onto Ah Gen&#x27;s jacket) Killing...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%239%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor A</div><div class="text">What the hell&#x27;s wrong with you, saying that to a child?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">It&#x27;s fine. Come on, Xiaobai, let&#x27;s go ask someone else.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Stall Vendor C</div><div class="text">Limited time discount on freshly squeezed fruit juice! 20% off! You know you want it, so come get some!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Excuse me, have you seen a black-colored cloudbeast recently?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor C</div><div class="text">Nope, nope. Kid, if you&#x27;re not buying, quit standing there. This is my business.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">I&#x27;m sorry. How much is the juice?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor C</div><div class="text">120 LMD for a pitcher.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%2310%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Erk... that&#x27;s kind of expensive.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Forget it, Ah Gen. Let&#x27;s go ask the next person.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_lungmen_b.png" alt="bg_lungmen_b"><div class="cap">bg_lungmen_b</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Stall Vendor D</div><div class="text">Steamed buns, instant steamed buns! Every filling you can think of right here!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Hello, have you seen a storm cloudbeast anywhere?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor D</div><div class="text">Haven&#x27;t seen one, little miss. Better ask somewhere else.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Ah... sorry to bother you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">Cheer up, Xiaobai. Let&#x27;s keep asking around.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor D</div><div class="text">There&#x27;s a rescue shelter near the slums, though. The one running it picks up the local strays all the time. Might be worth looking there?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Really? That&#x27;s great!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_597_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor D</div><div class="text">Now I mention it, though, I haven&#x27;t seen &#x27;em around for a while. Weird.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Ah Gen</div><div class="text">How much for a bun? We&#x27;d like two with fresh meat, please!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_598_1%232%241.png" alt=""><div class="bubble"><div class="who">Stall Vendor D</div><div class="text">Haha, that&#x27;s 7 LMD in total. Thanks for your business.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ah Gen</div><div class="text">Hey, how come you&#x27;re only eating the outside of your bun?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">I&#x27;m leaving some in case there are any hungry animals in the street.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ah Gen</div><div class="text">Hahaha, I see! Let me go back and buy another one, then. Finish that one you&#x27;re holding, alright?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">It&#x27;s okay, Ah Gen. We shouldn&#x27;t spend too much. We&#x27;ll need it to keep looking for Sixty-Seven.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ah Gen</div><div class="text">Alright, then.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">The more we save, the more food we can buy Xiaohei when we find him! He might be hungry right now.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Achoo—weird, don&#x27;t know where that sneeze came from...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">(Thrashing about)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Alright, let&#x27;s go. I had to skip breakfast this morning just to catch you, you know.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/31_luo_i1.png" alt="31_luo_i1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ah Gen</div><div class="text">Maybe he got luckier than us, and he&#x27;s off eating good food as we speak!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Looks like it&#x27;s almost noon. I bet Hung&#x27;s got lunch ready.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">That would be wonderful!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I really want to find him soon.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">I wonder where Xiaobai and Ah Gen are right now...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ah Gen</div><div class="text">I&#x27;m sure he&#x27;s looking for us too.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">When are we going to see each other again?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaobai</div><div class="text">Mm-hm! I hope we see each other before long!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Okay, enough worrying! We&#x27;ll meet again, no doubt about it!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rooftop_2.png" alt="bg_rooftop_2"><div class="cap">bg_rooftop_2</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Peeping to and fro)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Searching all over)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">What are you looking for?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">Mrrraah!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Don&#x27;t be scared, I&#x27;m the one who brought you back. This is just another form of mine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re looking for a way out, there&#x27;s a fire escape you can climb down on the side.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Uneasily swaying tail) Mrehhh...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">It&#x27;s kind of weird, though. I&#x27;m from a different world and I can still more or less understand you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But why leave? What&#x27;s wrong with staying here? Mr. Lee might call you a headache, but you can tell he&#x27;s still willing to take you in.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Shaking head) Mrow.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">There&#x27;s not enough to eat out there, and you&#x27;ll have people chasing your hide. What is it that makes you want to go back so much?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">Mreeh... mreh...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">So... you&#x27;re looking for someone too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">C&#x27;mere. I&#x27;m not gonna hurt you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Lies down)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">I&#x27;ll help you. We&#x27;ll find them, together.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Lifts head)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">...Ever since I got here, I haven&#x27;t dared tell anyone I&#x27;m not actually from this world.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I had a wonderful master, and wonderful friends, back where I came from.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Two months ago, I was chasing two strange beasts in the forest—oh, they call them Originium slugs here. Who knows how they showed up there?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah Gen said we should split up and pursue them, and I spent ages chasing that slug by myself, but when I glanced back, I couldn&#x27;t even see the way I came.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then I stepped onto thin air, and kept falling and falling through this white light...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And when I opened my eyes, I was here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t even know if Xiaobai and Ah Gen ended up here too. I want to see them, but I don&#x27;t want to find them in this world.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Shakes ears) Mrow?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">It&#x27;s too dangerous here. Maybe me and Ah Gen can protect ourselves, but Xiaobai... And there&#x27;s a disease spreading around too, that makes you grow scary rocks... I hope they have somewhere safe to stay.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">(Lifts a foot out to place on Xiaohei&#x27;s back)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">Are you trying to comfort me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_599_1%231%241.png" alt=""><div class="bubble"><div class="who">Storm Cloudbeast</div><div class="text">Mreeh!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Xiaohei</div><div class="text">...Thanks.</div></div></div></div><div class="nav"><span>← Prev</span><a href="level_act13mini_st02.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

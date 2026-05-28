@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Long Voyage · Babel</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Babel</a> / <span>BB-4</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act33side/level_act33side_04_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Long Voyage<span class="section-tag">BB-4 · After Operation</span></h1><div class="meta">Babel</div><div class="story-info">The Doctor takes Amiya back to Babel and decides to help her and the other Infected as part of Babel. Theresa shows the Doctor the &#x27;hope&#x27; that she has created through Originium.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="narr">Autumn, 1091</div>
+<div class="narr">Rhodes Island of Babel, Kazdel</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%231%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">How&#x27;s progress, Closure?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The last thing I need is another core system control failure.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Well... Heh, since you had to bring it up, I might have run into a little problem.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even with the tricks you taught me, the encryption methods used by many of PRTS&#x27;s programs are almost incomprehensible to a normal brain, and my decoder isn&#x27;t fully compatible yet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We may not be able to shut the system down before the Doctor arrives on the ship.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Try again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re not confident about getting it done, then we&#x27;ll go to the contingency plan... cutting off power to the entire ship.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Leave it to me!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Seems like you&#x27;re still keeping a lot of secrets, though.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve never seen anyone make you so nervous.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">...That&#x27;s not important.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s important is making sure nothing happens to the ship.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Ascalon&#x27;s report says the Doctor looks like an ordinary person. A pretty decent one, too, who picked up a stray little Cautus and carried her all across the land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do we really have to be so on edge?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">It&#x27;s not the Doctor that I fear.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Then what is it?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">You don&#x27;t need to know yet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wipe the Doctor&#x27;s boarding records. This is for the safety of both the Doctor and Babel.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The others don&#x27;t need to know that the Doctor exists until the Doctor and Theresa have reached a conclusion.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Alright, alright, I&#x27;ll work at it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I wonder why you seem to care a lot about this Doctor at that same time that you&#x27;re so on guard over the whole thing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve got it! The Doctor must have dirt on you!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Don&#x27;t bother, you won&#x27;t find it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Come on, why so serious?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">What about the girl?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Same conclusion, no change.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I cross-checked all relevant Rim Billitonian records and had Scout check with informants inside the Military Commission.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya&#x27;s background comes through clean.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Her parents were killed when the convoy transporting the laser mining module got attacked. The attack itself was purely coincidental.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No one knew they were transporting Sarkaz-related cargo, and the Military Commission wasn&#x27;t involved.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She must have gotten Infected in the mess. If not for the Doctor, she&#x27;d be spending the rest of her life suffering in Rim Billiton.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I&#x27;ll handle the girl&#x27;s examination and treatment once she&#x27;s on board.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">You&#x27;re still concerned about her?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Yes, I am.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s too young, and she hasn&#x27;t had proper treatment since contracting Oripathy.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Closure</div><div class="text">Oh, that kind of concerned.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I don&#x27;t want the Doctor&#x27;s kindness to be the reason for delaying her treatment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Plus, Theresa would call her a gentle child who has the right to choose her future.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Amiya. Amiya.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Mm... let me sleep... where are we?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor... Doctor?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">The Doctor&#x27;s here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wake up, sleepyhead. You&#x27;re almost home.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Home?</div></div></div>
+<div class="narr">In her half-awake state, Amiya feels a warm fingertip brush her cheek.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Haha, that tickles, don&#x27;t do that, hehe.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whoa!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wh-Who are you?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">I&#x27;m Theresa.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Theresa... the Doctor talked about you...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Oh? What did the Doctor say?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">I don&#x27;t remember... I was having a great carrot cake at the time, though.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Theresa should smell nice... be really warm and sweet...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">What about now? Is she as you imagined her?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Yeah... smells good... warm and sweet... doesn&#x27;t smell like carrots, though...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Not fully awake, I see. Heh.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Will you come home with us, Amiya?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Home... yeah... okay...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="narr">Outside Rhodes Island of Babel, Kazdel</div>
+<div class="narr">The tiny Cautus sleeps soundly in Theresa&#x27;s arms, leading against her neck.</div>
+<div class="narr">She pats Amiya on the back and turns toward the Doctor, who is clearly tired.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Thank you, Theresa. I didn&#x27;t expect you to come pick us up personally.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Looks like you&#x27;re not quite all-knowing, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You have much to learn when it comes to childcare, at least.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Sure enough.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">You look different from when you left, Doctor. How was the journey?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">I saw a lot and learned a lot. There are plenty of interesting things on this great land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I also met Amiya... it was a miracle that I was able to save her.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Amiya. She&#x27;s even cuter than your letters said. Poor girl, but fortunate, in some way.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Her condition is getting worse. I needed to bring her in for treatment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How has Babel been, in the time that I was away?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Not quite smooth sailing. We have a lot to deal with, but not everything needs to be handled right away.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You must be tired after your journey. Get some rest.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Thank you, Theresa.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya, we&#x27;re home.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%231%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Hmm... Doctor? Did I fall asleep?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Oh, Amiya. You&#x27;re awake.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Why don&#x27;t you come down? Theresa will get tired if she has to keep holding you.</div></div></div>
+<div class="narr">Amiya nods and jumps down from Theresa&#x27;s arms.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%238%241.png" alt=""><div class="bubble"><div class="who">Theresa</div><div class="text">Will you hold my hand, Amiya?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%231%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1360_1%231%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">It&#x27;s alright. Theresa is my friend. You can trust her. You&#x27;ll be spending a lot of time with her from now on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%238%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Okay...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is this Babel?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1360_1%231%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">Yes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%231%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">It&#x27;s so big... even bigger than those mining plates. So this is where you used to live.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1360_1%231%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">I spent a long time here... a very long time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%231%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Is this your home?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1360_1%231%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%238%241.png" alt=""><div class="bubble"><div class="who">Theresa</div><div class="text">Yes, Amiya, this is the Doctor&#x27;s home. Right, Doctor?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1360_1%231%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">...Yes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%238%241.png" alt=""><div class="bubble"><div class="who">Theresa</div><div class="text">It&#x27;s your home now, too. Will you let us help the Doctor take care of you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%238%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Alright... I&#x27;ll go wherever the Doctor goes.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i15.png" alt="49_i15"></div>
+<div class="narr">They step onto the elevator, and the Babel logo appears before their eyes.</div>
+<div class="narr">The heavy door opens to welcome them in.</div>
+<div class="narr">Sensing Amiya&#x27;s unease, Theresa puts a hand on her shoulder.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">What&#x27;s behind the door?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">People waiting to welcome you and the Doctor.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Are you sure about taking me and the girl in, Theresa?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Why shouldn&#x27;t I be? I&#x27;m glad to have more people calling Babel their home.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Many here don&#x27;t know you, though, so I&#x27;m sure you&#x27;ll be busy for the next few days.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">How should I present myself?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Good question. You should talk to Kal&#x27;tsit first. She&#x27;s been waiting for you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Tell her your concerns, your questions, and the secrets in your heart.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She would be very sad if you didn&#x27;t.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">You could have...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">If you really want the King of Sarkaz to reveal the thoughts that you&#x27;re loath to tell, I will. But I can feel you&#x27;re still wavering.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s go, Amiya, Doctor. We&#x27;ll go to her.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Amiya. You&#x27;re Amiya, aren&#x27;t you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1295_1%238%241.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Yes...</div></div></div>
+<div class="narr">Kal&#x27;tsit crouches down and gives the girl a candy.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Thank you for protecting the Doctor throughout your journey, Amiya.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Thank you... Dr. Kal&#x27;tsit.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Will you fetch Theresa? We need to do some checks on you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Will they hurt?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">A little. But the Doctor&#x27;s letters called you a brave girl.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Will the Doctor be with me?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Of course. The Doctor has some things to do first, though.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">It&#x27;s alright, Amiya. Just wait for me here in the ward, and I&#x27;ll be back very soon.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">...Okay.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">You&#x27;ll need to do a full checkup later too, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">Alright.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">...Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">Yes?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Do you plan on leaving again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">No, I think I&#x27;ve traveled enough.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">If you&#x27;ve made up your mind, I&#x27;ll respect your decision.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If nothing else, you&#x27;re concerned about Amiya&#x27;s health... even though she was a complete stranger to you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">There is no fundamental difference between these new lives and us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_003_kalts_1%2311%241.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">...I&#x27;m glad.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Glad that you chose hope, in the end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Welcome back, Dr. Doctor.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_infirmary.png" alt="bg_infirmary"><div class="cap">bg_infirmary</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">How is Amiya?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Blood Originium levels are high. Currently available inhibitors are not sufficient to stabilize her condition.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We need to develop new drugs... I need time and resources.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Babel&#x27;s are yours to use, Doctor. We&#x27;re happy to share our research on Oripathy with you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">What can I help you and Kal&#x27;tsit with in exchange?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">This is not a transaction. It&#x27;s one of the core missions of Babel, to do everything in our power to help everyone suffering from Oripathy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Since the day that Kal&#x27;tsit woke you up, I was convinced that you would help with all of this, just as you helped Amiya.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Thank you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Now, perhaps, I have a chance to ask you this question, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How do you view this land, Terra?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">I don&#x27;t think it&#x27;s my place to judge.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s no such thing as superior or inferior civilizations. It took a long and hard journey for Terra to evolve to where it is today.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Add to that the sick joke that Originium has played on life...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">You said that Originium did not develop the way you expected.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">It wasn&#x27;t supposed to bring such suffering.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">(Mumbles in her dream)</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">I sense that you are keeping secrets, but there&#x27;s nothing false about the sorrow coming from deep within your heart, the sorrow that I can&#x27;t understand.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">I want to fix this mistake, but I&#x27;m powerless to do so...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At the end of the day, civilizations largely progress in similar ways. It all comes to an inevitable endpoint, however bright its light shines at its peak.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">But Kal&#x27;tsit said you didn&#x27;t give up hope, even in your final days.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">I had many friends, even in those last days, who faced difficulties far greater than you can imagine, with courage and hope that is every bit your equal.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But they failed and faded away, without exception.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">We haven&#x27;t known each other that long, Theresa. I want to know: Why do you do all this?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What is the end that Babel seeks in compromising with the Military Commission?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s something I want to show you, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We had to ask you about Originium, sooner or later. That&#x27;s why Kal&#x27;tsit woke you up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please, come and see the results of my... brief time at work.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_thundercloud.png" alt="bg_thundercloud"><div class="cap">bg_thundercloud</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">We&#x27;re almost there...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">This place is barren, even by the standards of a Catastrophe-heavy region. But Closure has spent time and effort to maintain this dangerous little trail...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A forked trail in the midst of Originium formations. You&#x27;re not keeping any fewer secrets than I am, Theresa.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">A King of Sarkaz has to have a few secrets, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t tell anyone what you see here.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i22.png" alt="49_i22"></div>
+<div class="narr">A long trek through the Originium-filled wasteland leads to a small garden.</div>
+<div class="narr">In the heart of a Catastrophe, amidst the ruins, on a nameless plain that neither night nor the stars can find.</div>
+<div class="narr">Tiny white specks mark this little sanctuary, isolated from the rest of the world, and the wild lands around it. Even the winds seem softer here.</div>
+<div class="narr">It is a forgotten greenhouse that harkens back to a time in the distant past, when the land was still pure and untainted.</div>
+<div class="narr">Like when man stole fire from up above and lit up a corner of the night sky.</div>
+<div class="narr">Theresa picks up a white flower.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">This place represents the cutting edge of Babel&#x27;s and my research into Originium.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Flowers...?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">No. Originium.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">I&#x27;m sure you understand it&#x27;s not Originium Arts that made these flowers bloom.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">The information inherent in Originium, the reversal of the Assimilated Universe...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve already come this far? When did...?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">No race understands Originium better than the Sarkaz. Still, what we know is merely the tip of the iceberg compared to the entirety of Originium.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even with Kal&#x27;tsit helping us understand the nature of Originium, the furthest we have gone is transforming a palm-sized piece of active Originium into this...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Garden.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hope.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This little flower is my small contribution. I need your help, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I want to see the day when flowers cover the cliffs and valleys of Kazdel, and all the lands beyond.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">It&#x27;s a future worth taking risks for.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve seen how Kazdel has been mired in war for its entire history, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right now, at least, I want to use the power of Originium to create a home for Kazdel where people can live in peace, safe from war and invasion.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the more distant future... if we&#x27;re able to fully harness it, we&#x27;ll be able to change the entire face of Terra.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If Catastrophes don&#x27;t bring rain of Originium, but soft fluffy clouds...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If the Infected no longer suffer the pain of rocks growing out of them...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t suppose there&#x27;s anyone who would have such an absurd dream.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">You&#x27;re different from other Sarkaz, Theresa.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Flowers that cover the entire land...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What a picture of life that would be.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Doctor?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">Why... why this flower?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">Oh... there&#x27;s no particular reason. I just happened to come across it outside the valley when I was looking for a good place for my experiments.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A pure coincidence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kal&#x27;tsit said it had a name. &#x27;Snow-in-summer&#x27;.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But it&#x27;s adapted to changes over the years. Perhaps we could give it a new name.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What do you think, Doctor?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Doctor</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="sticker">A new path is opening up.<br></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_white.png" alt="bg_white"><div class="cap">bg_white</div></div>
+<div class="sticker">A path to self-destruction.<br></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Can you hear me, Theresa?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Theresa</div><div class="text">I&#x27;m listening. I was giving the Doctor a tour of our...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Urgent news from Kazdel.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It concerns Victoria.</div></div></div></div><div class="nav"><a href="level_act33side_04_beg.html">← Prev</a><a href="level_act33side_05_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Take a Bow · Act or Die</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Act or Die</a> / <span>AD-8</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act43side/level_act43side_08_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Take a Bow<span class="section-tag">AD-8 · After Operation</span></h1><div class="meta">Act or Die</div><div class="story-info">Lucian reveals the true identity of the Troupe Leader: a long-lived known as &#x27;Tragodia&#x27;. He kills his teacher, he kills the god. But this murder ends in an inheritance—Lucian becomes the new Tragodia.</div><div class="story-body"><div class="narr">The flickering lights of the ancient castle, the bloodied corpses of the teachers, the hollow wind in the darkness... Forgetting all of that was not difficult.</div>
+<div class="narr">Until one day, when Lucian—who has by this time become an assassin—had a dream.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/24_RL03.png" alt="24_RL03"></div>
+<div class="narr">He&#x27;s still in the old castle, still in that empty hall, sitting alone, singing under the lights, with all the former members of his troupe standing behind him—</div>
+<div class="narr">As alive as ever.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Troupe Leader</div><div class="text">Child, we cannot truly erase our pasts.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There will always be traces of them.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Do you think I&#x27;m scared?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No. I&#x27;ve simply finally confirmed that I&#x27;ve yet to fully tear out the ad-libbing you inserted into my life. In other words, you are still here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you&#x27;re correct: we cannot truly erase our pasts, and there will always be traces of them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, to bring your story to an end, I&#x27;ve been walking the same path you once did, for all this time...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I traveled across the entire land!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G8_cammunibase.png" alt="21_G8_cammunibase"><div class="cap">21_G8_cammunibase</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Calais was a Gaulish border city.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When the allied nations suddenly turned on them, Calais was thrown under siege. Yet thanks to its powerful cannons—and the general hailed as the &#x27;Imperial Standard-Bearer&#x27;—Calais held fast for months.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The general stood atop the wall—refusing sleep, refusing rest, refusing to give ground. With their banner still flying high, even the weariest soldiers held the line.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Until the unthinkable happened, the general&#x27;s most trusted lieutenant opened the gates, a clear act of betrayal.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Emperor of Gaul had given up on Calais, as by then its fate was sealed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Imperial Standard-Bearer had refused to surrender out of honor, and the trusted lieutenant believed he ought to stand by his general. After all, they had already braved so many life-or-death situations together over the decades.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But he knew that holding the line would only lead to more bloodshed—that the city was doomed to become a graveyard.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Perhaps that battle-worn soldier simply realized that although there was no perfect choice, there was a way that would allow him to atone for his sins.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He persuaded the general, who had long since become exhausted, to take a ten minute break. Then he seized his opportunity to open the gate.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Before the allied forces could enter the city, he drove his sword through his own heart... That traitor ended up being the most tragic casualty of the war.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But that is ancient history now, Lucian—so ancient that many of the details have long been lost to the river of time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Victoria, Leithanien... I spent months traveling between more than a dozen cities across different nations, and at last, I found an aging Vanguard on the brink of death.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The guard had seen the towering flames of Calais with his own eyes. He had found a badge on the traitor&#x27;s corpse—two faces turned away from each other, one smiling, the other weeping.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We all know what that symbolizes, dear teacher.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%2312%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">Haha.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then I suppose you made other discoveries as well?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/26_g1_laterano_cathedralfront.png" alt="26_g1_laterano_cathedralfront"><div class="cap">26_g1_laterano_cathedralfront</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Even earlier in Laterano...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%232%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Over 200 years ago, a brilliant cardinal was struck down by gun-knights in the plaza in front of the Basilica.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He was intelligent and compassionate, known as &#x27;the Sankta closest to the Lord.&#x27; At just thirty years old, he was already widely regarded as the Pope&#x27;s heir apparent.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But then, he changed. He grew radical, unyielding, unwieldy. He started preaching, rallying followers, and reaching out to foreign envoys, all in an attempt to check the Pope&#x27;s authority.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Until the situation deteriorated into a religious coup that threatened the entire city-state. The Pope was critically wounded, and the gun-knights were deployed. The would-be usurper became the only cardinal in the history of Laterano to die during a coup.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No one knows what exactly happened to him... At some point, in one of the Ecclesia Requietum, he had a chance encounter with a passing Feline—but of course, that is hardly a lead worth chasing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%2312%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">It must have taken some effort for you to uncover all of this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Indeed, it was quite troublesome.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%2311%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">I merely offered that Sankta a bit of &#x27;truth&#x27;—he was already terminally ill, you know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Unlike the incompetent Pope, who knew only how to interpret scriptures, his own zealousness knew no bounds. But with limited time, he might not have been able to put his ideals into practice, to hear the church bells ring in the new era.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But in truth, the moment the cardinal struck down the Pope, he came to his senses. He realized that death had never caught up with him after all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%238%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">His sudden clarity only plunged him deeper into madness. Faced with the ruin he had wrought, did he choose to walk willingly into the gun-knights&#x27; sights?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">A microcosm of political tragedy, from which many of the Troupe&#x27;s plays took root.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Quite a pity, isn&#x27;t it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g22_goldenboat_hall.png" alt="27_g22_goldenboat_hall"><div class="cap">27_g22_goldenboat_hall</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%235%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Iberia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It was during the glorious Golden Age... The lighthouses lit up an approaching ship—only for people to discover it carried nothing but whispering winds from the ocean depths. Ticket stubs stamped with the image of the twin faces were scattered across the deck, and they drifted along with the ship in silence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The lost sailors sing—</div></div></div>
+<div class="narr">Incite a young fowl, to pick the fruit of pain.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/44_g3_ludwigsuniv_outside.png" alt="44_g3_ludwigsuniv_outside"><div class="cap">44_g3_ludwigsuniv_outside</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Amidst the spires of Leithanien, ancient Arts recorded the nobles&#x27; laments, and desperate cries.</div></div></div>
+<div class="narr">Exile an infant, to arrive at joyful death.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/40_g5_samitribe.png" alt="40_g5_samitribe"><div class="cap">40_g5_samitribe</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">An encampment covered in thick snow.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">Weeds walk their own path.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/53_g3_menatmainstreet_river.png" alt="53_g3_menatmainstreet_river"><div class="cap">53_g3_menatmainstreet_river</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">The city in the depths of the sands.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%236%241.png" alt=""><div class="bubble"><div class="who">Troupe Leader</div><div class="text">Through tears, falsehoods, and riddles.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He leaves the bed of withered flowers.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g5_duelscene.png" alt="62_g5_duelscene"><div class="cap">62_g5_duelscene</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">...You are everywhere.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I followed the path you once walked. I crossed the lands, encountering all manner of people and unearthing all manner of secrets—until at last, buried in ancient tomes and tangled rumors, I uncovered your name.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Tragodia&#x27;.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%233%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%237%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">However, the legendary Tragodia is a god, beloved by the people.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He wears a crown of grapevines. He is both intoxicated and intoxicating. He bestows joy and grace. He greets the farmers as they bring in their yearly harvest, guiding them from wilderness to civilization through revelry and celebration.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But the true god of wine is a deceitful caster, a performer, an ascetic, a schemer, a firebrand—a phantom drifting through the currents of history...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A long-lived that defies definition.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%2312%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">(Claps)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your perseverance astonishes me, child. Even more so than the painstaking devotion you once showed in your performances.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And yet, when you look back at the path I&#x27;ve taken, shouldn&#x27;t that be enough to affirm the purpose I&#x27;ve been chasing?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As human affairs faded into obscurity, I found—and built—what I came to see as the ultimate vessel for beauty: the theater. I&#x27;ve lived long enough to see the very concept of &#x27;theater&#x27; become obsolete.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At last, after tasting both joy and sorrow, I came to understand the precise conditions under which the most fervent emotions bloom. I founded the Troupe—through which I&#x27;ve taught this knowledge to you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%232%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Oh really?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That contradicts what I&#x27;ve learned from my research. Hasn&#x27;t death always walked by your side?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That grand theory of yours—about death and destruction—was never the result of hard-won insight. You simply believed in it and saw beauty in it, and so did theater.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s set aside, for the moment, the brilliance or depravity of human nature that emerges in times of desperation—and turn to some more fundamental questions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From Laterano to Gaul, from Iberia to Sargon, from the old castle to this Catastrophe-stricken land—you&#x27;ve directed so many performances that shook the soul...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So why have you allowed them to be lost to history?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You don&#x27;t want them to be remembered?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You exalt the irrational and the unpredictable—so why must every story have the same ending: ruin?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">Well, what do you think the answer is, child?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%237%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Because it makes everything and everyone unverifiable—both within the theater and beyond.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because it grants you authority, lets you justify yourself, and turns your so-called &#x27;beauty&#x27; into the only possible resolution?!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g4_filmset_ruined.png" alt="62_g4_filmset_ruined"><div class="cap">62_g4_filmset_ruined</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">Steven...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Steven?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re still alive, say something!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">...G-Greta?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%233%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">You really did lock yourself up in your office!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Steven</div><div class="text">What... what happened outside?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%236%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">It&#x27;s too much to explain right now. In short, the entire plate is on a collision course with the Catastrophe, and everyone else has already evacuated to the power deck... Are you alright?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Steven</div><div class="text">Y-Yeah, something&#x27;s wrong... The ceiling came down on my leg—I can&#x27;t move... Ngh—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%235%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">I&#x27;ll rescue you!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dammit! That broken column has sealed the door shut!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s really heavy! Just wait a moment! Stay with me! Keep talking!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_undergroud_u_2.png" alt="bg_undergroud_u_2"><div class="cap">bg_undergroud_u_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">Miss Stone, only now do I understand that I am in no way, shape, or form a genius.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">Huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%237%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">That &#x27;god&#x27; came to see me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He hasn&#x27;t abandoned me. He&#x27;s shown me a new way of thinking. Actually, he&#x27;s always been teaching me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I like to think I make good use of my characters&#x27; deaths—of every desperate situation—to nourish my stories. I did try that, after all, in The Death of Lady Dupont. Why else would it be called that?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Laura from five years ago, and now Dalton, Shelly, Michael, and Marion... Each of their deaths was steeped in drama: vivid, poignant, and all too real.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those fragments are like autumn leaves—crimson as blood, and scattered everywhere. Each one is enough to stain the blank canvas of my mind with vivid color.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But still—I can&#x27;t write an ending that satisfies me! I still haven&#x27;t figured out what kind of scene Lady Dupont&#x27;s death ought to be!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If death and destruction are the way of the god of theater—if they&#x27;re the skills a true genius of the stage must master—well, I mean, I... I&#x27;ve never been able to learn them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m just a *cough* worthless hack...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">For the love of Borgnine! How can you be so stupid?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%233%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">...Huh?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">Steven, the Script Auctions are anonymous. You know that, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">Dalton, Abner—everyone in the crew has been shaped by what happened five years ago. I brought them together on purpose... But you, you were the one exception.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When I approved the outline for the script, I had no idea it was written by you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I simply felt, from the bottom of my heart, that the story of Lady Dupont—a woman trapped by her brother&#x27;s lies and need for control, and tormented by the desires of three so-called suitors—was worth my vote of approval.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I knew she&#x27;d be a great protagonist for an amazing story, whether she lived or died.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have never doubted my own vision.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">Hey, say something! What are you getting all melodramatic for while I&#x27;m out here hauling rocks?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%234%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">So it turns out I just don&#x27;t agree with...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Greta</div><div class="text">What are you saying?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%236%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">Ugh! Saget! So it turns out I just don&#x27;t agree with the &#x27;god&#x27;s&#x27; methods.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%231%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">There we are! I did it!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This place is about to collapse! I&#x27;ll help you! Come on!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g8_mobileplotstreet_ruined.png" alt="62_g8_mobileplotstreet_ruined"><div class="cap">62_g8_mobileplotstreet_ruined</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">Wait, wait, wait, Miss Stone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%235%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">What now?</div></div></div>
+<div class="narr">Greta helps hold Steven steady as they both come to a stop, and he looks to the side.</div>
+<div class="narr">There is a wall, only half of it still standing. Faint remnants of vivid graffiti stand out harshly against the grimy, dim surroundings.</div>
+<div class="narr">It is the giant promotional mural Tippi had painted for the crew, and by some stroke of luck, the title card remains unscathed amidst all the wind and flying debris—</div>
+<div class="narr">The Death of Lady Dupont.</div>
+<div class="narr">Steven raises a bloodstained arm and, with considerable effort, wipes away the first three words.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g8_mobileplotstreet_ruined.png" alt="62_g8_mobileplotstreet_ruined"><div class="cap">62_g8_mobileplotstreet_ruined</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%233%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">My God...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%233%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">...It&#x27;s beautiful.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Not even the most imaginative set designer in Wrankwood could have created a scene like this. Who&#x27;s to say that ending a film shoot under the shadow of a Catastrophe isn&#x27;t, in fact, the most fitting conclusion of all?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This isn&#x27;t just a publicity stunt. I&#x27;m finding myself more and more impressed by Greta&#x27;s resolve.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Abner</div><div class="text">Alright, that&#x27;s enough of that. Let&#x27;s get back to the power deck. It&#x27;s way too dangerous out here!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, Melanie, leading lady, where are you going? Have you gone mad?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">Abner, you—all of you—never really believed this &#x27;leading lady&#x27; could make a comeback with this film, did you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%231%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">You don&#x27;t even think we&#x27;ll finish filming it...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%231%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">Honestly, I feel the same. I mean, we don&#x27;t even have the ending figured out yet, and this whole plate is about to collapse.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%239%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">But that doesn&#x27;t mean you have to die for it, does it?</div></div></div>
+<div class="narr">The Catastrophe is closing in.</div>
+<div class="narr">The howling wind is nature&#x27;s roar, its fury written across the face of the clouds.</div>
+<div class="narr">But Melanie still walks forward to face it.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i07.png" alt="62_i07"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">Who said I have a death wish?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who says Lady Dupont has a death wish?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who says Lady Dupont is meant to die under her brother&#x27;s oppression, felled by the swords of the three Rockefellers, at the hands of those onlookers who sought to curse her, humiliate her, drive her out...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Must death be a symbol?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She should instead, on a night no one could have foreseen, walk straight into a storm just as wild and chaotic as this one, leaving that prison of a castle behind.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She shall not perish, because this storm is the chariot that will lead her to freedom!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You must have realized, Abner, that on my journey I&#x27;ve always regarded Marianne as my imaginary enemy, yes?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Abner</div><div class="text">...Yeah.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">But I know I&#x27;ll never catch up to her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She was a true genius—born to inhabit any role she was given. Even fate itself seemed to orchestrate one final Catastrophe just so she could exit this business in a blaze of brilliance.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And I&#x27;m nobody special.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">An ordinary woman from a small town, who traveled to Wrankwood and worked her way up role by role, film by film, for over a decade. Gaining experience and recognition...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s why I care so much about seniority, status, and etiquette. The aspects of film set culture that so many scoff at... Because that sort of recognition is the reward I deserve as an ordinary person.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This land is quite cruel to ordinary people, Abner.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Marianne&#x27;s retirement gave me the chance to step into the spotlight, but it took only a single slip-up for me to lose everything I&#x27;d gained along the way.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My acting skills have fallen off a cliff. My reputation is a shambles. I&#x27;ve tried everything I could think of, but I just couldn&#x27;t seem to get it back...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s ridiculous! I&#x27;ve never wanted to admit this, but it&#x27;s true... If Marianne hadn&#x27;t retired, I&#x27;d never have caught up to her!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And right this very moment, this Catastrophe is destroying the entire plate, along with my last hope.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But couldn&#x27;t you also say fate is smiling upon me?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At least I finally have the courage... to let go of my inhibitions, the courage to...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At least I finally mustered the courage to take this first leap.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Come to me, Lady Dupont. Come with Melanie Rutherford, and dance together with the Catastrophe...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even if no one is filming us.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g8_mobileplotstreet_ruined.png" alt="62_g8_mobileplotstreet_ruined"><div class="cap">62_g8_mobileplotstreet_ruined</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">What are you still doing here, Abner?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%231%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">Check your camera. You didn&#x27;t turn it on, did you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%239%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">What, what do you mean?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">What if I&#x27;d gotten swept away by the storm? What if your camera had accidentally captured my death, just like before?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The last thing I want is to belittle your work, and to force you to once again resent the tool of your trade.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%231%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">You know, Abner, I&#x27;ve always thought you were dumb.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%239%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">Hey, what would you know?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Melanie</div><div class="text">That footage you accidentally recorded back then at least stands as irrefutable evidence—ensuring that a girl named Laura wouldn&#x27;t vanish from this land without a trace.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Although I couldn&#x27;t say if that&#x27;s enough meaning for it to meet your exacting standards.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1843_1%237%241.png" alt=""><div class="bubble"><div class="who">Abner</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Friedkin Kubrick! I am an idiot!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This &#x27;dream-making machine&#x27; was only made in the first place because people wanted more eyes to see the land with.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How long can you hold on, Melanie?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...I hope I don&#x27;t break this thing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s finish filming!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g5_duelscene.png" alt="62_g5_duelscene"><div class="cap">62_g5_duelscene</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%237%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Can you see them? Can you hear them... those still fighting to survive the Catastrophe?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Nothing ever truly comes from nothing—not even the most wondrous of art. And it is never death that suddenly awakens the lost or steels the timid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They always had it in them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, answer my question, Tragodia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%231%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">Are you attempting to remind me that death would simply end this story, this performance? That there would be nary a trace left after the curtains fall? That I will have, objectively speaking, escaped any and all scrutiny and criticism of my work?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That I am a thin-skinned artist?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You really did find an interesting angle, Lucian.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Perhaps what you say is right, but how are you going to change the ending that has already been written?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That child, Tippi, really did adjust the path of the mobile plate, using only techniques she picked up from watching film reels.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But the shift in its trajectory was insufficient. Nearly half the plate remains on a collision course with the storm.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lucian, you faced a Catastrophe when you were young. You should know that one of that scale will destroy everything on this plate.</div></div></div>
+<div class="narr">Lucian gently strokes the crystal on his throat.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">I haven&#x27;t sung since releasing the inhibitor.</div></div></div>
+<div class="narr">Singing. It is Blood Diamond&#x27;s song.</div>
+<div class="narr">The song that once lit up countless stages, before dying out amidst the darkness of that old castle. Today, it echoes once more. The sound passes through cracks in the ruins and the Catastrophe itself, ringing clearly in everyone&#x27;s ears.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%238%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">Singing with such total devotion?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">....No.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It seems that dreams can also be used as barriers. This is the first time I&#x27;ve ever seen you use your Arts in reverse, Lucian.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are you trying to protect everyone with the voice that once brought pain to yourself and disaster to others?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are you trying to face this Catastrophe alone?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%238%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Alone? No. You&#x27;re here with me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hold your scepter steady, Tragodia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From the moment I rose from that river and walked back to your side... From the moment I returned to the Troupe and stood before you once again...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have only ever had one motivation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At the climax of every tragedy, there is always a fierce, cathartic battle—be it inside a palace, atop a tower... or beneath this ever-shifting sky.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let us finish this drama, where the student kills the teacher!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1829_1%2312%241.png" alt=""><div class="bubble"><div class="who">Tragodia</div><div class="text">Haha! My favorite student! My best actor! Everything that is headed for destruction shall serve as your backdrop. I am so glad you can enjoy this moment!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even I can&#x27;t help but be swept away in it! I&#x27;ve forgotten all other matters!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you should know that killing a long-lived is meaningless.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g5_duelscene.png" alt="62_g5_duelscene"><div class="cap">62_g5_duelscene</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">You just told me that I found an interesting angle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But it&#x27;s not interesting, far from it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">You aren&#x27;t a thin-skinned artist. You&#x27;ve just been left with no other choice.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It is not us who need to die, not the audience, not the common folk, bound by the laws of ordinary reality.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s you—Tragodia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve walked through history. You&#x27;ve founded the Troupe. You&#x27;ve created dreams from darkness. You&#x27;ve fed both me and Shalem with despair. You&#x27;ve drawn in lost souls, one after another, and lashed actor after actor...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You taught us to feel pain, to learn evil, to be stained with blood, to sing of destruction. You taught us to dress for the stage, to wear a mask in life, to believe in what you called rebirth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You built the story and drew in the audience. You chose that Lateran cardinal, that Gaulish general, Whiteflower, Bladedance, Shadow, Dalton, Shelly, Moira...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve chosen a million &#x27;Lucians&#x27; with which to bring about death.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You exhausted its form, crafted its style, and perfected its meaning—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because it is all so far away from you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">......</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i09_1.png" alt="62_i09_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">...So far away.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Long lived—death is the one shore you will never reach. Director—death is the one performance you can never take part in. Tragodia—death is the one art you will never embody!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All your aesthetics, your insights, your experiences—everything you pushed us to pursue has done nothing for you in the end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I once thought this brought you joy, but your sorrow has always outweighed your sense of accomplishment!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you yourself are the theater, then your very existence is a paradox!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The ending is nigh, isn&#x27;t it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you feel resentful or helpless?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you find this funny or confusing?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or have you simply ignored it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Have you never felt the same pain that I have?</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i09_1.png" alt="62_i09_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">......</div></div></div>
+<div class="narr">Tragodia is uncharacteristically silent, his eyes fixed on the face in front of him that is lost in emotion.</div>
+<div class="narr">Lucian shouts loudly. The raging storm does not even distort his voice in the slightest. He sings, and chants—while the Originium crystals creep visibly along his neck.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">Does it hurt, child?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Ngh—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yes. Of course it hurts.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">If you keep using your Arts without restraint, it will kill you, child.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i09_2.png" alt="62_i09_2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Are you jealous?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">Hahahaha.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Perhaps, but your performance really is moving.</div></div></div>
+<div class="narr">Lucian responds to Tragodia with even greater fervor. His surging emotions give him newfound strength, and at last, he seizes the upper hand in their clash. In an instant, he plunges the scepter into Tragodia&#x27;s torso.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i09_3.png" alt="62_i09_3"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Pain is my blade, and at last, I have driven it into the one who caused my pain in the first place—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You!</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/62_i09_4.png" alt="62_i09_4"></div>
+<div class="narr">The curtain must fall on every performance.</div>
+<div class="narr">Cycles will not help shape our so-called &#x27;destiny&#x27;.</div>
+<div class="narr">......</div>
+<div class="narr">Child, I&#x27;ve just gained new inspiration.</div>
+<div class="narr">This story deserves to be continued.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g5_duelscene.png" alt="62_g5_duelscene"><div class="cap">62_g5_duelscene</div></div>
+<div class="narr">The plate beneath their feet is swaying and shaking, but is starting to stabilize.</div>
+<div class="narr">People start to poke their heads out from the ruins and look at the receding disaster. They can hardly believe the Catastrophe they have just experienced.</div>
+<div class="narr">Hundreds of broken masks drop to the ground, as Tragodia slowly falls to his feet.</div>
+<div class="narr">Lucian is sure that he has pierced Tragodia&#x27;s heart and completed his grand, murderous drama. However, he also notices a change in himself.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1042_phatm2_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">These clothes, this scepter, this crown...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Have you given me a new ad-libbing?</div></div></div>
+<div class="narr">The silver-white hem of his robe flutters in the wind, brushed by grains of sand, yet spotless as ever. Lucian silently studies the elegant garment—</div>
+<div class="narr">It is flamboyant and exquisite and fits him perfectly—as if it had been tailored just for him. He could walk into any festival or onto any stage in it, and it would suit him perfectly.</div>
+<div class="narr">It is as if this is the Catastrophe&#x27;s gift to him, his reward for slaying his teacher.</div>
+<div class="narr">The theme of this murder was clearly &#x27;betrayal&#x27;, yet at the last moment it became a &#x27;passing of the torch&#x27;?</div>
+<div class="narr">Lucian is silent.</div>
+<div class="narr">The fallen Tragodia has disappeared. Where he once lay, there is only blood, and his mask. The dark red carpet extends upward along the steps, without end.</div>
+<div class="narr">This is the path he was meant to walk, and it is now free of all obstacles. These thoughts spring to Lucian&#x27;s mind from nowhere.</div>
+<div class="narr">So he climbs the stairs without lowering his head or looking back.</div>
+<div class="narr">Just then, he hears Tragodia&#x27;s voice.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">Lucian, you are the finest actor in the land. You have honed your craft well, and you use your powers of reason to grasp hold of the mask of emotions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You know well my origins, so it should be clear to you that you have not ended me by merely killing me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You shouldn&#x27;t pin your hopes on a scene that was once performed in an ancient castle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or is it that you were certain I would think this way—make this choice?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haha. It&#x27;s all so interesting.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe you were right. Death is the one shore I will never reach, the one performance I can never take part in, and the one art I can never embody.</div></div></div>
+<div class="sticker">Weeds walk their own path.<br><br><br>Through tears, falsehoods, and riddles,<br><br><br>He leaves the bed of withered flowers.<br><br><br>He writes his epitaph into the stirring dust,<br><br><br>Waiting for the day—<br><br><br>When he gazes upon it.<br></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">&#x27;Death or destruction&#x27; is the greatest gift you could ever give your teacher.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But have you considered that what you now reject—and what I&#x27;ve left behind—is only one of theater&#x27;s countless possibilities, one of the many ways beauty can be defined?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And therefore, that what you&#x27;ve just killed was but one of my thousands of existences?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">Go on.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">Life rushes by, but the theater endures.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The theater will never perish, and aesthetics will always change, so therefore I will always stand at the pinnacle of everything.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The theater cannot be killed—I can only redefine it, replace one theater with another, overthrow old aesthetics with new?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I can become the new one—the new you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If that is the only possible fate for the two of us—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then I accept it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tragodia</div><div class="text">You see, Lucian? Once again, we&#x27;ve entered into a tacit agreement. Haha!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Continue forward. Climb to the highest point on the stage.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You shall wear the crown of &#x27;performance&#x27;. You shall wield the scepter of &#x27;inspiration&#x27;. You shall wear the years of performing and being performed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This process will only add to your pain, but you must accept it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Child, you shall walk from here with both my blessing and my curse.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have fulfilled the promise I made to you when we first met: I will never be an obstacle to you... or an obstacle to theater.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is my final gift to you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How much further can you walk?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What other answers can you come to—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;Tragodia&#x27;.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lucian</div><div class="text">......</div></div></div>
+<div class="narr">Lucian does not answer, and the sound finally stops.</div>
+<div class="narr">He stands at the top of the stairs. The storm is far away now, and blood trails behind him.</div>
+<div class="narr">He loves this desolate scene, he loves the unformed Arts in his body, and he stretches out all his pain.</div>
+<div class="narr">Then the new Tragodia sings his song—</div></div><div class="nav"><a href="level_act43side_08_beg.html">← Prev</a><a href="level_act43side_st03.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

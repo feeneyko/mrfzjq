@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astray · Rewinding Breeze</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Rewinding Breeze</a> / <span>level_act13d0_st03</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act13d0/level_act13d0_st03.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Astray<span class="section-tag"> · Interlude</span></h1><div class="meta">Rewinding Breeze</div><div class="story-info">Elysium discusses a traditional Yan festival with Purestream, and the two bump into Absinthe seeking weapon maintenance advice from Thorns. During the conversation, Elysium recalls his homeland.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">We spend our entire lives flying. Has anyone ever stopped to wonder where we will end up?</div>
+<div class="narr">The humid breeze from back home, and the saline taste it leaves in the mouth.</div>
+<div class="narr">The scorching sun, the unbearably high temperatures, the marks the hustle and bustle leave behind on the skin, and the air currents that gather in the open, spacious city.</div>
+<div class="narr">I&#x27;ve experienced it. I&#x27;ve experienced it all.</div>
+<div class="narr">Maybe someday I will make it back to that place.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_room_2.png" alt="bg_room_2"><div class="cap">bg_room_2</div></div>
+<div class="narr">10:10 A.M. \ Clear</div>
+<div class="narr">Rhodes Island Landship, Cabin No. 2, Operator Rest Area</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Okay, it&#x27;s up to you to let everybody else know, Mr. Elysium!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve already talked to the Logistics Department about the ingredients we need, and I&#x27;ll figure out the menu with FEater.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We should be able to make most homemade fare ourselves, but we&#x27;ll need help with the more complicated dishes...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, right! Leizi said she could help us write the invitations. Her handwriting is pretty, and her stroke movements are so beautiful and swift. Just watching her write makes me want to learn calligraphy!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well, you certainly have everything in order. I didn&#x27;t expect Miss Leizi to offer her help.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We need to contact the Yan and Lungmen operators on this list who are currently out in the field, correct? Just leave it to me. I&#x27;ll get every last one of them!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">I&#x27;m so glad you&#x27;re helping us, Mr. Elysium.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I didn&#x27;t expect there to be so many people from the old country here at Rhodes Island. Hehe, I really love that feeling of everyone coming together. It makes everything so lively, having so many people in one place.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I wonder if the people out there right now will make it back on time, though... I really hope they do... Hm, I guess it&#x27;s probably going to be difficult, but there&#x27;s always a chance!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, of course, we welcome everyone! Would you like to join us, Mr. Elysium? You can bring your friends with you, too. The more the merrier!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Really? That&#x27;s wonderful. I&#x27;ll bring as many as I can. This is an opportunity not to be missed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The more the merrier, right? That&#x27;s what we&#x27;re good at!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Ahaha... of course, we welcome all of you, but please don&#x27;t go overboard, either. Dr. Kal&#x27;tsit would probably yell at us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Don&#x27;t worry. I know our limits.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">If you&#x27;re afraid of getting yelled at, you&#x27;d better not invite this guy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If courting disaster a talent, then he is the most talented person I&#x27;ve ever seen.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Oh, Mr. Thorns, good morning!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Morning.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Oh, come now. We both know you aren&#x27;t much better than me when it comes to courting disaster.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do remember who it was that wrecked the steel plates in the connect area last time! Why did I have to bear the brunt of Miss Closure&#x27;s tirade?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">How would I know?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Wasn&#x27;t it because you brought her little robot up to the deck and it shattered to pieces?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">...Uh.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Th-That wasn&#x27;t my fault! Andreana was shooting her inkballs there. She caught me off guard, and that&#x27;s how the thing slipped out of my hand!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Eh? Wait a minute, why would Miss Andreana do something like that on the deck? She doesn&#x27;t seem like the kind of person who would do that...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">She was trying out her crossbow. I added something to emulate the feeling of shooting a Laterano gun.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">So it was your fault after all! No wonder that gun nut was so excited!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Hm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">What&#x27;s wrong... Huh? Who&#x27;s there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Oh! Sinthe!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why are you hiding over there? Come here!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, are you afraid of these two? It&#x27;s okay, don&#x27;t be shy! They aren&#x27;t scary. Besides, I&#x27;m here!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Um, Purestream, don&#x27;t pull on my sleeve... I&#x27;m coming.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Sorry, am I interrupting? There&#x27;s something I wanted to talk to Mr. Thorns about. If it isn&#x27;t a good time right now, I can come back later...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Not at all. We&#x27;re all coworkers. There is no need to be so formal.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s here for you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I certainly didn&#x27;t expect a girl to willingly talk to you, with that poker face of yours. This really puts my mind at ease.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">...It&#x27;s none of your business.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What is it that you need?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Right. I&#x27;m sorry to bother you right now, Mr. Thorns.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s something I wanted to ask you about maintaining my weapon...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Hm, interesting. Is this guy known for maintaining his weapons?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now that you mention it, it&#x27;s about time I get my communicator fixed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell me, do you think Miss Closure will forgive me and make some enhancements to my communicator if I bring her a present after my next mission?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">If you bring her something garlic flavored, I can guarantee you she won&#x27;t.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did you bring your weapon? Let me take a look.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Thank you! It&#x27;s right here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My weapon&#x27;s Arts Unit is a little different compared to what other casters use. It&#x27;s a little more complicated to maintain the parts inside... Oh, please be careful. The trigger is kind of loose.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">It&#x27;s old.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is this the kind of Arts Unit they use in Ursus?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">...Yes. It belonged to my father.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I asked Old Mr. Hellagur about it, and he told me to take good care of the staff, otherwise it could affect its performance in the future.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He also told me you can mix good reagents for weapon maintenance.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And, um... I&#x27;m very sorry to ask you this out of the blue, but if it&#x27;s okay with you, could you—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Very well.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Could you please help me... huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Yes, I will help you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve actually just come up with a new idea. If you can trust me with your weapon, I can give it a try.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Eh, um, y-yes. T-Thank you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Isn&#x27;t that great, Sinthe?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">You&#x27;d better not test anything weird on her weapon. I&#x27;m not doubting the effectiveness of your reagents, but every time you make something new, they always turn out pretty weird.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">It&#x27;ll be fine this time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">How can you be so sure?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">I&#x27;ve already tested it on your weapon.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Huh? Ahhhh!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">I&#x27;m just kidding.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are they always like this...? They seem to get along really well.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Yeah, they&#x27;re both from Iberia. Iberian operators are pretty much all really good friends.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s a wonderful feeling to meet people from back home when you are so far away.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I was very happy when Miss FEater, the famous movie star, gave me her autograph! She&#x27;s a huge celebrity where I&#x27;m from, and all of my friends and neighbors love her!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And now we&#x27;re so close that we go shopping together!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, right, and Miss Leizi too. She may look scary, but she&#x27;s actually a really nice person.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Have you seen what she does to broken video monitors? She just whacks them like this. I thought that&#x27;d break them, but that&#x27;s how she fixes them!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Isn&#x27;t that how you fix electronics? You just need to hit them when they aren&#x27;t working well.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">That&#x27;s true. Everyone back home does that. It works like a charm.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Yep. If it doesn&#x27;t work, whack it a few more times.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Yep, exactly!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">I see, so they are old friends back home.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Oh, cheer up. Don&#x27;t look like that!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I know, you&#x27;re thinking about Zima, Leto, and the others, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll come with you next time. I&#x27;m friends with Leto. You two will hit it off right away! Once you get to know each other, it&#x27;ll be much easier to talk to them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">...Yeah. I hope so too. I&#x27;ll have to talk to them sooner or later...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thanks, Purestream.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Oh... You don&#x27;t have to thank me. It makes me embarrassed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Ah, what a wonderful display of friendship. Dazzling, don&#x27;t you agree? I love seeing these situations play out before my eyes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This reminds me of how shy I used to be when I first got here...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Are you sure you were ever shy?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Of course I was! Stop ruining my moment!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even I need time to ease into things. Besides, Rhodes Island used to be a very different place. We didn&#x27;t have that many people on board, and everyone was a lot more serious than they are now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Eh, really? I can see Dr. Kal&#x27;tsit being strict. She still is. But how about everyone else? How was Miss Closure? And what about Amiya?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well, you know how Dr. Kal&#x27;tsit is. As for Miss Closure, since she was always busy, we rarely ever got a glimpse of her. She only slowed down a little after she got everything on the ship in order, before getting busy again with her robots.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hm... Let&#x27;s see. It was about two years ago when I first got here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya was still a kid back then. She was a bit shorter, like a sprout.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haha, I have to say. She still isn&#x27;t quite an adult, even though her expression is a lot different now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">What was the Doctor like two years ago?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Eh, was the Doctor here too?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">I believe the Doctor joined shortly before we did.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Really? But I thought the Doctor was one of the founders of Rhodes Island?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well... that&#x27;s a tough question to answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To tell you the truth, I&#x27;m not entirely sure what happened myself. I think something happened to the Doctor before I got here, and not many people know about it. The captain wouldn&#x27;t tell me about it, either.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Anyway, I never met the Doctor until everything that went down in Lungmen. Ace certainly did raise the topic from time to time, though.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In any case, I&#x27;d say the way things are now isn&#x27;t too bad. Amiya, Dr. Kal&#x27;tsit, and the Doctor all get along with each other, and we&#x27;re bringing in more and more operators. Things are going to get even busier here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From that point of view, I think I made the right decision when I decided to stay. I&#x27;ve had my fill of gloomy, boring places.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I may not be a Messenger, but I still get the chance to travel to different places, see different sights, and have a place to call home. That&#x27;s more than enough for me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Speaking of which, have you been back since you left?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Where?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Iberia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Not even once!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even if we wanted to go back... it&#x27;s not quite possible, is it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Both of you are from Iberia, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I haven&#x27;t heard much about that place. What is it like? If you can&#x27;t go back, don&#x27;t you miss home?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Nope.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Uh, well, I guess I do miss Iberia a little.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Oh, I&#x27;m sorry, I guess I shouldn&#x27;t have asked.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">No, it&#x27;s not really a big deal. It&#x27;s just, how should I say this? Yeah, there&#x27;s not really much worthy of mention there, now that I think about it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, don&#x27;t look like that. It&#x27;s not as if I have any painful memories of the place, but... yeah, Iberia was pretty boring for me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Even though it&#x27;s your homeland...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Yeah, it&#x27;s boring. It&#x27;s depressing to no end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I couldn&#x27;t live there, and so I left. That&#x27;s all there is to it. Aside from that, I guess it wasn&#x27;t so bad.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">That&#x27;s what you think.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To us Ægirians, Iberia isn&#x27;t a very friendly place.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Oh... I&#x27;ve heard a little about that, but I don&#x27;t know much about it. There weren&#x27;t a lot of Ægirians where I lived, after all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Most Ægirians lived on the streets in the city outskirts or stuck it out near the blockade line until the Inquisition went after them. Very few of us were lucky enough to live a peaceful life.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Inquisition rounded up a lot of people. People that they deemed threats, and rightfully so.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Um, are you sure?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">That sounds kinda scary. If I remember correctly, you&#x27;re an Ægirian too, aren&#x27;t you, Purestream?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Yeah, but there are people of all races in Yan, so no one seemed to mind. I haven&#x27;t heard of Ægirians being barred from any official positions, either. Everyone&#x27;s equal.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now that I think about it, Rhodes Island doesn&#x27;t care much about races, either. When I first got here, everyone really took good care of me. Just like Mr. Elysium! He helped me out on my first field mission!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Me too. On my last mission, some enemies got the drop on me. It&#x27;s all thanks to Mr. Elysium that I&#x27;m still here... Thank you very much.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Oh, no need to thank me. I get reassigned to different teams pretty often. We&#x27;re all teammates, so we should help each other out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">Even so, I must still thank you for your kindness.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Absinthe, you&#x27;re always so stubborn when it comes to these things. I have way too many people around me like that...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Such as that captain of yours?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Yes, she&#x27;s one of those people, but have you ever noticed you&#x27;re very stubborn yourself?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">The captain doesn&#x27;t talk much, but she looks so cool... and I&#x27;m a little embarrassed to say this, but I&#x27;m actually a little scared of her.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">I get it, I get it. She does look very scary.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, you know, she just looks scary and doesn&#x27;t try to talk to others much. She&#x27;s actually very easy to talk to.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The next time you see her, maybe you should try saying hi to her. She may not look it, but it&#x27;ll make her really happy. I guarantee it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">It sounds like you two really get along.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well, I guess we kind of do... After all, she was the one who saved my life.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides, she can&#x27;t get by without my help. If it wasn&#x27;t for that, I would&#x27;ve been a Messenger, traveling all around the world right now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haha, being popular has its own set of problems.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">I seem to remember she&#x27;s on a solo mission right now?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And you&#x27;re saying she can&#x27;t get by without your help?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">...This mission&#x27;s different! Only she alone could handle such an infiltration mission. I&#x27;d just blow her cover.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t think she has ever teamed up with anyone before me, right? It was pretty terrible at first. She even used to beat me up just because she thought I was annoying. Don&#x27;t you think that&#x27;s cruel?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Her Arts are really something else. I took a single blow and it knocked me out of my senses so terribly that I didn&#x27;t even know how to get home. It took me a while until I remembered who I was!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">It affected your consciousness... and memories? I didn&#x27;t know Arts could be so dangerous.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And that someone here at Rhodes Island has Arts like that...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Uh, yeah, it&#x27;s not something we talk about often. It&#x27;s technically classified information, so don&#x27;t tell anyone else, okay?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Anyway, you should try to be more casual. We all get along with each other here. If there&#x27;s anything you don&#x27;t understand, come find me. I&#x27;ll be happy to help you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">More or less what he just said.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You don&#x27;t need to force yourself, though. Just go on at your own pace. Anyone will be happy to help you should you run into any problems.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_405_absin_4.png" alt=""><div class="bubble"><div class="who">Absinthe</div><div class="text">...Thanks.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Yep, that&#x27;s right. Don&#x27;t push yourself too hard!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, perfect! Sinthe, why don&#x27;t you come to our party? You two as well, Mr. Elysium, Mr. Thorns. I&#x27;ll be making lots of food from back home!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The festival only happens once a year. Be sure to eat your fill!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well! That certainly gives me something to look forward to!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_385_finlpp.png" alt=""><div class="bubble"><div class="who">Purestream</div><div class="text">Hehe, and do look forward to it. I promise you won&#x27;t be disappointed~!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_room_2.png" alt="bg_room_2"><div class="cap">bg_room_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">A city in gray, drab colors. Depressing. Boring. Is that all?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is that how you see that place?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Well... my situation isn&#x27;t quite like yours.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I really don&#x27;t have much to say about that place. It was a simple and boring place to me, and that really is it for me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides, I couldn&#x27;t possibly have gone into the details. One of them is still a child.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Don&#x27;t tell me you&#x27;ve forgotten.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The girl is still a student, and she&#x27;s in a pretty cheerful mood because of the festival coming up. Let&#x27;s not dampen her spirits.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Home... huh? I wonder what it&#x27;s like now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I wonder if it&#x27;s still packed with buildings, and the wind is still so humid, with that salty scent to it? Are the streets there still empty, and everyone there&#x27;s as quiet as they&#x27;ve always been?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_293_thorns_n_1.png" alt=""><div class="bubble"><div class="who">Thorns</div><div class="text">Who are you asking? How would I know?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_401_elysm_na_1.png" alt=""><div class="bubble"><div class="who">Elysium</div><div class="text">Haha, you&#x27;re right.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell me, brother, do you think we&#x27;ll ever have a chance to go back, having run away from that place?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t think I want to go back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I can&#x27;t help but think that, perhaps one day... I&#x27;ll go back.</div></div></div></div><div class="nav"><a href="level_act13d0_st02.html">← Prev</a><a href="level_act13d0_st04.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

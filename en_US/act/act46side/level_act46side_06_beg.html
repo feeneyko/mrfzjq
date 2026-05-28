@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emerald · Retracing Our Steps</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Retracing Our Steps</a> / <span>OS-6</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act46side/level_act46side_06_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Emerald<span class="section-tag">OS-6 · Before Operation</span></h1><div class="meta">Retracing Our Steps</div><div class="story-info">Caster officially intervenes, demanding that the Trilby Asher investigate the secrets Enciodes is hiding in the mines. After Elena writes a letter to Gnosis about her findings, she, along with Enya and Joanna, head into the mine to find the crash site of the &#x27;extraterrestrial object&#x27;.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_manorindoor.png" alt="bg_manorindoor"><div class="cap">bg_manorindoor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">How much longer?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_493_1%231%241.png" alt=""><div class="bubble"><div class="who">Victorian Butler</div><div class="text">Patience please, Mr. Bellingham.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As you know, the Duke has been very busy lately, having to receive several guests each day.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">You should remember, sir, the last time I came here...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_493_1%231%241.png" alt=""><div class="bubble"><div class="who">Victorian Butler</div><div class="text">*sigh*——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">So, I&#x27;d like to ask... How has she been lately?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_493_1%231%241.png" alt=""><div class="bubble"><div class="who">Victorian Butler</div><div class="text">Fairly pleasant for the most part. After all, the negotiations with the Kazimierzians have been nearing completion over the past few days.</div></div></div>
+<div class="narr">As soon as he finishes speaking, a dejected gentleman strides past the Trilby Asher.</div>
+<div class="narr">The Trilby Asher recognizes him as Derek, head of the press office. Perhaps due to the recent wave of bad publicity, he wipes the sweat off his brow with trembling hands.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_493_1%231%241.png" alt=""><div class="bubble"><div class="who">Victorian Butler</div><div class="text">...I suspect today is not one such day.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Is that Bellingham outside? Let him in first. Don&#x27;t keep him waiting.</div></div></div>
+<div class="narr">The butler nods, and the Trilby Asher hesitates for a moment before stepping into the room.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="narr">Seated in the middle is the Duke of Caster, with a young noble standing at her side.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">...I have another question. What kind of person is this Kazimierzian representative you met?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Noble</div><div class="text">He is a merchant, Your Grace.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%232%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Hmm, Kazimierz...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell him that should he agree to my terms, I am willing to lift some of the embargos on industrial equipment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">For them, there are many ways to obtain cheap minerals, and Kjerag is hardly irreplaceable.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Noble</div><div class="text">I will let him know that only Victoria can satisfy his technological and equipment needs, especially when it comes to Originium—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">No.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You are a member of House Caster. These minutiae are best left for servants to convey, whereas we should always leave ourselves room to maneuver.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Kazimierzians know little about the resources we command, so why not let them exercise their imagination? Do you understand?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Noble</div><div class="text">No worries. I guarantee that he will side with us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%232%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">&#x27;Forever honor your commitments.&#x27; If you cannot, don&#x27;t make them in the first place.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That is true of the Kazimierzian representative, and even moreso for me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may leave.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Noble</div><div class="text">Yes... My apologies, Your Grace.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%231%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Once again, you have to see me disciplining these good-for-nothing whelps.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Belli.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">I thank Your Grace for the trust you have placed in me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Let&#x27;s not waste time on small talk. I trust you saw the gentleman who left earlier, yes?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">If I&#x27;m not mistaken, that was a certain Derek, the man in charge of news and public opinion.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">He should have reported to me that the negative press, be it about Kjerag or Victoria, was under control.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He was instead quite profuse with his complaints, going on and on about how he couldn&#x27;t do it, that it would take too long to communicate with the film crew, that he wanted to trouble me to watch the footage they sent back.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%231%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">If he feels like he hasn&#x27;t been given enough time, he should&#x27;ve known that my patience has its limits too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, do you have any good news for me, Belli?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">...Yes, Your Grace.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Our informant at the Rhine observatory provided very accurate intel—indeed, there is something highly suspicious about the mining site in which Kjerag is working with Kazimierz.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Following the clues she provided, my men successfully infiltrated the site and obtained these data tables.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Just point out the highlights.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Please look at this section, and the subsequent section on the next page...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The former represents the mine&#x27;s daily output, whereas the latter represents the purchase volume, or export volume. Finally, the last page is the mine&#x27;s financial report; pay particular attention to the net profitability figure. For example, in the last two months—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%236%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">The difference is massive... This mining site has been operating at a loss, and the greater the extraction, the greater the losses.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Exactly. We even found this mine import record. Please take a look...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%239%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Hmm? A large mining site needs to separately import the very same minerals...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Therefore, I believe this confirms the earlier theory.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This so-called joint mining project is actually Karlan Trade&#x27;s arsenal in disguise.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And this is the trump card that has been flipped over? Sitting right there in a mining site shared jointly with a foreign company?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Which is why our agents, including myself, initially overlooked this area. It is hard to imagine that anyone could stomach such a risk.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%236%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Placing a piece in what normally would be a blind spot. It&#x27;s very much his style.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, you&#x27;re still one move behind, Belli.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As difficult as it is to admit, when Wellington made his move, it became imperative for us to strengthen ourselves.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Given these circumstances, Kjerag is a valuable asset.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I will not accept a lose-lose scenario; we must ensure that Enciodes&#x27;s military preparations do not catch us flat-footed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Only by knowing what his trump card exactly is can we properly plan against Kjerag in advance.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Your Grace, if you wish to confront the Duke of Wellington...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Bringing Kjerag under the control of House Caster, as well as seizing their manpower and resources, is of utmost priority. I personally believe that we should conduct a comprehensive survey of this mining site.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I believe the Kazimierzians will accept your term, and it&#x27;s only a matter of time until they withdraw from Kjerag.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As soon as we take control of this mining area, I will send our envoys there immediately.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%236%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Why not act before the paperwork is officially signed? We cannot give Karlan Trade the time to cover their tracks.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">So, under the buyer&#x27;s name... look for another excuse through the Vine-Bead Court?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even if they suspect that something is amiss with the Kazimierzians, a hasty retreat would inevitably leave traces behind.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%232%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">The Vine-Bead Court is ultimately an expendable asset. Due to your previous botch job, there is no way Enciodes would not have his eye on them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Then, we&#x27;ll squeeze every last drop of value from the Vine-Bead Court before Enciodes makes his move.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Is that truly the missing step, Belli? Be more economical, and think it through some more.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The current Great Elder has consistently turned down my goodwill, and given the inability to mobilize the full strength of the Vine-Bead Court, we must be more careful when accessing the feasibility of this plan.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Yet, Your Grace, he did not stop us from infiltrating the lower and middle ranks either.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Perhaps this is the Vine-Bead Court&#x27;s persistent arrogance, ripe for us to take advantage.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%236%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Perhaps the allure of overthrowing Enciodes will prove to be a gift too irresistible for Kjerag&#x27;s religious figures.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">So, do you intend to—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%237%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">You are free to move the pawns inside the Vine-Bead Court as you please, but you must find out exactly what is going on within the mining site.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let us wait to see how Enciodes reacts. He might just give us another reason to get involved in Kjerag.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_867_1%231%241.png" alt=""><div class="bubble"><div class="who">Trilby Asher</div><div class="text">Yes, Your Grace.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_726_1%231%241.png" alt=""><div class="bubble"><div class="who">Duke of Caster</div><div class="text">Right, I&#x27;d like you to do me a favor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Derek left some odds-and-ends behind. Go ahead and take them with you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When it comes to our dealings with foreign nations, we always have some journalist friends who make too much noise.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g3_mainhall.png" alt="24_g3_mainhall"><div class="cap">24_g3_mainhall</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Can I set the camera up right here?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thank you... Let&#x27;s get started if you&#x27;re ready.</div></div></div>
+<div class="narr">...</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Venerable Great Elder Adso, thank you so much for agreeing to this interview. I sincerely hope you are willing to answer a few of my questions, as well as those of the countless others who want to know more about Kjerag.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">First, I&#x27;d like to ask about something that many around Kjerag have been curious about recently.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The people of Kjerag broadly believe that Kjeragandr protects this land. In your opinion, how would you explain this Catastrophe? Does this mean that Kjerag has lost its divine protection?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">That is correct. Kjeragandr indeed watches over this land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, She is not a tyrant who imposes harsh decrees, but rather a patient mentor and a guiding hand. Her protection of Kjerag is not as straightforward as many would imagine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Her knowledge of the true way of life runs deep, and so She taught the people of Kjerag how to live in this land filled with calamity and devoid of thought.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thus, the people of Kjerag came to have a soul, and the many calamities no longer disturbed them.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Even so, I am still very curious as to how a god who neither reveals its true form nor has performed any &#x27;miracles&#x27; as proof of its divinity can earn a people&#x27;s faith.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This belief seems to lack any grounding in evidence.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%232%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Hahaha... Guest from afar, I can see that you hide your arrogance behind polite words.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You try to reduce Kjerag&#x27;s beliefs into a most basic form of logic, which you then criticize in an attempt to extol your own correctness and wisdom...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Please believe me... that was not my intent.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%232%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">It&#x27;s fine. Don&#x27;t worry...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then, may I ask you a question first? In your opinion, what kind of principles do the Victorians, who observe no religion, follow in their lives?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">That&#x27;s a simple answer— Victoria has her own laws.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%232%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Who drafted these laws? And who granted them the authority to do so?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">If you&#x27;re asking about the legitimacy of the Victorian regime, we need only look back at history to answer that question.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The land was originally occupied by Dracos until about three hundred years ago, when Aslans from Sargon launched a rebellion in Victoria, ultimately seizing control of the country.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%233%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Then, I take it that in your view, might makes right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Aslans are strong, and therefore righteous. Dracos are weak, and therefore unjust. This so-called justice shifts just as easily as the balance of power in war.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">By the same logic, the devils of Kazdel should feel no shame or remorse about invading the lands of other nations, their only sin being that they fell one step short of ultimate victory.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">...That is a patently absurd conclusion.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%232%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Of course, of course... I doubt that any regime would hinge its legitimacy upon violence. Because, they know all too well that violence will inevitably be undone by greater violence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Nothing can remain young and mighty forever—neither people, nor governments. Therefore, they must become compassionate, in hope that the same compassion will be afforded to them when they are weak.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, let us return to that question... Why do the legal principles we take for granted, or rather, the virtues prevalent across the different civilizations sharing this land, exist in the first place?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To where should we direct our questions? Do we possess the &#x27;sublimity&#x27; inherent to being human? Are our lives innately meaningful?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Apologies... but I am not well-versed in these subjects of philosophical speculation. May I ask, what is the point of these questions that seem so far-removed from our daily lives?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">You mention life... In fact, as long as you seriously reflect upon your own life, you will very easily find that there is nobody on this great land who is entirely devoid of faith.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">People always choose to place their faith in something, be it money, violence, knowledge, fame, philanthropy, or pleasure...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If a person genuinely believes that nothing is inherently true, then he will quickly find himself akin to a puppet with its strings cut, unable to move at all.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The followers of Kjeragandr seek the eternal solace of the mind by questioning ourselves and seeking out the traces of Her existence.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">An interesting thought indeed... This seems quite different from the common perceptions floating around Kjerag.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Please tell me, what was your perception of Kjerag before you witnessed the human tragedy caused by Catastrophe?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;The last pure land on Terra&#x27;? &#x27;A sanctuary protected by the gods?&#x27; &#x27;A land of simple and kind, poor but happy people?&#x27;</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">You&#x27;re quite well-versed in these touristy catch-phrases...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">It was your people who discovered and abused the power of Originium, which ruined everything. You know that countless people drowned beneath the waves you stirred.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And it is this guilt that led you people to weave your illusions into the fantasy of Kjerag—a paradise where one can reap the benefits of Originium with none of the costs.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You imagine purity because you know filth. Innocence because you know deception. Magnanimity because you know opportunism. Piety because you know nihilism.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How, then, can you see the farmers who&#x27;ve left their homeland behind, the craftsmen whose unfinished goods pile up like a mountain, and the hunters who return home empty-handed?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You might even deny the existence of these people so that you may feel at ease when you swallow the blood and sweat of us &#x27;savages&#x27; to &#x27;purify your souls&#x27;.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">...As an investigative journalist, it is my responsibility to spread the truth. And, I am hardly the only Victorian who cares about the truth regarding Kjerag.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Young lady, you promised to spread the truth about Kjerag across the lands. Yet your lenses are pointed at those who are more lost, more deserving of pity.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you think we should call this the truth? Or simply a fable?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I must admit, your questions have left me chagrined... Be it my colleagues or myself, it is hard to set down our morbid curiosity as onlookers.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%237%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">All you need to know is that Kjerag&#x27;s belongings are not playthings sitting behind the glass of a Victorian shop. Kjerag does not, and will not, need anyone&#x27;s pity or charity.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kjerag will always be the people of Kjeragandr—the home of the Kjerag people.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">All right, I think I&#x27;m convinced now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, in your opinion, this Catastrophe will not shake the people&#x27;s faith in Kjeragandr?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%233%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Hmm...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To be honest, Kjerag&#x27;s faith is undergoing a serious test...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I cannot deny that this Catastrophe has sown the seeds of darkness in the hearts of the people, causing them to gradually turn to violence and selfishness, abandoning many of their former virtues...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But was all of this due to a Catastrophe? A seed cannot germinate without the proper soil.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The current turmoil in Kjerag only proves that people&#x27;s beliefs had already changed, long before the Catastrophe itself. And the cause of all this is...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Enciodes.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">Are you referring to... Mr. Enciodes Silverash, the Chairman of Karlan Trade?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">For thousands of years, Kjerag has been spared from Catastrophe by our adherence to the order laid down by our god. However, the Vine-Bead Court is not the rigidly conservative institution that outsiders think.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even in the era before power was restored to the three clans, records in the Vine-Bead Court&#x27;s Hall of Writings confirm that the Court was involved in, and sometimes even instrumental to, the vast majority of changes across Kjerag&#x27;s history.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, we simply remind ourselves constantly of the wisdom and virtues She taught to us, ensuring that each step we take does not become counterproductive.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And, this order formed through the Vine-Bead Court has proven its reliability and stability over the long years.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yet, when you don your skis and snowboards and zoom down our snow-capped peaks, how often do you turn back to look at those who lack the condition and ability to keep up?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No matter how much you might want to turn back and wait, the falling snow will obstruct your view until the exhilaration carried upon the wind engulfs your every thought.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">You believe that Kjerag&#x27;s current reforms are too radical...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">Therefore, if anyone can be held responsible for the current state of Kjerag, it can only be Enciodes.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Victorian Reporter</div><div class="text">So... as an elder of the Vine-Bead Court, are you planning to make any changes in response to this situation?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1998_1%231%241.png" alt=""><div class="bubble"><div class="who">Adso</div><div class="text">No... I won&#x27;t lightly say that I&#x27;ll be making any changes myself...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I simply believe that... for thousands of years, the enemies of Kjeragandr have all vanished into the snowdrifts of history.</div></div></div>
+<div class="narr">...</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/67_G4_kjeragstreet.png" alt="67_G4_kjeragstreet"><div class="cap">67_G4_kjeragstreet</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%231%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">...The registration documents are all here. Please make sure this envelope makes its way to Mr. Edelweiss of Karlan Trade.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kjerag Mail Carrier</div><div class="text">Don&#x27;t worry. We were established by Karlan Trade and know Mr. Edelweiss very well. There won&#x27;t be any mistakes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%231%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Glad to hear it.</div></div></div>
+<div class="narr">Elena turns her head somewhat nervously. After the Catastrophe, the people of Kjerag have largely preferred to remain at home, with one exception—the market.</div>
+<div class="narr">Hundreds of people crowded together in residential areas, temples, stores, and street stalls, the sorrow on their faces matching the gloomy weather.</div>
+<div class="narr">At the far end of the market, Joanna is gesturing to her with her hands, her mouth open as if beckoning for her to come quickly.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%234%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Be right there!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Hushed voice) Ah—gotta keep a low profile.</div></div></div>
+<div class="narr">Elena lowers her head and turns her face away, hurrying away against the flow of pedestrians. Countless Kjerag people brush past her, while another Rhine Lab employee squeezes into the crowd and follows the current.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%231%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">(Hushed voice) Why should we choose the most crowded place...</div></div></div>
+<div class="narr">People are forced to gather here in order to barter for necessities or to receive relief supplies. That they suppress their fear is a fact worn on their sleeves, many of them showing up in naught but simple, local attire.</div>
+<div class="narr">Carolin instinctively pulls her coat in tighter, walking past the men and women, until she stops at the entrance to a quiet little temple.</div>
+<div class="narr">She leans against the door frame, its paint worn and peeling, and hesitantly turns her head to look around, searching for someone else who also has an appointment.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%239%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">Damn it, the bell already rang.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All I wanted was to find a place to continue my research. Why am I stuck doing this kind of work?</div></div></div>
+<div class="narr">She pounds the wall next to her angrily, until suddenly, a hoarse question reaches her ears.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Elderly Cleric</div><div class="text">Oh lost lady, why do you treat the property of Kjeragandr in such a manner?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%231%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m sorry. How should I make amends?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Elderly Cleric</div><div class="text">There&#x27;s no need for that. Set everything down, and come with me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Should it be agreeable to you, please rest in the courtyard. I shall explain the profundity of the scriptures to you, so as to soothe your restless heart.</div></div></div>
+<div class="narr">The old man unlocks the temple gate, and Caroline pauses apprehensively to look around before stepping inside. The devotee then follows her in and shuts the gate again.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g5_guestroom.png" alt="24_g5_guestroom"><div class="cap">24_g5_guestroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%231%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">...You&#x27;re the one they mentioned. The one who can bring me out.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Choosing to meet up here is incredibly risky, is it not?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_268.png" alt=""><div class="bubble"><div class="who">Elderly Cleric</div><div class="text">People are undoubtedly going to be anxious in the aftermath of a Catastrophe. Wandering around in sparsely-populated, open areas is only going to invite more suspicion.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s get down to business. We don&#x27;t have time to waste.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Have you acquired all the intel?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%238%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">I have, but it&#x27;s not meant for you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Duke of Caster&#x27;s men promised that once they took over the mine, I would be able to leave Kjerag via the internal railway.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t know what they told you, but now is the time for you to do your part.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_268.png" alt=""><div class="bubble"><div class="who">Elderly Cleric</div><div class="text">The mine is currently in the handover period. Once the Victorians have finished their inspection, I will take you there to meet them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I ask for your patience, madam. It is a precious virtue indeed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1999_1%239%241.png" alt=""><div class="bubble"><div class="who">Carolin</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I hope this is the last time...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/40_g2_glacier.png" alt="40_g2_glacier"><div class="cap">40_g2_glacier</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%234%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">Did you hear that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%237%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Hear what?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%234%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">Sounded a bit like thunder, how strange. Seemed to come from the mountains.</div></div></div>
+<div class="narr">And also... Ah...</div>
+<div class="narr">Achoo!</div>
+<div class="narr">What&#x27;s this? The tip of my nose feels all chilly... Huh?</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%234%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">That&#x27;s weird. Why is it snowing again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2313%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">We&#x27;re in the middle of the snowy season. What&#x27;s so strange about that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%231%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">No, that can&#x27;t be it. Even at this time of year, there are always signs before it starts snowing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*sniff*</div></div></div>
+<div class="narr">The girl lifts her head, her expression suddenly turning serious.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%239%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">It&#x27;s snowing, but it doesn&#x27;t smell like snow. It&#x27;s very strange...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">An old man once said that the snow only loses its scent when something truly terrible is about to happen...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is Kjeragandr... warning us again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2312%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">&#x27;Divine will&#x27; is less important than how heavy the snowfall is going to be, and how it will threaten our safety.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for the &#x27;scent of snow&#x27; you mentioned... the air temperature and humidity change before it snows, which may give off the illusion of a peculiar scent.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, to treat this as some way of gauging the weather, or even as a divination of some sort is... well...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I frankly don&#x27;t think it makes any sense.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%2311%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">No, no. The scent of snow is the scent of snow. Not some other smell.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kjeragandr has given hunters a keen sense of smell and eyes that can see in the dark. On the snowfields, we know much more than you do!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2311%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Okay, then... I don&#x27;t mean to question your personal experience, but I still have to act according to my own &#x27;experience&#x27;.</div></div></div>
+<div class="narr">As Elena speaks, she sets up the observation equipment and begins to carefully record the data.</div>
+<div class="narr">The girl pouts discontentedly, looking at the device with a distinctively old-fashioned Kjerag look.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%238%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">That lump of metal of yours has been beeping this entire time, and it&#x27;s heavy too... We would&#x27;ve gotten here way sooner without having to lug it around...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%231%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">But, it&#x27;s how we can make sure that every step we take is safe and secure. After a Catastrophe, we must be extremely cautious inside Originium zones—</div></div></div>
+<div class="narr">A sudden gust of wind rises, causing Elena to stumble, but Joanna catches her from behind just in the knick of time.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Thanks—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%238%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">...Hmph.</div></div></div>
+<div class="narr">The chilly, snowflake-laced wind sweeps over them, and all other noise ceases, save for the whistling wind and its sharp, biting cold.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">How did the temperature drop so sharply all of a sudden? Is this...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2010_1%231%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">I know of a deserted village up ahead. Let&#x27;s head over there and find a house to shelter in.</div></div></div>
+<div class="narr">Enya, who has been lagging behind the group because she was flipping through her notebook, steps in between the two.</div>
+<div class="narr">She stretches her palms out, her fingertips only slightly reddened from the cold.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2010_1%233%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Come. Take my hand.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The fresh snow is too slippery, and the terrain here is steep as well. It would be terrible if someone slipped and fell here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hmm... You&#x27;re both hesitating?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you not want to hold my hands?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%2310%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">Enya... I mean, Your Holiness, I...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">No, thank you.</div></div></div>
+<div class="narr">One hand extends forward.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%231%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">Hmph. I&#x27;m just doing this for Her Holiness.</div></div></div>
+<div class="narr">Joanna turns her head away, but nevertheless places her hand within Enya&#x27;s.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_snowconutryinside.png" alt="bg_snowconutryinside"><div class="cap">bg_snowconutryinside</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2010_1%233%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Phew... Thankfully, the temple is in a much better state than the other buildings because there still are people who come by occasionally to do repairs.</div></div></div>
+<div class="narr">The three shake off the thick snow from their cloaks. They arrive at the village only briefly before the snow starts to come down heavily, fluttering down like feathers.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%231%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">You two... Go ahead and rest. I&#x27;ll see if the fireplace here can still be lit.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You can usually find a small woodshed behind the village temple. I&#x27;ll go take a look.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2313%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Need my help?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%234%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">...I&#x27;m good. You...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Didn&#x27;t you say you were going to do the weather forecast? Just go do your thing!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%235%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">I&#x27;ve already set it up. The measuring device will automatically gather data from our surrounding area, so I can help you carry—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%238%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">I told you I&#x27;m good! Don&#x27;t follow me...!</div></div></div>
+<div class="narr">Before Elena can even stand up, Joanna already manages to feel out the small door behind the temple statue with practiced ease.</div>
+<div class="narr">The layout of any Kjerag monastery is more or less the same. The girl rushes out back, and the door slams loudly behind her.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did I do something to upset her...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Maybe just a little, but not that much. Don&#x27;t worry about it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Joanna is a kind girl. Even when she&#x27;s grumpy, she still wants you to be warm. Just like not long ago, when she protected me from assassins even though she despises me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, for many of Kjerag&#x27;s villagers, your thoughts and words can hurt them, even if they are without malice.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">I&#x27;m sorry... I was too rash...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">That&#x27;s not your fault, nor is it the fault of Kjerag&#x27;s people. If anything is at fault... perhaps it is simply your differences.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%233%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Any sort of communication between people... is about these differences.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even partners who work together in the lab, sharing the same ideas and goals, can still have disagreements.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2312%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Which is why... communication and understanding between people is so precious.</div></div></div>
+<div class="narr">Enya folds her cloak and puts it aside, point to a snowflake on it that has not yet melted.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Oh, look at that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%235%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">...A snowflake?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2311%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">The people of Kjerag sometimes use snowflakes that have not melted upon stepping indoors as a form of divination. These unbroken, branch-like snowflakes are a sign that our journey will be smooth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">According to folklore, the snow is a messenger protected by Kjeragandr, carrying important truths and omens.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It can predict the harvest, the hunt, the craftsman&#x27;s hammer-fall, and even quarrels between friends and lovers.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2312%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Some may say that this iconic, tree-like hexagonal snowflake with well-defined branches is a sign of good fortune. But, others just as easily see within it a broken connection, an omen of disaster.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And so... regardless of what happens in the end, the fortune-teller always has something to say.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Worst-case scenario, they always say, &#x27;the diviner you met was just bad; the movement of the stars had already revealed the truth long ago,&#x27; and use that to defend their authority.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%2312%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">You also seem quite knowledgeable about divination, Elena.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2312%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">You could say I&#x27;ve had some run-ins with them... due to family circumstances.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In any case, most divination has nothing to do with revealing the truth. It&#x27;s just... a form of self-delusion and sophistry.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%233%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">A place where no people wish to go, has no roads leading to it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If a problem does not exist, there will be no solution created to resolve it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Fate is a fickle thing, just as your science should acknowledge that there are many things on this land that cannot be controlled or predicted.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">On this great land, we are but tiny people trying to grasp a glimmer of the prophetic and the true.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is this so different from the origins of &#x27;scientific&#x27; discovery? Knowledge is what makes people feel safe and allows them to face an unreasonably uncertain future.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In a sense, coincidence, probability, and fate are all the same concept. Fate falls on many, just as this snowflake has fallen on my cloak.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2312%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I get it. Even placebos can be an efficacious type of medicine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But... I&#x27;ve also seen many things in modern Kjerag.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the past, I always tried to see such strong beliefs as a kind of cultural phenomenon; a ritual, a projection, a form of comfort-seeking...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But... what exactly are they to you people?</div></div></div>
+<div class="narr">She asks the question in a soft, subdued voice. The wind outside the window has already subsided significantly.</div>
+<div class="narr">Kjerag&#x27;s Saintess looks up at the statue of Kjeragandr on the altar. Beneath a slab of stone engraved with messy markings, several brightly-colored figurines sit side-by-side.</div>
+<div class="narr">They were exhibition goods produced around the time of the Lake Silberneherze ceremony. By the looks of things, someone brought them to this village temple as an offering to the reclusive Kjeragandr.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%233%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The clerics of the Vine-Bead Court often describe faith as walking into the darkness without a lamp, or leaping fearlessly into a silent ravine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Everyone always seems to yearn for Her. Ascetics, devout believers, faithful followers of the Commandments—countless people endure innumerable hardships just to reach Her side.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But... for me...</div></div></div>
+<div class="narr">She tries hard to recall, but the memories in her mind are now but struggling fragments, jumping around like frames from a movie, shrouded in a dark haze.</div>
+<div class="narr">A strong emotion surges once more within Enya&#x27;s heart.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%239%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">Trouble—!</div></div></div>
+<div class="narr">Joanna suddenly rushes in with a gasp, firewood in her arms, her cheeks flushed from running.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%2310%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">I just... I just saw, coming down the mountain... Lots of Victorian cars, heading for the mine!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%235%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Victorians? That mine is a joint operation with Kazimierz. What are they trying to do there...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2311%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Have they already picked up our trail?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_174_slbell_1%231%241.png" alt=""><div class="bubble"><div class="who">Enya</div><div class="text">Don&#x27;t panic just yet. Regardless of what business they have with the mine, we have to hurry.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s pack up our things and set out immediately. We need to be even more careful and discreet on the road ahead.</div></div></div>
+<div class="narr">Just a second, please. I need to pack up my instrument first, and it...</div>
+<div class="narr">Wait, how could this...?</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4211_snhunt_1%238%241.png" alt=""><div class="bubble"><div class="who">Joanna</div><div class="text">What are you dawdling around for? Hurry and pack it up! Here, I&#x27;ll help you...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What... is this?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This... &#x27;Moderate Catastrophe Risk&#x27; written here... does it mean what I think it means?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1047_halo2_1%2318%241.png" alt=""><div class="bubble"><div class="who">Elena</div><div class="text">Catastrophe...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Could there be another Catastrophe brewing...?</div></div></div></div><div class="nav"><a href="level_act46side_05_end.html">← Prev</a><a href="level_act46side_06_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>阴影显现 · 巴别塔</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">巴别塔</a> / <span>BB-7</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act33side/level_act33side_07_beg.html" class="">English</a></div>
+  </div>
+  <h1>阴影显现<span class="section-tag">BB-7 · 行动前</span></h1><div class="meta">巴别塔</div><div class="story-info">博士在过去世界与当下文明之间最终做出了选择。在无人知晓的地方，他与特雷西斯进行了会面。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_abyss_1.png" alt="bg_abyss_1"><div class="cap">bg_abyss_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_048.png" alt=""><div class="bubble"><div class="who">博士</div><div class="text">启用管理员权限加密。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">影像编号（0018_admin）......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">启动记录......开始录影。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......在沉睡岁月中，我们的家园在毁灭中孕育了新生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">源石是他们的引航人，将来自塔卫二的生命，塑造成与我们相近的模样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我是幸运的。我能够跨越万年与他们交流。我甚至一度将自己视作这片大地上的一员，感受到他们的过去与未来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我终究不属于这里。我甚至开始为特蕾西娅的努力......而感到不安。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果源石计划以失败告终，不，哪怕只是推迟一些时间，特蕾西娅，凯尔希，甚至是我许诺给阿米娅的那个未来......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这颗星球所孕育的，我们已知范围内为数不多的生命，都只是一个一触即破的泡影。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我自欺欺人了很长时间。可......我又要如何向凯尔希解释？如何向特蕾西娅，向阿米娅解释？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我要怎么对她们说，“你们所遭受的折磨，才是拯救你们的唯一办法，你们应当放弃抵抗”？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我要怎么对她们说，“泰拉文明只是昙花一现的错觉，唯有被源石接纳，我们才有逆转命运的机会”？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">看着一个个具体的生命以感染者之名在眼前如烟散去，我心里并不好受。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这在泰拉早已让人司空见惯的景象，却终归是属于生命的逝去，悲哀而残酷。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我已经太久没有听见过鲜活的话语。我无法真的把他们当做意外的火花。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可我看见的，却并非战士之死......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而是他们顺应了源石同化的进程，通过死亡成为了内化宇宙的局部，成为了生命能够突破终极黑暗的契机。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我到底该为他们的死而垂头默哀......还是为计划的顺利而私下庆幸？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">特蕾西娅为此孜孜不倦地研究，凯尔希，我们的AMa-10，同样选择了相信泰拉的可能性，选择对抗源石，制止战争......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......但是，我呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">源石计划经过了多少代人的努力，在那期间，我们的同胞死去了百亿千亿，换来的也只是跨过万年的等待......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">然后，火种递交到了我的手上。在万年之后。难道我就能......放弃了？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为这短短几年里，泰拉给我的惊喜？特蕾西娅和凯尔希......做出的选择？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哪怕只是对阿米娅动了恻隐之心，始终自私的，难道不是我吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我......以拯救者的身份被唤醒，我却是他们注定的毁灭者。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她们，将毁灭者，将我，如拯救者那般唤醒......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（哽咽）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......阿米娅......凯尔希......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我该怎么做？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">普瑞赛斯......我该怎么做？</div></div></div>
+<div class="subtitle">也许我应该把一切向凯尔希与特蕾西娅和盘托出。</div>
+<div class="subtitle">源石已经引领他们走向大致正确的道路。尽管傲慢，但这确实足以让这些生灵创造别样的奇迹。</div>
+<div class="subtitle">也许我必须重新审视特蕾西娅和凯尔希的计划。</div>
+<div class="subtitle">巴别塔的研究超乎预计，但泰拉的政治形态非常原始，巴别塔尚无跨过种族和国家的隔阂代表整体的能力。</div>
+<div class="subtitle">相信泰拉。相信人们总能够赢得自己的未来。</div>
+<div class="subtitle">推进计划。至少让他们存在过的痕迹得以在源石中保留。</div>
+<div class="subtitle">相信她。</div>
+<div class="subtitle">制止她。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/49_g11_rhodesdeck_bc.png" alt="49_g11_rhodesdeck_bc"><div class="cap">49_g11_rhodesdeck_bc</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">普瑞赛斯</div><div class="text">......怎么会！我怎么会怪你呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我能理解你的忐忑不安。我们争论的事，本就远超“人类”这小小的生命形态该去插手的范畴。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但这是唯一的办法。你我应该都如此坚信。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果......在祂回归之前我们还有时间，我们可以一同去想象，去实现。去描绘宇宙的边界与万事万物的形状。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而那些脆弱的时刻，我希望你都能站在我这边。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你一定会的，对吧。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/49_g10_theresaoffice.png" alt="49_g10_theresaoffice"><div class="cap">49_g10_theresaoffice</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">那么，殿下，这次的简报就只有这些。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">看来军事委员会笃定我们会收复C8—10区域的村庄和物资，并在那里建立哨站，他们已经落入了圈套。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">但......有一些军官，开始表露出与曼弗雷德大不相同的军事策略。这很不寻常。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">间谍提出，曾看见过食腐者出入军队的营帐。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%233%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">孽茨雷......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士怎么看待这件事？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">博士认为，在萨卡兹的战争之神表露出任何形式的参与意图后，我们的布置会被全盘打乱。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%2310%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">你呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">......一直以来，诸多强大的王庭成员都更青睐主张反击和暴力的军事委员会，这任谁都心知肚明。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但出于某种约束——甚至可以说是约定俗成的规则——没有任何一个王庭主动参与到内战中来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">若是王庭之主们真的决定在卡兹戴尔与我们开战，那些仍旧没有回归的萨卡兹们，再无法在地图上看见任何巴别塔的标识。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而说点现实的，王庭的加入形成的兵力差距同样令人担忧，支持我们的人，大多并非战士或士兵。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们的队伍里也有不少人第一次拿起武器。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以，要说心里话——无论真相是什么，我们的处境都在急转直下。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%234%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">......我明白了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">继续观察食腐者王庭的行踪。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">若是孽茨雷真的按捺不住，那么杜卡雷同样会有所动作。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">连续三周，“玫瑰河畔并无航船”。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%234%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">玫瑰河畔已经是十分优秀的间谍系统，她们可以骗过任何人，但唯独骗不过自己的君主。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">让她们及时撤退吧。必要的话，离开卡兹戴尔，去其他地方蛰伏。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1311_1%231%241.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那我先离开了，殿下。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">王庭。他们拥有执行暴力最直接的权力，孽茨雷更是被许诺了一场改变大地的战火才甘愿交出主导权。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然棘手，但如果要实现我们所期望的事情，这也是迟早要面临的挑战。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%233%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">......巴别塔并非一味地否定暴力，我们都清楚，如有必要，我们将使用暴力捍卫我们的信仰。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但是这也意味着......萨卡兹将进一步消耗自身，为了宣泄对整片大地的仇恨而点燃自己。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">终究是一条末路。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">击败军事委员会并不能解决问题，我们需要在其他方面给吞吃愤恨与苦难长大的萨卡兹一个具体的交代。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">关于矿石病和源石，我们......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">请进。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">阿斯卡纶</div><div class="text">殿下。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">伊内丝&amp;W</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">阿斯卡纶......你的伤还没全好。可以让其他人向我通报。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">阿斯卡纶</div><div class="text">我已经康复了，以及，当务之急是，赫德雷小队成功截获了一台巫术解码器。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士已经开始着手破译敌人的密码。相信很快就会有成果。</div></div></div>
+<div class="narr">是这样......</div>
+<div class="narr">伊内丝，W。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">干得漂亮。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">伊内丝</div><div class="text">感谢您，殿下。希望我们可以尽快破解敌人的通讯，从而规划接下来的行动。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">你们的队长呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">伊内丝</div><div class="text">赫德雷他......受了点皮外伤，并无大碍，正在医务室接受治疗。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">既然如此，我不耽误你们的时间了。去陪着他吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4087_ines_1%231%241.png" alt=""><div class="bubble"><div class="who">伊内丝</div><div class="text">......好的，谢谢您，殿下。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">阿斯卡纶</div><div class="text">W。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">——啊？什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">阿斯卡纶</div><div class="text">去赫德雷那里吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......哦。我......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">行吧，知道了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">真是，赫德雷又死不掉......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4132_ascln_1%231%241.png" alt=""><div class="bubble"><div class="who">阿斯卡纶</div><div class="text">那么，殿下，我还有其他事——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1296_1%238%241.png" alt=""><div class="bubble"><div class="who">特蕾西娅</div><div class="text">......对了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我还没给那孩子想一个真正的名字呢。</div></div></div>
+<div class="narr">1093年冬</div>
+<div class="narr">天气/雨</div>
+<div class="narr">卡兹戴尔地区，卡兹戴尔边境</div>
+<div class="narr">博士闭着眼，听着雨水击打在叶片上的声音。</div>
+<div class="narr">滴答滴答。</div>
+<div class="narr">他忍受着内心的煎熬。羽兽在遥远的地方嘶啼......</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">回答我的问题，或者死在这里。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">请问吧。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">你背叛了巴别塔吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">我从未属于过巴别塔，但我也从未放弃过为他们而奋斗。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">为什么要来见我？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">有所求。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">我不会和无名之辈交流......恶灵。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你是谁？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......Doctor。Dr.Doctor。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i10_1.png" alt="49_i10_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......Doctor。</div></div></div>
+<div class="narr">特雷西斯放下了武器，雨水滑过眼角的沟壑坠向大地。</div>
+<div class="narr">他并未看向那个邀请自己秘密赴约的人，而是高抬目光，停留在名为“英雄”的巨大雕像上。</div>
+<div class="narr">那是纪念建立卡兹戴尔移动城市的双子的雕像。</div>
+<div class="narr">他的石像百余年之后依然执剑立于她的身侧，无论天灾或风雨都未曾使其倒塌。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">当年她镇压了意图破坏那座新生城市的叛乱后不久，卡兹戴尔欢庆的人们就邀请我们见证了这两尊雕像的揭幕。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（古老的萨卡兹语）“英雄”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">它们会世世代代守望我们亲手划下的边境，警告我们的敌人，欢迎我们的朋友。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我曾在她的雕像下向她立誓，我的剑会斩去她的所有敌人。</div></div></div>
+<div class="narr">博士望着特蕾西娅的雕像，目光没有一刻移开。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">军事委员会就是她的敌人。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">不，卡兹戴尔的任何一个部分都不曾真正与她为敌，我才是她的敌人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那么，你呢？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......</div></div></div>
+<div class="narr">特雷西斯看着脸庞隐藏在兜帽中的人，那人衣服上沾染了污迹，衣角聚拢的水滴有节奏地向下滴落着。</div>
+<div class="narr">水滴在他们脚下的浅浅水洼中荡起一环又一环的涟漪。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">理应记得这处地方的萨卡兹，大多都已经死在历史之中。能找到这里的人寥寥无几。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你是徒步走来的。走了很远？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">很远。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">你破解了曼弗雷德引以为豪的团队编写的巫术密码。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">很早之前。只是我从未告诉任何人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">连特蕾西娅都相信，我直到最近“才开始这项工作”。也因此，我掌握了军事委员会绝大部分行动计划......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并创造与你单独会面的机会。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">你确信我不会杀死一个对我们有极大威胁的战略家。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">我确信我向你提出的议案足够有价值。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那是能够控制源石的技术。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">你们能在维多利亚的高压下做到哪一步？你们打算如何彻底改变萨卡兹......乃至这片大地的现状？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我可以给你答案。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">很大的口气。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那么，你又需要我做什么，恶灵？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......摧毁巴别塔，驱散她的追随者，让特蕾西娅加入你的计划。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">让萨卡兹统一在军事委员会统治的卡兹戴尔之下。</div></div></div>
+<div class="narr">博士设想过很多次他说出这句话时的情绪。</div>
+<div class="narr">“摧毁巴别塔”......</div>
+<div class="narr">但当博士真正将这句话从口中抛出的时候，他感受到的，却是释然。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......</div></div></div>
+<div class="narr">博士一动不动地望着特蕾西娅的雕像，没有表露丝毫的情绪。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">我和她能带领卡兹戴尔走到如今的程度，并非依靠敌人的施舍。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">的确，只有我们双方之一的彻底失败才能真正停下这场战争，但提出这个想法的人不该是你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">继续说。继续说你索求为何，上一个时代的恶灵。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......你知道，确实也不奇怪。特蕾西娅曾与你携手共进近两百年的时间，你当然可以猜到。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我索求......源石的扩张。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">特雷西斯，巴别塔的挣扎，只是在延长这片大地苟延残喘的时间。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">抗拒也好，接纳也罢，源石终究会以各种形式，将文明纳入她的怀抱。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你......看过天空吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">在那天外，在比双月更远的远方，都曾是我们的归所，我们安眠的地方。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但现在，只剩下我，在同你对话。在萨卡兹不断寻求已死诸神的遗骸来对抗外敌的时候，你们是否有那么一瞬间的疑虑......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">诸神是如何死去的？</div></div></div>
+<div class="narr">雨大了，博士扯紧了自己的衣帽，立于那座高耸的雕像之下。</div>
+<div class="narr">雕像的阴影笼罩了博士，让石像下的身形愈发渺小。</div>
+<div class="narr">特雷西斯突然觉得眼前独自站在雨中的人似乎更加难以琢磨。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">我肩负着不止于萨卡兹的未来。特雷西斯，如果要毁灭些什么来铸造我所期望的阶梯......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我会去做。我只能做。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我已经犹豫太久了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......毁灭些什么，来铸造阶梯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你把牺牲说得很轻松。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">绝不轻松，特雷西斯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而且相信我，我所经历的，你根本无法想象。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">合作的诚意呢？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">“碎片大厦”，还不够吗？否则就算有赦罪师的帮助，你们也......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">不够。恶灵，远远不够。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这只够买下你的性命。只够让军事委员会的领袖特雷西斯不在这里杀死一个注定的敌人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我需要更直接的，能够使得这场战争迈向下一个阶段的办法。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">你想保护巴别塔成员的性命，可以。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">军事委员会向你许诺，只要“巴别塔”宣布战败并离开卡兹戴尔，我们绝不主动发起对投降者和逃兵的彻底剿灭。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但你该做什么，你明白我的意思。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">不......你不能......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......原来令食腐者之王也倍感兴趣的恶灵，竟如此懦弱。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">想让特蕾西娅活下来，也想让巴别塔的成员活着离开，这根本自相矛盾。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唯有巴别塔被彻底摧毁，那些人的侥幸被完全掐灭，特蕾西娅才能够与我共同前往伦蒂尼姆。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">否则，只不过是军事委员会对平民、移居者、反战者的又一次镇压，又一次分裂。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">根本不用我下令，这些事势必会自然发生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可你认为特蕾西娅会甘愿目睹这一切吗？她不会。所以她一定会抗争到底。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你知道答案。如果你真的想救下你身边的更多人，让他们心甘情愿地接受失败，投诚于我......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那就杀死他们的王。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">然后，我就让巴别塔离开，尽管它会分崩离析，它会不再属于萨卡兹，它会变得弱小而远离中心。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“毁灭些什么，来铸造阶梯”，Doctor。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你说得对，这确实不轻松。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对你来说，这场内战意味着什么？她的死意味着什么？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">夺回土地，重建家园，消除歧视，复兴种族......这些陈词滥调，你已听过许多。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">都太复杂，也太简单。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只是一个小小的可悲的物种，尝试抓住自己的命运的过程。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">原来如此。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那么，我会让命运的天秤倾斜。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">摧毁巴别塔，分裂他们，削弱他们......让他们回归到旧日的生活中去，这样至少最后的百年时间，他们还能享受片刻的安宁。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这样就......不必杀死特蕾西娅......或者至少，尽可能少失去一些生命。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">摆弄暴力是令人窒息的。你对萨卡兹的了解已胜常人许多，但也许还远远不够。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我同样有一个疑问，Dr.Doctor。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">自诩巨人，自诩神明，自诩造物主，自诩能主宰萨卡兹命运的上一个时代的恶灵，唯有你一人吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">博士</div><div class="text">......是的。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特雷西斯</div><div class="text">......那很好，Dr.Doctor。不必愧疚，去做你决定做的事情。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果你担心无人来制裁高高在上的恶灵，无人来审判你的罪，我来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">直到没有人可以再玩弄萨卡兹的命运。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i10_2.png" alt="49_i10_2"></div>
+<div class="narr">博士听着身后水洼溅起的声音，脚步声越来越远，越来越弱。</div>
+<div class="narr">特雷西斯离开了，他不愿意再多停留一刻。</div>
+<div class="narr">苍白的阳光已经从雕像的缝隙间漏了出来。</div>
+<div class="narr">可博士无法从这难得的阳光中感受到丝毫的温暖。</div>
+<div class="narr">名为“英雄”的巨大雕像依旧眺望着远方，它们的目光注意不到自己的脚下。</div>
+<div class="narr">那里站着一个久久未曾离去的人影。</div></div><div class="nav"><a href="level_act33side_06_end.html">← 上一段</a><a href="level_act33side_07_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>临界时刻 · 离解复合</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">离解复合</a> / <span>15-7</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_15/level_main_15-06_beg.html" class="">English</a></div>
+  </div>
+  <h1>临界时刻<span class="section-tag">15-7 · 行动前</span></h1><div class="meta">离解复合</div><div class="story-info">博士和阿米娅完成了思维共享，并在黑王冠的协助下准备越过“文明的存续”的边界。阿米娅亲眼看到了博士曾经向她讲述的童话。卡特斯感染者见到了深空中的神秘精灵。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ceo.png" alt="bg_ceo"><div class="cap">bg_ceo</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，我从未尝试过利用黑王冠来接触你的思维——</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>不必紧张，阿米娅。</li><li>我已经完全向你敞开我的内心和思维。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......好。</div></div></div>
+<div class="narr">她看向了自己的身侧，那一束温柔的白光正轻轻拉着她的手。</div>
+<div class="narr">她闭上眼，长舒一口气。</div>
+<div class="subtitle">“我们一起，阿米娅。”</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%236%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，我也不知道我们这趟旅程通往何处，但我会保护你。</div></div></div>
+<div class="subtitle">“我也会保护你，阿米娅。”</div>
+<div class="narr">她在“魔王”的注视下，轻轻触碰着你的额前——</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%233%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">你的记忆和情感正向我流淌过来。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......感觉很奇怪。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">明明它们的波动如此平静温和，明明记忆的尽头并不遥远......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当初特蕾西娅小姐到底看到了什么——</div></div></div>
+<div class="narr">阿米娅看到你，看到了凯尔希，看到了自己，还有罗德岛上许许多多的人。</div>
+<div class="narr">她越走越深，那个记忆的边界已经触手可及。“好奇”与“担忧”致使她几乎忘记了自己的目的，她想要触及那道边界......</div>
+<div class="narr">想要触及你记忆的起点。切尔诺伯格，石棺，还有那个虚弱地伸出手的你——</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_0_1.png" alt="avg_0_1"></div>
+<div class="subtitle">“博士......抓紧我的手！！”</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">好像还有其他的记忆？为什么模糊不清？</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_8_9.png" alt="avg_8_9"></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_0_1.png" alt="avg_0_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿米娅</div><div class="text">——？！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那是——</div></div></div>
+<div class="subtitle">“阿米娅！”</div>
+<div class="narr">你的手抓住了阿米娅。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......你迷失了？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%237%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我，我不知道，这也是我第一次如此深入地接触他人的思维，这种感觉......很奇异。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>但好在你成功了。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">是的，博士，我现在能感受到你每一丝细微的情绪。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我也能感受到你。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%2311%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">欸，你现在很放松嘛！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>有阿米娅在，我并不需要担心什么。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>接下来，我们应该怎么做？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，拉紧我的手。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">接下来的路，我会保护你走下去的。关于魔王的一切，特蕾西娅小姐在那一天已经全部教给了我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在那条路的前面，“她”已经在等着我们了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="subtitle">......</div>
+<div class="sticker">我理解你的理由，但我无法提供，你的请求违背了DWDB-221E的底层逻辑。<br><br>但我可以提供绕过限制的方法，凯尔希——<br><br>“深潜”。<br><br>可惜连特蕾西娅也无法走到如此遥远的地方，其中的风险远远超过了她所能承受的范围——<br><br>你并不奢求从我这里获得答案？那为何你如此执着于求助我访问这些于你无益的数据？<br></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">“我无法确认是否终有一天，阿米娅会向你提出同样的问题。但我希望，她能在黑暗中找到我为她照亮的方向。”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">凯尔希便是如此回答我，阿米娅。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">阿米娅</div><div class="text">......请问您能为我们调出凯尔希医生的所有访问记录吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">当然。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她每一次的疑惑，每一次的坚持，还有每一次的失落离去，我将无一保留地展示给你们。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿米娅，你也曾深入过“文明的存续”，但这一次，你所寻找的东西远在边际之外。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那是泰拉生命暂时无法踏足的领域，但或许你有机会访问那些不属于你们的知识。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为你的同行者——Dr.Doctor。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......我？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">你很快便会知晓我的意思，Dr.Doctor。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">随我来吧，阿米娅，来到——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/60_g6_crownboundary.png" alt="60_g6_crownboundary"><div class="cap">60_g6_crownboundary</div></div>
+<div class="narr">“文明奇点”。</div>
+<div class="narr">纯白巨型长廊环绕着中央那不可捉摸的点——“奇点”。</div>
+<div class="narr">庞杂的信息流不断从奇点中溢出，能够被你们所捕获的信息皆是足以被你们理解的知识。</div>
+<div class="narr">阿米娅看不到来时的路。但要是沿着长廊继续走下去，在浪费了难以估量的时间后，阿米娅终将回到原点。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/60_g6_crownboundary.png" alt="60_g6_crownboundary"><div class="cap">60_g6_crownboundary</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">你发现了，阿米娅。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">文明发展的停滞并非意味着原地踏步，时间依旧会在线性的轨迹上不可逆转地向前推进。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但生命所创造的和所发现的一切却只会陷入无法脱离的循环。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">数学、物理、哲学、神学等各种理论和实践都无法再创造希望。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">向上的螺旋已经失效，生命将在迷失方向的道路上空耗他们的未来。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">所以......这里就已经是边界？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">只是泰拉目前所能触碰的知识边界。它既是限制，也是保护。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">保护？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>某种思维认知的保护......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%237%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">思维认知？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>就像我们没法强迫小沙地兽计算洋流的规律？</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>哪怕我们能给出所有的数据和公式......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>硬来依旧会伤害它们的小脑瓜。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">你的直觉很敏锐，博士，但并非完全准确。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">DWDB-221E会启迪生命稳步走向未来，而非简单将未来的碎片展现于求索者的眼前，导致违背自然规律与伦理的演化飞跃。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">阿米娅，知识是不可逆转的。瞥见过真实天空的理想家将不再甘愿蒙昧地安眠于大地。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而超越文明本身思维认知极限的信息，只会变成诱惑他们忽视现实，走向毁灭陷阱的毒药，继而将他们的文明带入深渊。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">于是，边界诞生了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">可为什么边界的构成......像是某种庞大的数据服务器组成的监牢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%237%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">它以你所能接受的形态出现，一如DWDB-221E在物质界以一顶黑色冠冕的形态陪伴着你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对渺小的蝼蚁而言，边界可以是一条首尾相连的湍急河流，永远无法汇入大海。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而对寿命以万亿年计量的天体而言，边界亦可以是伴随其一生的引力场，不可捉摸，不可逃脱。</div></div></div>
+<div class="narr">你走向了与虚空一步之遥的断面，遥远中心处的“奇点”在吸引着你。</div>
+<div class="narr">信息如波浪般轻轻地从你身旁掠过，却足以让你一瞥许多新奇的场景。</div>
+<div class="narr">那是属于你过去的浮光掠影——你失去后又遗忘的生活。</div>
+<div class="narr">一个“陌生时代”的幻影。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%236%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，小心！</div></div></div>
+<div class="narr">阿米娅紧张地拉住了你的手。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%236%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">我们没法确认从边界坠下会发生什么——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这些是......你看到的......？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......你我思维相通......</li><li>......你能看到我所看到的......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%235%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">——“源石虫的卵鞘”“穿过星星之间的独木桥”——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......所有那些故事都是真实存在的。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>“源石虫的卵鞘”？</li><li>“穿过星星之间的独木桥”？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在很小很小的时候，我遇到了一个很在意的人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那个人明明自己也脆弱得不行，却一定要固执地背着我跨过满是源石碎屑的小径。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在我发烧昏昏沉沉，但又害怕噩梦不敢睡觉的时候，那个人也会不厌其烦地给我讲那些我从未听过的故事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在逼仄黑暗的矿洞里，那个人也会毫不犹豫地砸碎自己好不容易找到的矿石样本——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">然后把那些发光的小石头嵌在四周的岩壁上，为我讲述星星，还有坐落在云天之上的乐园的故事。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，愿意听听那个人讲给我的故事吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li><li>当然。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">有一个人，总是独自驾驶着像是源石虫卵鞘的神奇载具穿过星星之间的独木桥。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在最为幽静的夜晚，也有引路人从上了年纪的星星那里借来发光的云朵，造出圆圆的镜子照亮前路。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而在独木桥的另一头，尖塔在大气潮汐中若隐若现，还有戴在星星额头上的花环。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">当降落在花环上时，会发现那里是一座很大很大的游乐场，而可爱的好孩子们会聚集在那里肆意玩耍。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但驾驶载具的人却很难停下......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那人会换到一艘最神奇的载具里，驾驶着它驶过漫长的岁月......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而岁月的尽头，却空无一人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">只剩自己。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>那是......我？</li><li>为你讲故事的人......是我？</li></ul></div>
+<div class="narr">阿米娅紧紧地握住了你的手。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">是的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">由于感染的缘故，那时我很难记住很多的东西，我也无法理解故事里的很多东西。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我会努力去想，尽全力去记住你讲过的每一个故事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">因为那是属于我的故事，是你送给我的故事。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我不想忘记。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">博士，没想到今天我终于可以把这些你送我的礼物再分享给你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这一次，我们已经共同亲眼见证。于我，于你，都重新认识了那段逝去的生活。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>谢谢你，阿米娅......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">博士，你会向往那样的生活吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>向往。</li><li>不向往。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">也难怪呀。和博士一样，第一次想到那些奇妙的生活时，我也向往过。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那样的生活是我无论如何也没法真正触碰的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我会忍不住偷偷和特蕾西娅小姐分享，我们俩会用许多奇怪的想象增添更多的细节——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">直到它变得面目全非，变得越来越遥不可及......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而现在亲眼瞥见一点点之后，我反而觉得自己和你过去的生活不再那么遥远了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr.Doctor，你相信我们的这片大地终有一天也会如那样美好吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我相信。</li><li>会有那么一天的。</li><li>也许会更好......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%238%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">是啊，我们会见到。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">罗德岛会见到的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">并不向往？奇怪，那样的生活的确很美好不是吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没有矿石病的痛苦，没有纷争与战乱，孩子们能尽情地享受快乐......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>或许只是不愿意将残酷的另一面分享给你。</li><li>我始终坚信生活的背面永远存在，阿米娅。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%233%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">也许吧。快乐背后的残酷，痛苦背后的喜悦，我们的确都已体验过。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过，我也偷偷向特蕾西娅小姐分享过那些奇妙的故事，她同样为此惊讶。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她一直渴望着卡兹戴尔......不，是渴望着这片大地的每个人都有机会体验那样的生活。也因此她不断努力着。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们可不能落后呀，博士。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">也许终有一天，罗德岛也能在这片大地上见证那样的生活。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我们接下来该怎么做？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">“深潜”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">DWDB-221E所储存的完整数据会经由奇点解码并输出合理且合适的信息。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">仅靠阿米娅无法突破其底层逻辑的限制。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......我是特例？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%231%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">尚未可知，但的确存在这样的可能性。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">可那些信息，我们如何接近呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%2310%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">抱歉，阿米娅，对此我并无更加有效的资料。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但我能够不断检索凯尔希所留下的线索，让可能对你们有用的信息在排序上更容易被找到。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>也许能搭建一座桥？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">桥？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>通向奇点的桥。</li><li>通向知识的桥。</li><li>凯尔希不是已经为我们指引了前路吗？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%231%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">曾有人这么做过吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%237%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">记录中并无先例。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%236%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">......无论如何，值得一试。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%2310%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">这其中的风险你们必须知晓，越靠近奇点，信息的密度会越高，你们甚至极有可能体验到信息的质量。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1037_amiya3_1%235%242.png" alt=""><div class="bubble"><div class="who">阿米娅</div><div class="text">信息存在质量？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4134_cetsyr_1%2310%241.png" alt=""><div class="bubble"><div class="who">魔王</div><div class="text">在这里，它存在。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">且未完全筛选的信息有概率如洪流般摧毁你们的思维。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而思维湮灭意味着......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>死亡。</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/60_g2_rhodeslivingroom_bc.png" alt="60_g2_rhodeslivingroom_bc"><div class="cap">60_g2_rhodeslivingroom_bc</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">自内心响起的声音</div><div class="text">（未知语言）旅者，我只是在目睹又一次毁灭的发生罢了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（未知语言）希尔达，这是你的名字吧？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%231%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">你在叫我的名字？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我无法理解你的语言。而且，你是怎么知道——</div></div></div>
+<div class="narr">卡特斯透过舷窗看到那个深空中的身影慢慢向自己所在的舰船靠近，继而消失在了视野之外。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%231%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">屈光者，请问那是谁？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1725_1%231%241.png" alt=""><div class="bubble"><div class="who">屈光者</div><div class="text">（激烈的歌声）♪——♪——♪——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%239%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">——您怎么了？！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1725_1%231%241.png" alt=""><div class="bubble"><div class="who">屈光者</div><div class="text">我们很少有人喜欢她！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">抱歉，旅者，我实在无法容忍自己与她共处一室。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的其他朋友要是看到了，也会因为这个唾弃我。</div></div></div>
+<div class="narr">当困惑的卡特斯回过神来时，整间舱室中除了她已经空无一人。在预感到某个不受欢迎的人到来之前，所有人都已经提前离开了。</div>
+<div class="narr">然后卡特斯看到了。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1720_1%232%241.png" alt=""><div class="bubble"><div class="who">神秘的精灵</div><div class="text">不必惊讶，我学习过通过远距离共振进行交流的技巧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">至少，在毁灭那个奇特的种族之前，我保留下了他们进化出的独特语言模式。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%231%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">......毁、毁灭？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1720_1%231%241.png" alt=""><div class="bubble"><div class="who">神秘的精灵</div><div class="text">（叹气）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">新来的客人，你也对毁灭的行为不齿？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%234%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">我......并不清楚发生了什么。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1720_1%231%241.png" alt=""><div class="bubble"><div class="who">神秘的精灵</div><div class="text">并不复杂，我们的族群曾经以噬星为生。其他人所厌恶的，无非是我们赖以生存的本能而已。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过，如今我们的过往都只是流传于旁人口中的恐怖奇谈罢了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我的族群几近灭绝，恐怕我已经是最后一人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呵，我们以毁灭为生，最终当真正的毁灭降临于我们的面前时，我们却无能为力......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">自那以后，作为苟活者，我已经在几位天才的帮助下改变了摄入生存必要能量的方式——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%231%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">听上去......您也正试着融入另一种生活。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以刚刚您在深空中注视着那颗死去的星球，也是在缅怀您所经历的毁灭？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1720_1%231%241.png" alt=""><div class="bubble"><div class="who">神秘的精灵</div><div class="text">缅怀？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哈哈，并非如此。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这里的每个人都坦然且乐观地接受毁灭追上我们。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1719_1%2310%241.png" alt=""><div class="bubble"><div class="who">希尔达</div><div class="text">——？！</div></div></div></div><div class="nav"><a href="level_main_15-05_end.html">← 上一段</a><a href="level_main_15-06_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flickering Sparks · Preluding Lights</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Preluding Lights</a> / <span>level_act7mini_st02</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act7mini/level_act7mini_st02.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Flickering Sparks<span class="section-tag"> · Interlude</span></h1><div class="meta">Preluding Lights</div><div class="story-info">Heavyrain, in a rush, collapses on the border of Minos. Upon awakening, she meets a Minoan priestess, &#x27;Pallas&#x27;.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">This place will no longer shelter you.</div>
+<div class="narr">Begone, dear warrior. Turn about and flee. Your pitiful destiny is already set in stone. You have no place in this world any longer.</div>
+<div class="narr">Indeed, your existence has no meaning for us anymore.</div>
+<div class="narr">......Thus, the warrior fled. She, who never once trembled in fear under the thundering of the enemy&#x27;s drums, who never faltered against the roars of her cruel opponents, turned and ran.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_forest.png" alt="bg_forest"><div class="cap">bg_forest</div></div>
+<div class="narr">Akroti, a region in Minos bordering Sargon, comprised of many villages</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">Days of unending rain would sicken even the most tenacious of young warriors.</div>
+<div class="narr">Not to mention this pitiable fellow, sunken to the darkest depths of despair.</div>
+<div class="narr">What sort of experiences would have forced her to leave her home at such a young age?</div>
+<div class="narr">What happened to her, such that her heart would ache in sadness whenever she looks back at her homeland?</div>
+<div class="narr">She wishes no one to know.</div>
+<div class="narr">Go on, flee. Head to that unknown land.</div>
+<div class="narr">Yet——</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_village.png" alt="bg_village"><div class="cap">bg_village</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">What&#x27;s the situation?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Just stopped moving. She&#x27;s been struggling there for two hours already, moved about ten meters since we found her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If she really was a competent spy, she&#x27;d be playing dead to conserve her energy instead of drawing our attention like this.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It could also all be an act, to play on the Minoans&#x27; sympathy and lower their guard.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Yes, the Minoans would have trouble ignoring such a weight on the conscience. What do you think of this foreign warrior, and what she&#x27;s done?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hmph, just a trick.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s definitely acting. You know it&#x27;s Sargon&#x27;s fault, their tricks and lies, that these villages took so long to...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">That&#x27;s a different conversation. I want you to take a closer look at her. Set aside your suspicions and look at her, see her innocence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I appreciate your concern for the villagers&#x27; safety.....</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">(Sneer)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Whether it comes from a good place or not. You need only tell me, warriors of Sarkaz, how fares the outsider now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">In short, she&#x27;s at death&#x27;s door.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Looks like she was crossing over from Sargon, judging by her weapon and equipment. Now, she just looks like a fish out of water, struggling helplessly on Minoan soil.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Is she alone?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">So far, she is... Though that might change later.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">Hmm, if that&#x27;s the case...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hey, Priestess, &#x27;Pallas&#x27;.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">What is it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">It&#x27;s not my job to say what&#x27;s what, but since the Minoans hired me and appointed you to take command, I&#x27;ll just remind you—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re not a normal nurse, but neither are you a naive priestess who knows nothing but sympathy and forgiveness.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re the commander of the Minoans, mentor to the budding warriors, the so-called &#x27;Goddess&#x27; worshipped by all these Minoan villages.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you take her in, everyone must treat her with the same amount of respect and devotion that they give to you. After all, you were the one who found her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yet this little warrior is, without the slightest hint of doubt, of Sargon——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Until there is peace with Sargon, she remains an enemy to Minoans, one they have to stay wary of.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Warrior, your words carry your intentions well, and reveal the breadth of your knowledge. I listen out of respect and duty.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But as you know, there exists a divide between your judgment and mine. It is a saddening reality, but it is one we must face.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I am indeed considering taking her in, and treating her wounds at the least.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hers is a young life, one hanging by a thread. And I believe she means us no harm.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for whether thousands of Sargon&#x27;s soldiers lurk behind her shadow, that is for you to determine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the absence of danger, we may not fall upon the ongoing war as an excuse to abandon another&#x27;s life.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">(How pointless.)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Some may think this a pointless act. That is why I let the others return to their duties, while you remain here, watching over her.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Sarkaz, oh poor Sarkaz. Your callous demeanor is known far and wide, and you rely on it for survival. In other words, many among you take pride in your indifference.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">One must heel to one&#x27;s proficiencies. I give my orders based on this principle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You need only ensure your mission is completed. As for other matters... they will be resolved, one way or the other.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Since you refuse to change your mind even after listening to me, wouldn&#x27;t it be the same if someone else was looking after her?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">You&#x27;ve been working as a mercenary here for three months now. I&#x27;m sure you&#x27;re aware of the situation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If it were left to the Minoans, this would be over in ten minutes, much less two hours. Their guilt would gnaw at those pure hearts of theirs, bidding them to lend a hand, regardless of the danger...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In such a scenario, how badly shaken would those sincere hearts of theirs be, if that betrayal really came to fruition?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hah. In the end, even you admit that those villagers are way too soft-hearted, to value the life of a potential enemy.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">I understand you, Sarkaz. Some of the villagers have accepted you, and the elders view you as one of our own. You have their goodwill to thank for that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, your needs do not lay there. Between love, or at least this love that exists between we of different races, and the payment of money that you receive, you do not believe that it is worthless.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">There&#x27;s nothing to discuss about that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">You live life your own way, and I have never questioned that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I think that Sarkaz demeanor I mentioned——perhaps you were like that, once. When we first met, you harbored a kindness not altogether pure, and a heart not completely vile.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yet, that has changed. Your interactions with the Minoan soldiers and the villagers have spurred your thoughts. You have become an intelligent warrior brandishing your weapon of your own free will.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your vigilance is warranted. It&#x27;s just that I believe Sargon has no reason to attack right now, and neither is there a need to use such crude &#x27;bait.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rather than formulating a trap to prey on others&#x27; kindness, the Sargon&#x27;s troops would be far more willing to march in brashly, declaring their cruel intentions to plunder and slaughter for all to hear.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Right, right. Let&#x27;s just go with what you said.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">For now, let us turn our eyes to this young warrior who&#x27;s wandered over from Sargon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just as you said, though I wish to save her...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just as you warned, it would be far from prudent to simply bring her back to the villages.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She has no visibly open wounds, and it does not seem to be any complex disease that would require surgery.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I will attempt to treat her wounds. The consequences of this will be mine to bear.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">You mean you want me to put up a tent here, so you can treat her wounds? In this place not even two kilometers from the border? Even the garrison is farther away!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Well, there&#x27;s not much difference with the garrison anyway...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Don&#x27;t forget your place. You&#x27;re the villagers&#x27; beacon of hope, the one who will free them from the threat of Sargon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They love you, and call you the &#x27;Goddess of Victory&#x27;, yet here you are taking such risks...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Watch your words, soldier.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">...Tch.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">A young woman whose guilt is yet unproven, who has waited for over two hours, struggling to keep herself awake, all for the sake of survival.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She has already passed your test——As the keenest and most vigilant Sarkaz, you are unable to bring out solid evidence of her duplicity.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And so, my heart is already filled with guilt. I cannot bear to leave her any longer.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">I don&#x27;t object, if you really insist on it. But... it&#x27;s hard to say if that girl will even talk to you like this after she wakes up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just be prepared for an attack once she wakes up.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">......</div>
+<div class="narr">At this moment, the young Sargon warrior is suffering in her dreams.</div>
+<div class="narr">She drags her body onward with naught but sheer determination, but in the end her vision disappears in a fog of darkness.</div>
+<div class="narr">As she loses herself within the rest that has long eluded her, she is wrapped in a blanket of warmth. Yet, this warmth is unfamiliar to her, and she remains vigilant even in her dreams.</div>
+<div class="narr">Thus, she escapes from her dreamland, escapes the trap of comfort, escapes the warm touch on her skin.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_towerinside.png" alt="bg_towerinside"><div class="cap">bg_towerinside</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......Who?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ah. You&#x27;re awake?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Calm down. You&#x27;ve been sleeping for quite a long time...</div></div></div>
+<div class="narr">The Kuranta soldier immediately rises, swiftly inspecting her surroundings.</div>
+<div class="narr">The narrow space contains only herself, the Forte woman and some scattered items.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">...I understand. You&#x27;re looking for your weapon, yes? Here it is.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......</div></div></div>
+<div class="narr">The Kuranta soldier snatches the weapon. With seemingly no hesitation, she swings the flail towards the Forte.</div>
+<div class="narr">The narrow space limits her movement. The weapon catches on the surrounding canvas, making a dull thud.</div>
+<div class="narr">The Forte woman remains at the bedside, without a trace of surprise on her face.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Decisive and orderly moves. Mystery woman, I can tell you are a well-trained soldier, confident in your own strength.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Unfortunately, this place is not fit for combat.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Answer my questions, and do nothing else, or my flail and shield will smash you... *cough*</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Alright, alright. I shall do naught but answer your questions, till you&#x27;re satisfied.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Where are we?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">In my tent. To treat your injuries, a place of rest is needed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Save it! Where is this tent? Who else is here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Our soldiers, Minoans.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">(Al&#x27;ama, how did I end up with the Minoans?)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">You arrived from Sargon, collapsing on the Minoan side of the border. When the soldiers found you, you were still determinedly inching forward.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">This is... Minoan land?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">I&#x27;ve packed your possessions, they&#x27;re by your feet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You must have been extremely hungry and tired, not being aware that your compass had malfunctioned as you struggled to make your way here and that all your navigation equipment was damaged.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">As you can hear, there are only Minos soldiers outside. You are alone, and it would be unwise to force a discussion using violence.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This would depend on the manner in which you wish to leave this tent. We may come to an agreement and you can leave this tent assured of your safety. You may also refuse to negotiate and leave immediately, foolish as that may be.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Can you prove that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">I am a priestess. The villagers and soldiers will follow my orders, out of respect to their faith.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I know well enough to know none of that is true.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">This place is in the midst of a war with the tribes of Sargon. If your home isn&#x27;t far from here, you should have heard of this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">We are... near Akroti?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Absolutely.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Well then, visitor of Sargon. How may I address you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Don&#x27;t ask.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Oh? This is a rather unfair exchange then, at least in regards to me.</div></div></div>
+<div class="narr">The Kuranta soldier furrows her brows, as if trying to clear her thoughts and scrutinize her situation.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Just now, you said that after I fainted on Minoan land, you&#x27;d been treating my injuries all this while?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Compared to the cold interrogation you would face with the soldiers, there may at least be a chance to come to an agreement with me instead.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">An agreement?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">An agreement with you, young Sargon soldier.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Appearing suddenly by the border, hungry and disheveled, with no trace of any pursuit. I had come to the conclusion that, perhaps, you were not, in fact, an enemy at all.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I recall that the lord ameer here doesn&#x27;t have a particularly good reputation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The war is between you and them, don&#x27;t drag me into it. I&#x27;m just passing through.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Aha, as I thought! In that case, pray lower your weapon, innocent one. I wish for a conversation between equals here, at least until I have fully expressed my sincerity.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">You... You&#x27;re pretty hard to understand, with the way you speak.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Oh? The warriors complain about it from time to time, but it has never been my intention. In fact, I used to be called the most approachable priestess in the Hall of Heroes...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">In any case, I don&#x27;t want to meet your soldiers, officers, or anyone really. I&#x27;m no longer in service to Sargon anyway.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I just want to leave, quickly. I don&#x27;t really care about anything else.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Alright, alright. If so...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">(Guh...)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Hmm.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Innocent warrior, young as you are, you have bravely traversed the dense forest to arrive here. Will you not lay down your weapon and have some food?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I&#x27;m fine... Ugh...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Don&#x27;t waste your energy standing up. You need not worry, for I am the village&#x27;s priestess, and will only be helping to treat your wounds here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Until we come to an acceptable agreement and leave this tent, neither I nor those outside will act against you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I&#x27;ve already said that there&#x27;s nothing to discuss.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Guh...)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(I can&#x27;t bear it, I&#x27;m too hungry...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Please sate your hunger, unnamed traveler. Though your weapon remains pristine, your body is overly taxed. It would be unbearable to one such as you, who trains strictly in the path of the warrior.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may not have had much interaction with Minoans prior, or you may have merely heard rumors. In Minos, our soldiers take neither a single step forwards nor backwards until ordered.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I do request your understanding, as some precautions still need to be taken against you during this period of wartime. It&#x27;s just that the Minoan soldiers are all extremely polite...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Why&#x27;d you save me then?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">It&#x27;s probably an ingrained virtue, as we sometimes allow objective and rational decisions to accommodate kindness still.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Then, what is that weapon there for?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ah... Yes, you wield a similar weapon to mine, of course you would notice.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I knew it...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">No, please allow me to explain. Firstly, innocent guest, your weapon appears to be of exceptional craftsmanship. I believe it is the work of an esteemed Sargon craftsman.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You must have cherished and trained with it often, so, please look... I believe you can determine how this weapon of mine has been used, or perhaps how proficient I really am.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">You see, just as you harbor suspicion towards me, so too did I doubt your identity.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, just look at you now! Your deep exhaustion is etched on your face, and both your equipment and supplies have been run as ragged as you are.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Most importantly, your weapon shows no signs of recent damage. You have not been in a battle for quite some time. Based on this, I have no reason to fear you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">So in the end... we&#x27;re still gonna fight.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Oh, definitely not! I will not be using that as a bargaining chip in our discussion. In fact, I will lay my own weapon on the floor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Observe! Dear traveler from Sargon, please feel free to partake in this nutritious food. I am fully convinced that you are unrelated to our true enemies.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In consideration to your current state, this free and delicious meal should not be left for too long, regardless of any choice you may make later on.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_village.png" alt="bg_village"><div class="cap">bg_village</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Oh, finally out huh.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Sarkaz...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">What, my horns alone enough to scare you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">You...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">That look of fear and disgust... I&#x27;ve been judged at a glance too damned many times.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">I seek your forgiveness, brave warrior. Your existence is not at fault.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hmph, I&#x27;m sure you think so, priestess. But what about her? She won&#x27;t listen to you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I... Priestess, you said that there were Minoans standing guard outside.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">They went for lunch a while time ago. They&#x27;ll probably be drinking wine, singing and reciting poetry right after too, so they got me to help stand guard here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ah, it appears that my admonishments were still not taken seriously. I had wanted to show you the magnanimity of the Minoan soldiers...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Probably better this way.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll be leaving immediately. I don&#x27;t want to loiter around your battlefield.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Oh? Are you leaving now, fearless traveler?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The famous village of Akroti is but a stone&#x27;s throw away. You might find it worth your while to pay a visit.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">No.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">E-Even if there are theaters and cinemas? There&#x27;s also a really good Minoan restaurant...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">No. Thank. You.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">*sigh* There&#x27;s also our warriors&#x27; favorite baths...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">...Bath?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Forget it. Mixed gender bath.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">No way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Y-You can also use the small bath reserved for the priests. For a traveler on such a long and weary journey as you, taking a well-deserved rest is...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I said no! I... I&#x27;m not traveling.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s better if I&#x27;m not seen. I have a bad feeling about this, I&#x27;m leaving.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re still too close to Sargon.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ahh... But, it&#x27;s so rare to see so rustic and pitiful a foreign youth...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Ignore her. It&#x27;s been a long time since she left the big city she used to live in. She&#x27;s probably going insane from having to stay in this backwater for so long. It&#x27;s pretty amazing you can stand that tone of hers.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The villages of Akroti are not safe for you. If you are running from something and want to avoid trouble, you should probably leave now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">However, foreigner, where lies your destination? To be traveling in such a harried state, could it be that you committed some unspeakable crime, or perhaps insulted an important noble?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">No, I&#x27;m just... a mercenary... and I&#x27;m free.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My destination doesn&#x27;t matter, as long as I get further away.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To the north, and further to the east. This place... I will not survive long here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Deserts, battlefields, Sargon... I don&#x27;t want to face any of these right now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ah... A pitiful youth who shoulders the terrible weight of her painful past.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please at least leave your name, so that I may pray for you, whether it be strength to face the dangers ahead or guidance to the place you may find happiness.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Are these prayers any good for people from Sargon?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Heh. I don&#x27;t believe in it, for what it&#x27;s worth.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">(Stomps on his foot)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">*Hiss*... Pallas...!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">&#x27;Pallas&#x27;?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">(*sigh* The blame for exposing me lies with you, Sarkaz warrior.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It is not a name worth remembering, at least for now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Although, there are such stories——On the border of Minos, a priestess bears the revelations of the twelve heroes, arriving to protect the honor and freedom of the Minoans, taking up the fight against Sargon&#x27;s invasions and always able to clutch victory from the jaws of defeat...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Never heard of them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">*cough*—*cough* *cough*... W-Well, I suppose the war has not yet been won.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Apologies, I had no intention of declaring that name. I only hope that these myths of Minos may spread to Sargon as well, such that we can come to understand each other better.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">You should save those words for the next visitor from Sargon passing by.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">*Sniff*... Fine. It seems that besides wishing you well, there is nothing else we can do for you, traveler from Sargon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I will gift you this working compass.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Though you know not where you are going... You must continue moving onwards. That is the only goal you have now, and the only way to escape your suffering.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To move onwards is a choice, one most miraculous. I believe that you will receive much help on your journey, traveler.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When the next kindly person appears, one who can devote their energies to you, one who can save you from the most dangerous of mountains, one who can help you escape the clutches of Death... You may make your choice then, or even decide to accompany them.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hey, watch out, priestess. What if those sufferings you just mentioned really happened to her?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The things you say are oddly profound, at times.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">Forget it... it doesn&#x27;t really matter.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe the destination of this journey is the journey itself.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">I will pray for you, young lady. The road you tread stretches far, very far indeed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You are a warrior. A brave, persevering warrior. Your bravery is etched on your weapon, etched on your limbs, etched in your very soul itself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Though your eyes are hazy now, a strong rain will wash it all away and your vision will be clear once more.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I apologize for not being able to devote myself to the task of earning your trust. We all have the same, more important things to do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_304_hvrain.png" alt=""><div class="bubble"><div class="who">Heavyrain</div><div class="text">I&#x27;m still suspicious of you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">You, me, and that adorable Sarkaz warrior. We are all on a journey without a destination, struggling and suffering to move onwards for the sake of our souls, even as we seek that one thing we must experience, that most important thing——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To find a place for ourselves.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_coldforest.png" alt="bg_coldforest"><div class="cap">bg_coldforest</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hey, time to change shifts.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Minoan Soldier</div><div class="text">Right.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, Sarkaz.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">What?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Minoan Soldier</div><div class="text">Shouldn&#x27;t you tell us your name by now? Or do you really want to go by &#x27;Sarkaz&#x27;?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">A name&#x27;s just a name. You call your priestess &#x27;Goddess&#x27;. She calls herself &#x27;Priestess Pallas&#x27;. Does that really make her so?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Minoan Soldier</div><div class="text">Whatever. Though, after we win this war, the only name you&#x27;ll be leaving to the legends would be &#x27;Sarkaz&#x27; then?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Hah, let&#x27;s see if we even survive! You&#x27;re pretty confident, Minoan!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(......)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(It&#x27;s not really important whether I&#x27;m hailed as a hero in history.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(As long as I&#x27;m a Sarkaz, as long as I&#x27;m treated as a Sarkaz no matter what I do...... It&#x27;s not too bad to be fighting alongside heroes.)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hmm?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Priestess Pallas, what are you doing here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Ah, Mister Sarkaz.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Don&#x27;t call me that. Why are you standing night watch? Did something happen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Not something to mobilize the masses, I hope.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s just that today&#x27;s events have been weighing heavily on me. I have had an urge to come here, to find the answers I seek.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">What, are you still thinking about that Sargon Kuranta soldier? What&#x27;s so special about her?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">No, it&#x27;s exactly the opposite. She&#x27;s normal through and through.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s normal, yet she hurries along, as if running away from some evil spirit while keeping everyone at arm&#x27;s length.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She does not seem predisposed to such behavior. I would presume that a great change has occurred recently, one that has left her despondent.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mister Sarkaz, what do you think could have happened?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">No idea. I don&#x27;t share your interest in going through people&#x27;s life stories.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I only need to know what you&#x27;re doing here. You act as if you want me to do something, while also looking like you&#x27;re just loitering around. Tell me what&#x27;s on your mind, mercurial &#x27;Goddess&#x27;.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Shh.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Grabs his blade)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who&#x27;s there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">It&#x27;s just as you said, Mister Sarkaz. It&#x27;s difficult to discern one&#x27;s heart, and my fateful encounter with our Kuranta visitor was sadly lacking in depth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even so, you and I have witnessed her fragility——Her fortitude is bent and broken, and she is at her most vulnerable right now. There isn&#x27;t much we can do for her, with a good breakfast being the greatest courtesy we can confer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even so, even so. That poor Kuranta soldier. Her only pursuit right now, is the power to grasp her own fate. To choose a destination of her own, or to end it on her own terms.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No matter what, she possesses the same goal as ourselves. To search for freedom, that is our mission.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Try as I may, I am unable to imagine how vile it must be, that evil spirit behind the loss of her freedom. I never believed I would face such a saddening scene.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah, &#x27;Mister Sarkaz&#x27;, do you weep for such a tragedy?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">As things are now, perhaps I should make my warning clear in advance, so that the approaching battle will reach a more direct conclusion——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Malign one, you are different from the earlier traveler. Your body reeks of the stench of blood and evil. You have a cruel plan, and the target is one much weaker than you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You wish to carry out a murder, a hunt, a dirty plan to brag about, upon this holy land of Minos. This, I will never allow.</div></div></div>
+<div class="narr">Without warning, a shadow leaps out of the dark night and rushes towards the Minoan priestess.</div>
+<div class="narr">In an instant, his attack is blocked by an opposing blade.</div>
+<div class="narr">The attacker immediately falls back.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Stand aside, my kin. This obnoxious priestess who keeps rambling on about inane topics annoys me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">It seems that you didn&#x27;t understand her words, which is to say you don&#x27;t know why she&#x27;s so unhappy right now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">I have my own task. I believe it should have nothing to do with you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She seems to want to stop me from finding a &#x27;Kuranta soldier.&#x27; I can see that she&#x27;s been anticipating a battle since before I tracked the clues here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Since she wants to protect my target, she must die. What are you doing here then?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">I&#x27;m working as a soldier, helping the Minoans here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">Ah, we are not enemies then. We both have a job to do, so let&#x27;s go our own ways.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is that witch&#x27;s life part of your responsibilities?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">That&#x27;s not something you need to think about.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">Indeed. Every swing of my blade has a price, and I have no reason to waste my energy here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">——Unless, that absurd speech of hers has displeased me. Maybe I want to drag her horns along, to point a faster path to that Kuranta soldier.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I haven&#x27;t guessed wrongly, have I? Witch.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">What an uncultured and ill-manned beast.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You view yourself as a dirty blade and refuse all counsel. Is that really the case?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">*spits* That&#x27;s enough. Kinsman, I have no quarrel with you. Close one eye and leave, if you know what&#x27;s good for you.</div></div></div>
+<div class="narr">The assassin prepares to strike at the priestess. However, the mercenary steps in front of her, not moving an inch.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">Oh, what&#x27;s this? You&#x27;re a Sarkaz, do you really think that you&#x27;ll be treated as an honored bodyguard, with nothing but the blessings of the Minoans?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Mercenary</div><div class="text">Nothing to do with the priestess. I just think that you&#x27;ve lived a really sad life.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">Don&#x27;t tell me you&#x27;ve never done such things. Frankly, you&#x27;re no match for me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Nay, ruthless intruder, wicked pursuer. It is because of that blind arrogance of yours that you will lose.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Heroes do not await death meekly. Moreover, heroes do not stand aside as monsters chase their prey about.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Blinded by money and power as you are, you have already forgotten how shameful it is to persecute and kill.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">Whatever you say. If you really have the stuff, I&#x27;ll stop after cutting off one of your horns.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To be honest, I think my talents are being wasted on a simple deserter. Wouldn&#x27;t I get a nicer reward if I brought back a Minoan head?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_482_pallas_1.png" alt=""><div class="bubble"><div class="who">Pallas</div><div class="text">Since you have cursed and insulted me so, I no longer hold the slightest bit of remorse for that devil-bewitched heart of yours.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">For the sake of that Kuranta traveler&#x27;s safety, I will not let you leave alive, cruel assassin.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Pitiful, tragic Sarkaz warriors. Your once chaotic hearts are no longer the same. You have each stepped on vastly different paths.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_054.png" alt=""><div class="bubble"><div class="who">Sarkaz Assassin</div><div class="text">There&#x27;s only one ending for Sarkaz. Salvation does not exist. Just shut up, witch. Here I come——</div></div></div>
+<div class="narr">This battle in the dark night was never recorded in the annals of history.</div>
+<div class="narr">Some souls continue running, becoming ever purer in their journey of life.</div>
+<div class="narr">In time, they will shine with the brightest light.</div>
+<div class="narr">In time, these sparks of light will gather about the traveling Rhodes Island, becoming a glorious blaze that moves ever onwards.</div></div><div class="nav"><a href="level_act7mini_st01.html">← Prev</a><a href="level_act7mini_st03.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tide Watcher · Path of Life</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Path of Life</a> / <span>BP-ST-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act34side/level_act34side_st01.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Tide Watcher<span class="section-tag">BP-ST-1 · Interlude</span></h1><div class="meta">Path of Life</div><div class="story-info">Milliarium, an Ægirian city, takes the initiative in contacting land, inviting envoys from Iberia to the sea. In order to resolve the Seaborn issue, Ægir plans to open a Waterway to connect the ocean and dry land. At the same time, Ulpianus appears in a nearby stretch of sea.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g18_lighthouse_square.png" alt="27_g18_lighthouse_square"><div class="cap">27_g18_lighthouse_square</div></div>
+<div class="subtitle">A hunter is walking on seacoast way♪</div>
+<div class="subtitle">With homeland left a mile behind, his path lies ahead♪</div>
+<div class="subtitle">From his forebears and children, he was torn♪</div>
+<div class="subtitle">Into the seas his lover was swept away, floating in the deep, dead♪</div>
+<div class="subtitle">A hunter is walking on seacoast way♪</div>
+<div class="subtitle">With homeland left a mile behind, they must lament and pray♪</div>
+<div class="subtitle">There is no end to his path♪</div>
+<div class="subtitle">The road ahead is shrouded in gray♪</div>
+<div class="subtitle">A hunter returns by seacoast way♪</div>
+<div class="subtitle">His journey ended, his home close at hand♪</div>
+<div class="subtitle">Sound of waves past above the spray♪</div>
+<div class="subtitle">Why do his feet disobey his command♪</div>
+<div class="subtitle">Why ever does his heart still sway♪</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Long time no see, Skadi.</li><li>Hello, Skadi.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Been a while, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You were supposed to meet that chatty Liberi, but you don&#x27;t seem surprised to see me.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You and Elysium are both Rhodes operators.</li><li>This is a lot closer to your homeland, after all.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Hmm. True.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re an hour later than Kal&#x27;tsit estimated.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I guess the Inquisition&#x27;s review process is strict, even with an official notice from a Saint.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After only three months, nearly all the town&#x27;s residents have moved inland, aside from a few workers. Replaced by lots of people from the Penal Battalion.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>They must be preparing for something.</li><li>They look pretty tense.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Ægir contacted Iberia a week ago. This forgotten town has become a lot less quiet since.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Being surrounded by sea scum already sets the young soldiers on edge. Hearing Ægir&#x27;s voice only made it worse.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It demands a response, maybe caution.</li><li>When the undersea nation finally speaks, you have to listen.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Turn left at the sculpture, and the sea is a quick ten minute walk.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ll head straight to the Eye of Iberia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Say, Doctor, do you hear the sound of the waves?</div></div></div>
+<div class="narr">Skadi turns her head slightly into the sea breeze. Her hair dances in the wind, the same color as the shadows in her eyes.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Their layering has gotten complex. I hear... the sound of stars drifting across the sky. The never-ending song of nature. And a language, forever incomprehensible...</div></div></div>
+<div class="sticker">Ishar-mla.<br>I&#x27;m here.<br>The hardship we suffer is ever present.<br>The life we thirst for is ever present.<br></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Are you alright, Skadi?</li><li>Did reconnecting with home put you on edge?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">It&#x27;s like I get more nervous the closer I am... Never mind. It&#x27;s hard to explain.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe I&#x27;m sleep-deprived. Ever since our last voyage, I feel like I&#x27;ve inherited Shark&#x27;s nightmares.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Speaking of the sea, why did Dr. Kal&#x27;tsit call you over so urgently?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t remember you having anything to do with the ocean.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I wouldn&#x27;t recall even if I did.</li><li>But it doesn&#x27;t feel unfamiliar, at least.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Not much of an answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right, I forgot about your condition. No wonder you gave such an answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh well. I&#x27;m sure she had her reasons.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s go. It&#x27;ll be dark soon.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g24_cloudy_sea.png" alt="27_g24_cloudy_sea"><div class="cap">27_g24_cloudy_sea</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">I would take a step back if I were you. I need to shake myself dry.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">Hey there, Dr. Kal&#x27;tsit. Not many people can track us Abyssal Hunters. Did Swordfish tell you we&#x27;d be coming ashore here in advance?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Elysium deployed a data collector in these waters. It&#x27;s had a direct connection to the Eye of Iberia&#x27;s central control system ever since its calibration.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">And it can already track underwater targets? That Liberi&#x27;s not half-bad.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">Am I to understand then that Rhodes Island and the Inquisition have deepened their ties?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">One week ago, the undersea city contacted Iberia via a special comms frequency, informing them that Ægir would be establishing a &#x27;Waterway&#x27; between the Ægir home territories and dry land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the face of such a grand project, Iberia could only gather intelligence through the great lighthouse&#x27;s positioning system.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Evidently, your position as Chief Designer of Warfare did not afford you any knowledge of this.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">Tell Kal&#x27;tsit what we discovered, Shark.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">The captain and I have swum out to where the Stultifera sank three times now. Our last dive was only ten days ago.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The first time, we could still see the exploded wreckage on the sea floor. Under what little light filtered through from the surface, the gilded interior was more like a smudge of paint.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But this time around, the entire thing had completely disappeared, replaced by a cluster of coral, thrumming with life.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I may be accustomed to dreaming, but that felt unreal even to me.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">That monument to a lost civilization and its history stood for but a brief time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Stultifera Navis has been completely claimed by the sea.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or to be precise, it&#x27;s become part of a Seaborn nest.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Their environmental assimilation is accelerating.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">At a frightening pace.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But there was something even more noteworthy. We found traces of battle. Recent ones.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A completely barren patch of sea, lacking even marine snow. A warped and shattered stretch of sea floor, clearly pockmarked by micro-singularities.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Only the fleets of Ægir&#x27;s Legions could be behind that.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">As a landwalker, Kal&#x27;tsit, the knowledge of and interest you hold towards Ægir are nothing less than extraordinary.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Though separated by the boundless seas, Ægir has always been a part of Terra.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">Regardless, Gladiia and I have decided to head to that city.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">A risky decision, no doubt.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">Perhaps a tad.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">Considerably.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As such, we Hunters have been observing it for a while.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Before our final operation, I attended a military conference between the Academy of Science and the Academy of Technology, as the Abyssal Hunters&#x27; Chief Designer of Warfare.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Among the battle plans they drew up together, I do not recall anyone calling for a military stronghold to approach dry land with, nor any project involving &#x27;Waterways.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ægir has, without a doubt, undergone great changes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Our contact with the home territories was completely severed after we slew Ishar&#x27;mla. It is difficult to determine the truth of the matter from the information we possess.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Yet still hardly reason enough for you to return to Ægir. I don&#x27;t believe I&#x27;m the first to try to dissuade you, either. Didn&#x27;t your colleague already do so?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">Do you mean... Ulpianus?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He would understand that the land holds no answers for us. We must return to the sea.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If his strategy is to maintain a distance from Ægir, then all the more reason for us to return in an official capacity.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Specter</div><div class="text">...Ever since I awoke from my dream, the waves would tell me, time and again, that the lost should return home.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Abyssal Hunters must return.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Very well, I understand.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then I&#x27;ll go with you, Gladiia.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">That would indeed be a rare opportunity for you.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I will be representing more than myself on this visit. More than Rhodes Island, even.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Gladiia</div><div class="text">Iberia as well? Even with all that you already bear, they would give you another burden?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">It was also my decision.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rhodes Island&#x27;s cooperation with the Iberian Inquisition has only just begun. Much like our own.</div></div></div>
+<div class="narr">Kal&#x27;tsit stares at Gladiia. The Hunter&#x27;s face remains devoid of expression, even the blowing sea wind failed to crease it.</div>
+<div class="narr">After a short moment of silence, Gladiia nods her head.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g19_lighthouse_front.png" alt="27_g19_lighthouse_front"><div class="cap">27_g19_lighthouse_front</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">How many days has it been since we were contacted by Ægir, Irene?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Irene</div><div class="text">Eight, Su Santidad.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And outside of the necessary deployments, meetings, and to rest, you&#x27;ve spent those eight days here, watching the sea.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They haven&#x27;t given us a concrete time frame for their next contact. I understand you don&#x27;t wish to miss their next move, but...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Look at the sea before you, Irene.</div></div></div>
+<div class="narr">The colors of the deep sea bubble up, nearly indistinguishable from one another. Against the vastness of the ocean surface, the sky seems gloomy.</div>
+<div class="narr">The water crash against the reef, whipping up waves several meters tall, their roars dashing against this small corner of the land.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">By Iberian standards, an ocean without a hint of Sea Terror flesh is a gentle one, no matter how noisy it may be.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">An old friend of mine was once the most talented bard of the port.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But after that grand port sank into Silence, he fled north, past the starving masses to the Iberian interior, to the small town that would one day become the capital.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I saw him kneeling by the broken town gates, weeping uncontrollably. From his weeping, the town obtained its new name: Perdonidora. &#x27;Forgiveness has left us.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, what people needed at the time was not mourning, but consolation. Many prefer to use the shortened form, Perdoni. &#x27;Forgiveness.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And now, the last Eye of Iberia, the final legacy of the Golden Age, shines bright once more. What do you think that signals, Irene?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Irene</div><div class="text">Hope and determination.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">&#x27;Hope and determination.&#x27; Of course.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah, youth. The determination in your eyes is brighter than Dario&#x27;s when he was your age. Good, good.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But those words, as inspiring as they are, are often not the fully correct answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After half a century of being pushed back, our front is finally advancing. Soon, this will become the new center of the Inquisition.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But at the same time, we must necessarily bare everything to the ocean. To Seaborn and Ægir alike.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Iberia is stretched thin. This country can no longer hide its exhaustion and sickness. It is a simple fact, plain for all to see.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And there is another fact to consider. We can retreat no further.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1380_1%231%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">Maestro—Ah, it&#x27;s been a while, Doña Irene.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%231%241.png" alt=""><div class="bubble"><div class="who">Irene</div><div class="text">Indeed it has.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those clothes suit you.</div></div></div>
+<div class="narr">Th-Thank you.</div>
+<div class="narr">Ah, right, there&#x27;s been an emergency. The lighthouse just picked up signals of unknown origin.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1380_1%232%241.png" alt=""><div class="bubble"><div class="who">Jordi</div><div class="text">They seem to be coming from not the sea, but the sky.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Irene</div><div class="text">Jordi. I think we can already seen them...</div></div></div>
+<div class="narr">Carmen and Irene are fixated on the distant sky. The young clerk follows suit.</div>
+<div class="narr">He freezes on the spot.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/51_i01_1.png" alt="51_i01_1"></div>
+<div class="narr">They see a school of fins soaring through the sky.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">What are they?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Bionic drones. The Islanders brought similar creations to land, all those years ago.</div></div></div>
+<div class="narr">The matrix of drones crosses the sea in the blink of an eye, matching the height of the towering lighthouse. One separates itself from the formation and slowly hovers before the three.</div>
+<div class="narr">Its wings open and close like fins, like a speck of light dancing in the void, and soon after an amiable and charismatic female voice resounds from it.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/51_i01_2.png" alt="51_i01_2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">(Iberian) People of Iberia. Do not be alarmed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ægir greets you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I am Clementia, a technology consul of our Institute of Societal and Administrative Supervision.</div></div></div>
+<div class="narr">Carmen holds his lantern aloft, looking serenely at the drone before him.</div>
+<div class="narr">Two completely different forms of light face each other, as though in a dialogue between two different civilizations—or a confrontation.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Saint Carmen I Iberia, of the Iberian Inquisition.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I believe this is the first official communication between our nations.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Clementia</div><div class="text">Indeed.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">You speak our tongue as well as any Iberian.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Clementia</div><div class="text">I installed an Iberian language module before leaving the home territories. I hope you&#x27;ll forgive me if I ever use the wrong expression.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Moreover, forgive me for having to contact you in this form, Sir... Iberia.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">We have no objections to your appearance, Madame Consul. I only regret that it has taken us so long to begin this conversation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Despite your so-called &#x27;Waterway&#x27; project being more than half-complete and close at hand, we Iberians find ourselves in complete ignorance of it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Clementia</div><div class="text">To make amends, we&#x27;d like to invite your envoys to visit our city. Ægir respects the efforts Iberia has made when you were caught up in the Seaborn crisis.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">&#x27;Caught up in.&#x27; Do you mean to say that everything Iberia has faced was merely the aftermath of your crisis?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Clementia</div><div class="text">I do.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s not be tied down by formalities, Sir.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We recognize the power of language. Your name itself, Carmen I Iberia, is a symbol. A symbol of courage and valor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is why we came to you. We hope that by reaching an accord with Iberia and the other terrestrial nations, we will be able to create a Waterway that links directly to land.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We will clear the stretch of sea between Ægir&#x27;s home territories and the land, so as to facilitate our forces coming ashore.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">...I hope I need not remind you what sending an army to another nation&#x27;s border implies on land.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Clementia</div><div class="text">Given the enormity of the oncoming threat, we will exhaust every means at our disposal to resist it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I am more than willing to come explain to you in person if necessary, but it would be easier for you to understand the situation if you were to join us in the depths.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The fleets of our Legions VIII and X are patrolling and suppressing the Seaborn in these waters. They will soon escort you to our city of Milliarium.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This drone formation will continue to notify you of any nearby combat or environmental changes until you have safely arrived at the city.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There may be an unprecedented disaster brewing beneath the waves.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Sir Inquisitor, I worry that though the earth is vast, it is but an isolated island.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/27_g19_lighthouse_front.png" alt="27_g19_lighthouse_front"><div class="cap">27_g19_lighthouse_front</div></div>
+<div class="narr">The lights of the drone matrix cut out, putting a stop to their sudden communication.</div>
+<div class="narr">The sea breeze continues to blow as the old man slowly lowers his lantern.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Irene</div><div class="text">&#x27;A Waterway that links directly to land.&#x27; She&#x27;s eloquent, but...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_447_1%231%241.png" alt=""><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Arrogant. No doubt.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A haughty adult wielding a weapon, loathe to use finesse when dealing with an unarmed child.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Irene, inform our cooperation partners of this most recent communication.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Kal&#x27;tsit has already agreed to serve as Iberia&#x27;s envoy. The Abyssal Hunters should also have made their decision by now, considering they&#x27;ve always had reservations about the Waterway program.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4009_irene_1%237%241.png" alt=""><div class="bubble"><div class="who">Irene</div><div class="text">Right away!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll also keep the other Inquisitors in Gran Faro abreast of the situation.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">I&#x27;ve made a recording of your entire conversation with Ægir, Maestro. Please, take a look.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A-As for whether you approve of me going...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">I recall you submitted your application a week ago.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">Yes. Since the Ægir fleet is on their way now, I was wondering if...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Never hesitate when you&#x27;ve already made up your mind. It only makes you less persuasive.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">When I was younger, Uncle Thiago was always worrying about me. He&#x27;d tell me: &#x27;Jordi, you should leave Gran Faro. Leave Iberia.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But he never told me where to go.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ægir was always my homeland under the sea, but I had no way of approaching it. I&#x27;d never heard the voice of Ægir, or seen its cities.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But now, it&#x27;s so, so close.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">The Inquisition has approved your application, Jordi Fontanarossa. You will serve as an envoy of Iberia, and accompany Irene and Kal&#x27;tsit to the Ægir city.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">Thank you, Maestro.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Saint Carmen</div><div class="text">Don&#x27;t thank me. This isn&#x27;t a reward. Your work since joining the Inquisition has not been particularly good.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I chose Irene because she has already readied herself, even going as far as to renounce her long-standing faith.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And I chose you because you are still bewildered and frustrated. Your weakness will consume you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Joining the Inquisition was a test. Returning to your homeland is another.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Jordi</div><div class="text">I... I understand.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/51_g12_seabed.png" alt="51_g12_seabed"><div class="cap">51_g12_seabed</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_463_1%231%241.png" alt=""><div class="bubble"><div class="who">Rocinante</div><div class="text">(Agitated whinny)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4145_Ulpia_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is the deepest part of the trench.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They hollowed out its sides to make their nest. That&#x27;s why we never noticed it before, despite circling this place several times.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_463_1%231%241.png" alt=""><div class="bubble"><div class="who">Rocinante</div><div class="text">(Wary whinny)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4145_Ulpia_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">Yes. I smell it too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This scent... After destroying the ocean&#x27;s native ecosystem, the Seaborn have created a new one that serves only them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A comprehensive Seaborn ecosystem, where once it only existed in an oceanic abyss.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Return, Rocinante. I will carry on alone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_463_1%231%241.png" alt=""><div class="bubble"><div class="who">Rocinante</div><div class="text">(Swaying its neck in annoyance)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4145_Ulpia_1%231%241.png" alt=""><div class="bubble"><div class="who">Ulpianus</div><div class="text">The entire continental shelf has changed. I must know who churned these waves.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tell the Knight to continue the hunt.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We will not be parted for long.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/51_i03.png" alt="51_i03"></div>
+<div class="narr">Ulpianus swims into the nest.</div>
+<div class="narr">He chooses not to use stealth. Luminescent vegetative Seaborn light up every corner of the nest. There is nowhere to hide in the first place.</div>
+<div class="narr">Atop sets of spiraling blades, minute and curiously-shaped organisms sleep, or perhaps drift along.</div>
+<div class="narr">The rocks of the seafloor cannot be seen. The fine tendrils of the nethersea brand slowly sway in the current, catching fragments of organic matter. They weave together into thick mats, drowning out any sound Ulpianius makes.</div>
+<div class="narr">He can sense the changes in his own body. His consciousness extends and his body relaxes, as though every cell in his body is trying to respond to something.</div>
+<div class="narr">He is clearly an invader, but the entire lair blooms in response to him.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Seaborn</div><div class="text">Ul... Ul-pian... Guh... Ul-pianus. Kin.</div></div></div>
+<div class="narr">Ulpianus is nearly able to see through the approaching Seaborn&#x27;s translucent body. He waits for it to spit out its clumsy words about preying or being preyed on by him, but nothing comes.</div>
+<div class="narr">The Seaborn thinks about his thoughts.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Seaborn</div><div class="text">Finally. You have traveled far.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Here. Sufficient nutrients. Shed your cumbersome flesh.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Return. Grow. Migrate.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ulpianus</div><div class="text">Hmph.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Seaborn</div><div class="text">For you, I was born, Ul-pianus. Only for you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I untangle your. Doubt. I guide you. Return to the embrace of we many.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ulpianus</div><div class="text">Why did you migrate? Where will you go?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Seaborn</div><div class="text">You still waver, Ul-pianus.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You must know we many, kin. You must know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The genesezoic will soon awaken. The genesezoic must return. A new Cycle. Develop the ocean. Leave the ocean.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ulpianus</div><div class="text">The genesezoic will awaken? Leave the ocean?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Seaborn</div><div class="text">We many. See. A new path ahead. We hurry—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Ulpianus</div><div class="text">...What connection is there between you and the affairs of the city?</div></div></div></div><div class="nav"><span>← Prev</span><a href="level_act34side_01_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

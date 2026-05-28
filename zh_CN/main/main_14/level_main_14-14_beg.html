@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>抢占舷侧区域 · 慈悲灯塔</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">主线</a> / <a href="index.html">慈悲灯塔</a> / <span>14-16</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/main/main_14/level_main_14-14_beg.html" class="">English</a></div>
+  </div>
+  <h1>抢占舷侧区域<span class="section-tag">14-16 · 行动前</span></h1><div class="meta">慈悲灯塔</div><div class="story-info">博士与W在奇怪的合作氛围中继续寻找飞空艇核心，却遭遇了与当年刺杀特蕾西娅的刺客极为相似的敌人，如今他们已经站到了军事委员会那边。</div><div class="story-body"><div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i22.png" alt="49_i22"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">我一直在想，你什么时候才会来找我，凯尔希。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">可惜你来晚了点，错过了最美妙的时刻。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那株最早破芽的花在昨晚枯萎死掉了，但你再看看现在的它。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">还是充满活力。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我没有看出和之前有任何区别。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">正是如此。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">它自枯萎中诞生，转眼便如此茁壮——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唉，要是你也能亲眼看到这个诞生在源石上的奇迹有多好......</div></div></div>
+<div class="narr">这片自源石上诞生的花圃，凝聚了特蕾西娅太多的心血。</div>
+<div class="narr">除战争以外，特蕾西娅为萨卡兹所探寻到的另一条道路近在眼前。</div>
+<div class="narr">可这条路的未来到底通向哪里？</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">带博士来看过这片花圃之后，你就开始花更多时间在这里停留。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">巴别塔还有很多事等着你这位议长处理，但连今天的全体会议你都缺席了。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">现在不光有凯尔希医生在，还有博士能帮忙，我偶尔稍稍偷懒算不上什么大事，不是吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">我了解你，特蕾西娅。在大事上，你从不开玩笑。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">凯尔希......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">嗯？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">博士有向你谈起过自己的看法吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没有。我不知道你听到了些什么，但想必博士并没有完全支持你的想法。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">......我不会放弃，凯尔希。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果这就是解决如今萨卡兹困境的办法，我会去找特雷西斯。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我会将这条路展示给所有的萨卡兹看，我们并非只有于仇恨中无尽轮回这唯一的宿命。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">特蕾西娅——</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">特蕾西娅</div><div class="text">凯尔希，请先听我说。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我很清楚这其中可能会隐藏着风险，但我相信你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果我在这条道路上走向不可控的未来，请拉住我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我知道你能做到，尽管你总是对许多事缄默不言。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">凯尔希</div><div class="text">如果真想实现你所期待的那个未来，我们仍需要争取博士的支持。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在利用源石这件事上，博士......不可替代。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但不论最后结果如何......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......我保证，那时我会在你身边。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/37_g9_airshipdockcorridor.png" alt="37_g9_airshipdockcorridor"><div class="cap">37_g9_airshipdockcorridor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（威胁的低吼）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我拉住他了，别叫。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呵，我不会松手，你放心。</div></div></div>
+<div class="narr">大风在你的耳边呼啸，你能透过破碎的舷窗看到下方的碎片大厦和满目疮痍的战场。</div>
+<div class="narr">接连不断的剧烈爆炸随时都会将你甩出去，而现在拉住你的人......是W。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li><li>......</li></ul></div>
+<div class="narr">你很少见到如此严肃的W。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（焦急的低吼）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%239%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我在考虑一件很重要的事，Mon3tr，现在别惹我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">虽然老女人不靠谱，但她从不会拿你冒险。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">既然这么危险的登舰任务她都坚持带上你——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......想要见到殿下，想要停下这艘破船，一定用得上你。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*萨卡兹粗口*。只能暂时放过你了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">上来吧。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......谢谢。</li><li>刚才——</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2310%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">刚才什么也没有发生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">接下来怎么走？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我还能听到我背后炸弹的响声。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">定位用的。你就当作爆炸是它的附加功能吧。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">要是你也被卷走了，我总得找得到你才行——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对呀！当时怎么忘了给老女人也上一个！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（不屑的低鸣）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">给你都是浪费，小怪物。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">赶紧想想该怎么走，空心罐头。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">剩下的时间不多，这破船眼看就要撞上外面那个怪东西......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">要死也得见到殿下之后再死。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>在我们登舰之后，你一直很急躁。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">哦？我都留你一命了，难道不是比平常更情绪稳定吗？</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......是因为要见到特蕾西娅了吗？</li><li>......是因为担心赫德雷和伊内丝吗？</li><li>......是因为第一次和我单独相处吗？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%236%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我现在既要给老女人当保姆带孩子，还要考虑怎么弄掉那个核心。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我没工夫陪你玩问答游戏。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">嘁，他俩有什么好担心的？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">伊内丝对怎么让死人活过来已经很熟练了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她会处理好的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......不要试图挑衅我。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果不是现在，我可以保证你根本没机会问这个问题。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">所以，不要再用一些自以为是的蠢问题来烦我——</div></div></div>
+<div class="narr">阴影从金属中浮现，它们无处不在。</div>
+<div class="narr">死魂灵，无处不在。</div>
+<div class="narr">它已经来到了W的身前。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1340_1%231%241.png" alt=""><div class="bubble"><div class="who">船舱中的影子</div><div class="text">你也是萨卡兹！众魂的愤怒，众魂的怒吼，难道你能够充耳不闻！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你不该——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">抱歉，手滑了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对了，你刚想说什么来着？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">等等，你不会是特意来告诉我殿下现在在哪吧？</div></div></div>
+<div class="narr">......</div>
+<div class="narr">......</div>
+<div class="narr">......</div>
+<div class="narr">金属撕扯的声音持续不断，整艘飞空艇在怒号。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（紧张地把你的衣服钩住）</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>飞空艇......在发怒？</li><li>死魂灵......在发怒？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%236%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">唔，看来它也不怎么有理性嘛......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你能不能趁现在找到这艘破船上能量波动最明显的地方？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那里应该就是它的核心。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li><li>......我不会这招。</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%239%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（嘲笑地看着W）</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......等等，我还有一个办法。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>也许我能算出源石浓度变化最明显的方位！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%234%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">那就赶紧！这怪家伙的耐心显然比我想的还要差！</div></div></div>
+<div class="narr">它看上去可没那么懂礼貌，等着你算完......</div>
+<div class="narr">嘶......</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">喂，黑影怪，客人给你家送点礼，应该不过分吧？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">接住了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">小怪物，要是你护不住他，老女人可一定会找你麻烦。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（高昂的吼叫）</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这边！但是墙体这么厚，炸弹不可能穿透——</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你是不是忘了这家伙？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">按我以前的测试，它可不只是皮糙肉厚而已。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">抱紧它，博士！我给你俩放个大烟花！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">爆炸的一瞬间，让它护住你全力撞进去！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">听懂了，小怪物？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（兴奋的嘶吼）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2313%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">那就准备好。三！二！一！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“砰”！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我有点看不清——</li><li>我的头有点晕——</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">W</div><div class="text">快......到......</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我的耳朵好像有点......听不清......</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/37_g9_airshipdockcorridor.png" alt="37_g9_airshipdockcorridor"><div class="cap">37_g9_airshipdockcorridor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">嘿，Doctor，现在感觉怎么样？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">刚才又摸了一下墙壁，你们好像也不用非要如此精准地撞进爆炸点？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">让你白白受苦真是抱歉。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（愤怒地挥手）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">小心点你的爪子，他的小身板可比不上你。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Mon3tr，我没事，可以放我下来了......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你“脸色”看起来真差。呵，不用在我面前装出这副样子。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这点小事，我可不信你扛不住。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我在担心凯尔希......</li><li>如果阿米娅也遭遇了这些......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2311%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">我可不记得老女人有这么脆弱，她——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">（虽然已经不怎么大喘气了，但好像她的伤的确没有痊愈......这小怪物还被送过来了......）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（低落的鸣叫）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%239%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">别喊了，让人心烦。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你还能活蹦乱跳，老女人就不会有事......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">听伊内丝说，小兔子在诺伯特区已经对抗过一次这鬼东西。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在怎么对付这个怪东西上，她比我们都有经验。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哼，比起死魂灵，恐怕你落在我手上才让她更担心。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（威胁的吼叫）</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%239%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">闭嘴，现在可没老女人给你撑腰。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">小兔子不会有事，我说的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor，别磨磨蹭蹭了，该走了——</div></div></div>
+<div class="narr">W走在长廊上，不经意透过玻璃望向窗外，愣神了片刻。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%238%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">走吧，没时间旅游了。</div></div></div>
+<div class="narr">你来到了窗边，看到了下方的战场。</div>
+<div class="narr">诸王之息发出的金色光芒仍在天空闪烁，维多利亚的反攻此刻应该正在进行吧？</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>维多利亚的反攻已经开始了。</li><li>希望罗德岛的各位能够帮上忙......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2312%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">那下面现在就是地狱，不用看了。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你刚刚......在为战场悲伤？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2312%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......死的萨卡兹够多了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">跟上。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我有很多事，想要问问殿下。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（警惕地张望）</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......Mon3tr？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/npc_10002.png" alt=""><div class="bubble"><div class="who">Mon3tr</div><div class="text">（愤怒地攻击地面）</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">阴影的黑潮无声无息地自你的脚下出现，以不可思议的速度将你拖入了走廊尽头的黑暗中。</div>
+<div class="narr">你感受到一柄锋利的刀刃已经抵上了你的后颈。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>这里不止有死魂灵——！</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">（低沉的嘶吼）</div></div></div>
+<div class="narr">黑色的潮水将疯狂挣扎的Mon3tr死死地包裹，让其难以动弹。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">W</div><div class="text">*萨卡兹粗口*，在我的眼皮子底下抢人！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Mon3tr</div><div class="text">（愤怒的嘶吼）</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">W</div><div class="text">给我把人还回来！</div></div></div>
+<div class="narr">你看到走廊尽头的黑暗里闪出了一道光亮，随即传来的便是一声爆炸的轰鸣。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/37_g9_airshipdockcorridor.png" alt="37_g9_airshipdockcorridor"><div class="cap">37_g9_airshipdockcorridor</div></div>
+<div class="narr">从背后传来的冲击是如此强烈，以至于让你狠狠地跌出黑暗，撞向地面。</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......好痛！</li><li>......我背后的炸弹？！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">怎么样，能定位的新型推进装置，还不错吧？我都说过了，爆炸只是附加功能。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过让你疼上两三天还是能做到的。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哈，我们的配合还真是默契！</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我没同意过这种配合！</li><li>你应该提前提醒我！</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%231%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">要不要配合，怎么配合，本来就是我说了算。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">喂，躲在里面的人，是不是你也吓了一跳？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1307_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你还是没有什么变化，W。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%235%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">——？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1307_1%231%241.png" alt=""><div class="bubble"><div class="who">飞空艇的“幽灵”</div><div class="text">你不能再往前了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">还有你，“博士”。</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>你......是活着的人。</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>我应该见过你吗？</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%239%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">......</div></div></div>
+<div class="narr">她想起了自己回到巴别塔的那天。</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/49_i16_1.png" alt="49_i16_1"></div>
+<div class="narr">她想起了那扇破碎的大门，那个染血的标记......</div>
+<div class="narr">还有那些躲藏在面罩之下的......凶手。</div>
+<div class="narr">他们夺走了特蕾西娅的生命。</div>
+<div class="narr">那个特蕾西娅。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/37_g9_airshipdockcorridor.png" alt="37_g9_airshipdockcorridor"><div class="cap">37_g9_airshipdockcorridor</div></div>
+<div class="narr">W发现自己此刻无比冷静。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1035_wisdel_1%2312%241.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">你一定会死。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而且，会死得很惨。</div></div></div></div><div class="nav"><a href="level_main_14-13_end.html">← 上一段</a><a href="level_main_14-14_end.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

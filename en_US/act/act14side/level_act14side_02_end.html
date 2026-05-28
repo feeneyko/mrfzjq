@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smoothing Things Over · Break the Ice</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Break the Ice</a> / <span>BI-2</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act14side/level_act14side_02_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Smoothing Things Over<span class="section-tag">BI-2 · After Operation</span></h1><div class="meta">Break the Ice</div><div class="story-info">Gnosis covertly meets with Sciurus, neither happier for it.
+The Doctor proceeds to the valleys to placate the people, and comes across Weiss on the way.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g8_nobleroom.png" alt="24_g8_nobleroom"><div class="cap">24_g8_nobleroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%231%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Well, well, you actually came to us Browntails&#x27; territory for a visit all by your lonesome. You got balls, Gnosis Edelweiss.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">I&#x27;ve always been upright and honorable.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%231%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Hmph, that&#x27;s rich coming from you after you were kicked out of Karlan Trade for your shady business.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">I thought I&#x27;d see Ratatos here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%231%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Anyone could bluff like that. Ratatos wasn&#x27;t going to just take your word so easily.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%232%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As I said before, it takes two to cooperate. It seems my words have reached her, and that&#x27;s more than enough to me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Hmph, talk all you want.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, since you came here all by yourself... You said last time &#x27;things have come to this.&#x27; What&#x27;s that all about?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What things have come to what?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%236%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">*Sigh*.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why do you think Enciodes proposed this transfer of powers?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Hmph, isn&#x27;t that because he can&#x27;t take on both the Paleroches and us, and so he figured to compromise?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%235%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">Compromise?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hoh, compromise.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Think again, Madame Sciurus. I dare say that your sister thinks otherwise.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ever since Enciodes came back to Kjerag, was there any single thing he did that wasn&#x27;t in pursuit of his ultimate victory? Is his proposal to put the Saintess back in power really a compromise?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%239%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">Here&#x27;s a hint—The Ceremony.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%239%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Hm...? What about the Ceremony? Don&#x27;t tell me he&#x27;s going to throw a fit there and refuse to turn over his powers.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">The Ceremony is nigh, and there will be more trains coming in and out of the Silverashes&#x27; territory transporting both resources and people.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Take a guess, why did Enciodes himself propose to hand the Saintess his powers, even arranging for it to happen on the day of the Ceremony?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Arctosz&#x27;s a short-sighted man. He thinks Enciodes will pull some kind of dirty trick once she&#x27;s in control.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And so he reassigned his men to guard the valleys and the mines, even to keep an eye on the Doctor that Enciodes invited.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But the funny thing is that he doesn&#x27;t know it&#x27;s all pointless!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%234%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">......!</div></div></div>
+<div class="narr">Sciurus looks to a corner of the room for a brief moment. There is nothing there, but Gnosis notices it.</div>
+<div class="narr">Gnosis looks straight at the wall there.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%237%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">Ratatos, you can&#x27;t be that stupid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I will tell you what Enciodes is planning.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you&#x27;d better see me yourself next time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even if I have to see his schemes come to fruition and you two imprisoned—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I won&#x27;t allow myself be made a fool of again.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Wallboards</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_206_gnosis_1%232%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">Now excuse me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Ratatos...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey, Ratatos! I know you&#x27;re there!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Wallboards</div><div class="text">Pipe down, Sciurus.</div></div></div>
+<div class="narr">There is a rumbling noise, and the wallboard slowly moves to the side. Ratatos, sitting inside, slowly rises and steps out.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">You believe in what he said?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Maybe I should say I&#x27;m shocked that you never considered the possibility, sister.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%238%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">But even the Saintess is on our side now!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Can Enciodes really be so unscrupulous that he...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">That he...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t be silly, Sciurus.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From the moment he first trampled our faith, when he laid his train tracks straight to Kjerag and broke away from the Saintess...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, ever since he so calmly agreed to let his sister become the Saintess in exchange for his seat in the Tri-Clan Council, he hasn&#x27;t cared.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We all know how well those siblings got along in their earlier years. I also once thought that letting the devout Enya become the Vine-Bead Court&#x27;s hostage was a brilliant move.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But now? Hmph, I wouldn&#x27;t be surprised if he one day brought his men up the mountain to burn down the whole Vine-Bead Court.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Don&#x27;t tell me Enciodes is really going to use force...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Slow down, sister.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s another possibility. He could be pulling our leg.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%236%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Why...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%232%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">To make us think he&#x27;s up to something shady so we end up making the first move.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">What good does that do him?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%237%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">If he&#x27;s not trying to have somebody else do his dirty work and off his enemies, he&#x27;s trying to find an excuse to start a war and earn himself some clout in the end.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hmph, whatever it is, we&#x27;re probably all in trouble.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%234%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Well...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How do we figure this out?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%239%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">No idea.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%234%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">None at all?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%239%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">I&#x27;m not exactly omniscient here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But if he&#x27;s lying, there&#x27;s got to be holes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_270_1%231%241.png" alt=""><div class="bubble"><div class="who">Browntail Family Noble</div><div class="text">Your orders, Matriarch?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%238%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Dig up anything you can find on Gnosis. We looked into him before, but he&#x27;s had lots of dealings since his job got handed off. There should be a lot more clues now. Start there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_270_1%231%241.png" alt=""><div class="bubble"><div class="who">Browntail Family Noble</div><div class="text">Understood.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">You&#x27;d better not disappoint me, Gnosis Edelweiss.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%236%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Ratatos... If he was telling the truth, would you really take him in?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Why not?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%238%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">He&#x27;s an Edelweiss! The family who got Enciodes&#x27;s father killed fifteen years ago!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">So what?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">They betrayed the Silverashes, but when Enciodes came back from studying in Victoria, this guy tagged along, wanting a slice of the pie.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you ask me, he&#x27;s the type who doesn&#x27;t give two licks about loyalty, only profit and success. Now that he&#x27;s made an enemy of his master, he&#x27;s got to find a new sugar daddy to get his revenge.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%232%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Right, that&#x27;s the most obvious reason.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%237%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">So you...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Sciurus... &#x27;The Silverashes control the gates, the Paleroches have their rich farmlands and their army, but the Browntails have nothing. Why do you think we stand as one of Kjerag&#x27;s three families?&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%236%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">&#x27;...Because what we do earns the highest return.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I learned Grandpa&#x27;s lessons just as well as you did.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Right, since I&#x27;m letting you in, there are lots of things that you really must spend some time pondering.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As a child of the Browntails, in times like these, you need to know the best course of action. It&#x27;s more than just knowing the risks of dealing with a criminal. You need to learn to assess all this yourself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Profit always comes with risks. We need to learn how to mitigate these risks beyond just shutting them out along with the profits, dear sister.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Our biggest worry is that everything he just said was true, but also part of a lie.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Another thing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve gotten really close with that servant of yours, haven&#x27;t you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%236%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">You mean Monch?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Monch, conch, gonch, whatever.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t trust anyone too much, sister.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_262_1%238%241.png" alt=""><div class="bubble"><div class="who">Sciurus</div><div class="text">Grr, I don&#x27;t need you to tell me what to do!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll show you how much stronger I can make Browntails without you!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%232%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">*Sigh*... I should never have given Enciodes this chance.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have that braindead moron Arctosz to thank. Take Enya away from her scumbag brother? Don&#x27;t make me laugh.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whatever. Yucatan.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_263_1%232%241.png" alt=""><div class="bubble"><div class="who">Yucatan</div><div class="text">Yes, Matriarch?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_253_1%231%241.png" alt=""><div class="bubble"><div class="who">Ratatos</div><div class="text">Let the Paleroches know that I&#x27;ll visit in a few days.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_263_1%232%241.png" alt=""><div class="bubble"><div class="who">Yucatan</div><div class="text">Of course.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g7_thoroughfare.png" alt="24_g7_thoroughfare"><div class="cap">24_g7_thoroughfare</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_261_1%237%241.png" alt=""><div class="bubble"><div class="who">Valais</div><div class="text">Doctor, we&#x27;ve entered the valley.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It&#x27;s about time.</li><li>My butt hurts.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_261_1%235%241.png" alt=""><div class="bubble"><div class="who">Valais</div><div class="text">Sorry... Sir Arctosz never permitted any rail tracks to be built in the Paleroches&#x27; territory, and it&#x27;s not in our habit to use cars.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I suppose it may not be easy for a foreigner like you to ride a burdenbeast.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%237%241.png" alt=""><div class="bubble"><div class="who">Chester</div><div class="text">Dr. Doctor, welcome. I am Sir Enciodes&#x27;s secretary, Chester.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please allow me to accompany you as you survey the area.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To give Sir Arctosz the absolute peace of mind, we&#x27;ll ask you to inspect each and every factory and mine site before they&#x27;re declared closed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once you have checked everything here, both Sir Arctosz and the Great Elder will give their approval. Only then will the transfer be considered complete.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What do you think, General Valais?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_261_1%235%241.png" alt=""><div class="bubble"><div class="who">Valais</div><div class="text">That would be for the best, of course.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%237%241.png" alt=""><div class="bubble"><div class="who">Chester</div><div class="text">In that case, please follow me. We&#x27;ll take stroll and get a grasp of the environment and situation here.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g9_manoravenue.png" alt="24_g9_manoravenue"><div class="cap">24_g9_manoravenue</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_279_1%231%241.png" alt=""><div class="bubble"><div class="who">Senior Subject</div><div class="text">Still, this is just way too sudden...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_277_1%231%241.png" alt=""><div class="bubble"><div class="who">Young Subject</div><div class="text">Right, I had heard there was bad news from the last Tri-Clan Council. But that&#x27;s not enough to send us running.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_279_1%231%241.png" alt=""><div class="bubble"><div class="who">Senior Subject</div><div class="text">My son was hurt while working in the factory not too long ago. I&#x27;m still waiting for his medical subsidy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We... We&#x27;ve always believed in Sir Enciodes! He&#x27;s not going to abandon us, is he?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_277_1%231%241.png" alt=""><div class="bubble"><div class="who">Young Subject</div><div class="text">All of us put in so much work to improve the Kjerag&#x27;s livelihood. He can&#x27;t just shut the factory down like that!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Infected Subject</div><div class="text">What about Infected like us? We finally found work at the factory...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Please, everyone, calm down. Listen to me—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, nice timing, Doctor.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Courier?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">It&#x27;s been a while. I&#x27;m really sorry that we dragged you into our local affairs.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please bear with it for a little longer. Once the Ceremony is over, the Silverashes will properly receive you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, before that, I think I might need your help with something.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You want me to help calm these people down?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%238%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Sharp as always, Doctor.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Looks like you&#x27;re doing well yourself.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%238%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Don&#x27;t be so humble, Doctor. Your abilities are on another level. I&#x27;ve seen for myself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And we&#x27;ll need your help with many other things as well.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Well then, I&#x27;ll need to borrow the Doctor for this job of mine. Just for a bit. Would the Paleroches mind?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_261_1%231%241.png" alt=""><div class="bubble"><div class="who">Valais</div><div class="text">By all means.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Friends and countrymen, Sir Enciodes has personally instructed me to offer all those affected an explanation on his behalf.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It so happens that the Doctor is here too. The Doctor is Sir Enciodes&#x27;s esteemed guest, and Karlan Trade&#x27;s current chief technical officer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Today, together with all of you, our guest will bear witness to this message:</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At the Tri-Clan Council, the great houses and the Vine-Bead Court reached an understanding for the interim, and will begin discussion on any follow-up matters.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because of the grave mistakes made by Gnosis, the previous CTO, Karlan Trade must shut down all of its factories in a show of goodwill.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once the transfer of powers is complete, the Silverash family will actively work with the Vine-Bead Court and advocate for a gradual reopening of some of our factories in a controlled, carefully-planned manner.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_261_1%233%241.png" alt=""><div class="bubble"><div class="who">Valais</div><div class="text">Hmph...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please trust me and trust the Silverash family that this is for the best.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now, as I introduced earlier, and will emphasize once more, this is Sir Enciodes&#x27;s esteemed guest as well as Karlan Trade&#x27;s current CTO.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Our guest is a master not only of the production and mining technologies that we are all familiar with, but also the prevention and treatment of Oripathy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Doctor likewise represents a medical organization that will help Karlan Trade answer the critical questions that we are all struggling with, including the medical support issue we were just discussing.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Such things would not be possible in our mountains of yore, and, together with the Doctor, Karlan Trade will bring about this new future.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>(Nod)</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">At the same time, it is Sir Enciodes&#x27;s wish for the territorial subjects of the other two houses to cast aside their differences and help us build Kjerag.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There is no need for panic. Please put your faith in Sir Enciodes and the Saintess. Have faith that Kjeragandr will never abandon Her children.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_279_1%231%241.png" alt=""><div class="bubble"><div class="who">Senior Subject</div><div class="text">Aah, by Kjeragandr!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_277_1%231%241.png" alt=""><div class="bubble"><div class="who">Young Subject</div><div class="text">By Kjeragandr.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%233%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">By Kjeragandr.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now then, I will...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Infected Subject</div><div class="text">Wait! Hold on a minute!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After hearing you out... I-I have something to say!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Please.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Infected Subject</div><div class="text">It&#x27;s not that we don&#x27;t trust the other two houses.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s just we&#x27;ve really had it fairly nice the last couple years thanks to Sir Enciodes. We have work, we get enough food to eat, and we even get painkillers.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We never had it so easy before...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Since we heard the factory was going to be shut down, we&#x27;ve all been worried that the good times are coming to an end...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Please rest assured.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Doctor, as I introduced just now, is an Oripathy scholar. Karlan Trade invited the Doctor here precisely because we are concerned about our Infected workforce&#x27;s livelihood.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So please put your faith in us, Karlan Trade.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>One moment.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Yes, is there something you would like to add, Doctor?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I was told Mr. Enciodes is more practical.</li><li>......</li><li>Trust alone isn&#x27;t going to keep anyone fed.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%236%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">There are also those of the mind that his ideas are impractical.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">My apologies. I have misspoken.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*Sigh*... Very well. Looks like I&#x27;m not going to fool you, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_279_1%231%241.png" alt=""><div class="bubble"><div class="who">Senior Subject</div><div class="text">Ugh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%236%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">So merciless, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Friends, it&#x27;s true. I am not done yet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We didn&#x27;t keep our internal affairs in check, and that led to you losing your jobs. That is entirely our fault.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Karlan Trade promises to keep your original positions unfilled. You will continue to be compensated, and we will arrange job opportunities with equal or even greater pay and benefits.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And I am sure you can already tell that, unlike Gnosis, the Doctor actually understands what you truly need.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Doctor will bring Karlan Trade the technologies that will truly benefit our day-to-day lives.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right, this is what Sir Enciodes truly wanted all of us to know!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_277_1%231%241.png" alt=""><div class="bubble"><div class="who">Young Subject</div><div class="text">Sound great! I&#x27;ll head back and let everybody know!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_279_1%231%241.png" alt=""><div class="bubble"><div class="who">Senior Subject</div><div class="text">Good, that&#x27;s very good, but don&#x27;t forget Kjeragandr&#x27;s teachings, young man...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%233%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Phew...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_267_1%237%241.png" alt=""><div class="bubble"><div class="who">Chester</div><div class="text">Good work.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Not at all. It&#x27;s my job to speak for him.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Is that the help you wanted?</li><li>......</li><li>Convincing performance.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%231%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Thank you, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I&#x27;m sure you&#x27;ll agree that this was worth helping?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Okay, Doctor... I&#x27;ll take you out for some fondue. My treat.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Not at all, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Actually, if it wasn&#x27;t for you, I probably would&#x27;ve forgotten to say all that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Okay, I will take my leave now.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Courier—</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%238%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">Yes?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Mr. Enciodes will be pleased.</li><li>You can&#x27;t be here just for that.</li><li>You too, Courier?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_198_blackd_1%232%241.png" alt=""><div class="bubble"><div class="who">Weiss</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m not sure what you are talking about, Doctor.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/24_g11_snowylane.png" alt="24_g11_snowylane"><div class="cap">24_g11_snowylane</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%231%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All the requirements have been met, just as Madame Sciurus expected.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Enciodes sent Weiss presumably as some kind of insurance policy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But that&#x27;s not nearly enough.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You are to ensure that things go according to Madame Sciurus&#x27;s plans once Weiss is gone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%237%241.png" alt=""><div class="bubble"><div class="who">Kjerag Warriors</div><div class="text">Yes!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%231%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">You were followed.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%233%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">......!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What?! I didn&#x27;t...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%237%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">There was only one of them, now long gone, running after the men Sciurus assigned to you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%235%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">I&#x27;m very sorry for betraying your expectations, Sir Gnosis.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%235%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">No, perhaps this is for the better.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%232%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">I&#x27;m prepared to be your pawn and to do whatever you say.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%232%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">I&#x27;m just a researcher, Monch.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Pawns are meaningless to me. What I want is a partner that I can work with.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%231%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%231%241.png" alt=""><div class="bubble"><div class="who">Gnosis</div><div class="text">Proceed with the plan. Don&#x27;t worry. Ratatos and Sciurus won&#x27;t catch you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_255_1%236%241.png" alt=""><div class="bubble"><div class="who">Monch</div><div class="text">Understood.</div></div></div></div><div class="nav"><a href="level_act14side_02_beg.html">← Prev</a><a href="level_act14side_03_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

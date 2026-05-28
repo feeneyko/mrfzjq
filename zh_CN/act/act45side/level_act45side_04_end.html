@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>名为客房区的迷宫 · 无忧梦呓</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">无忧梦呓</a> / <span>SS-4</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act45side/level_act45side_04_end.html" class="">English</a></div>
+  </div>
+  <h1>名为客房区的迷宫<span class="section-tag">SS-4 · 行动后</span></h1><div class="meta">无忧梦呓</div><div class="story-info">在艾雅法拉的鼓励下，初华终于决定离开小岛，去寻找祥子。祥子也终于到达了初华的住处，然而两人却阴差阳错地错过了。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">当重复的事情做了无数次，人总会丧失对其的感知。</div>
+<div class="narr">当重复的一天度过了无数遍，人便会陷入这个循环之中。</div>
+<div class="narr">无从自觉，无法自拔。</div>
+<div class="narr">就像一个漫长的、无尽的、无解的梦一样。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_hotel.png" alt="bg_hotel"><div class="cap">bg_hotel</div></div>
+<div class="narr">伴随着山中羽兽的啼鸣，每天清晨从床上自然地苏醒。</div>
+<div class="narr">倘若想睡个懒觉，也不会有人催促，把头重新埋进被子里就好。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="narr">收拾好被子和床铺，在厨房简单地做一顿早餐。</div>
+<div class="narr">煎蛋，面包，牛奶......</div>
+<div class="narr">想吃什么，想喝什么，全凭自己的心意。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ltroom.png" alt="bg_ltroom"><div class="cap">bg_ltroom</div></div>
+<div class="narr">一个人坐在钢琴旁，按下一个琴键，将未调的琴弦一点点调成正确的音调。不知过了多久，再调下一根琴弦。</div>
+<div class="narr">等到调完最后一根琴弦，第一根琴弦的音调又变得不准。</div>
+<div class="narr">于是，如此反复。</div>
+<div class="narr">一个人躺在盛夏的草地上，看着一览无余的星空。</div>
+<div class="narr">她知道，即使星星的位置看起来和昨天并无区别，但其实它们一直在永不停歇地变化。</div>
+<div class="narr">两颗现在相邻的星星，即使被人们赋予意义，在千万年后，也会变得无比遥远，毫无瓜葛。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">就和人与人之间的关系一样。</div>
+<div class="narr">今天，她也没有回来。</div>
+<div class="narr">在渺无人烟的小岛，仅凭脑海中微弱的记忆，构建一个不可确信的梦。</div>
+<div class="narr">囿于记忆的牢笼，如同人偶一般。</div>
+<div class="narr">执念与悲伤填充着身体，膨胀，膨胀。</div>
+<div class="narr">却动弹不得。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">一开始，我以为她只是突发奇想，去附近散了散步。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">后来，我从码头工人的口中得知，她那天独自登上了离岛的航船......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%2311%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">你为什么不去找她呢？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">这样的一天实在有过太多太多次，多到我不能确认它究竟是否真实。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我......我已经想不起她的模样，也记不起她的名字了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">也许这就是我的归宿......在这静静地等待。</div></div></div>
+<div class="subtitle">等待她的归来，抑或是我的死亡。</div>
+<div class="subtitle">悲伤的源泉终有一天会干涸，没有更多的眼泪，便不会再哭泣了。</div>
+<div class="subtitle">这样无人关心的角落，就是我最好的归宿。</div>
+<div class="sticker">“不行！”<br></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%238%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">——！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%2311%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">初华小姐，你在哭，说明你还不想放弃，对吧？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这不是你想要的结局，对吧？！</div></div></div>
+<div class="narr">至少......</div>
+<div class="narr">至少，应该站在她的面前，表达自己的想法吧。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%237%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">我能听出来的话，她一定也能明白你的心意。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不用尽全力呐喊，又怎么能传达给她呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">连我都能听到你的声音，她肯定也可以的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%237%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">我......可是你的听力状况，我不能留下你一个人——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">再怎么说，我也是接受过罗德岛训练的干员，你就放心好啦。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">作为本就是萍水相逢的人，初华小姐，你已经为我做了很多事了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">你该问问自己的内心——现在到底想要做什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2312%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">（小声）我想找到她......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......没什么。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">初华小姐，我看得懂唇语哦。</div></div></div>
+<div class="sticker">“看吧，你已无路可逃”<br><br><br>“将逐渐虚弱的你，紧紧关住——”<br><br><br>“你知晓我渴望......”<br><br><br>“我渴望......我渴望......”<br><br><br>“我如此渴望着你......”<br></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/41_g5_siestaunbuiltland_d.png" alt="41_g5_siestaunbuiltland_d"><div class="cap">41_g5_siestaunbuiltland_d</div></div>
+<div class="narr">当初华察觉到时，她已经在全力地奔跑了。</div>
+<div class="narr">她感到胸腔前所未有地炙热，这种感觉甚至让她有些头晕目眩。</div>
+<div class="narr">而最后的一丝理智，还在不断地质问着她——</div>
+<div class="subtitle">连名字都记不清，连面貌都想不起......</div>
+<div class="subtitle">你又如何能在茫茫人海里找到她的身影？</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2311%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">可是我想见到她！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">无论如何，我都想再次见到她！</div></div></div>
+<div class="narr">她的声音先她一步，朝心中的方向飞去。</div>
+<div class="narr">而她，正奋力地朝自己声音的方向奔去。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/34_g6_noblelivingroom.png" alt="34_g6_noblelivingroom"><div class="cap">34_g6_noblelivingroom</div></div>
+<div class="narr">祥子顺利来到了别墅，这里的一切都跟莫菲丝让她看到的一模一样。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%2310%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">初华——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">一模一样的格局，一模一样的摆件......就连架子上的书都完全一样。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为什么......</div></div></div>
+<div class="narr">地面上一尘不染，厨房里摆满了过量的餐具，还有一张能坐下十多人的长桌。</div>
+<div class="narr">祥子无法想象初华一人生活于此的场景。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%232%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">既然是做梦，那就把痛苦的部分丢得一干二净啊......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">一定是她觉得，这里对于你们两人来说，都很重要吧。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">你就是这栋别墅的主人吧......初华小姐刚刚离开这。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%2314%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">......她去哪里了？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_180_amgoat_1%238%241.png" alt=""><div class="bubble"><div class="who">艾雅法拉</div><div class="text">她终于认清了自己的内心，决心去找你。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/65_g3_islandharbor.png" alt="65_g3_islandharbor"><div class="cap">65_g3_islandharbor</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">热心的船夫</div><div class="text">你要坐船吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2313%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">嗯，我想买张离岛的船票。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">热心的船夫</div><div class="text">唔，那你得等一会，我还在等另一个乘客。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">那个姑娘怎么还没回来呢......希望她已经找着人了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4184_dolris_1%2313%242.png" alt=""><div class="bubble"><div class="who">三角初华</div><div class="text">没关系的，我可以等......</div></div></div>
+<div class="narr">初华说到一半，硬生生地将下半句话咽了回去。好在船夫并没有察觉她的异样。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%231%241.png" alt=""><div class="bubble"><div class="who">热心的船夫</div><div class="text">唉，夜晚海上浪大雾浓，行船不安全。我得为你们的安全着想啊！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">喏，你听信号塔发的信号，那家伙在催我们走呢。</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i05_1.png" alt="65_i05_1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">三角初华</div><div class="text">塔上那个人，他在挥舞旗子......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">热心的船夫</div><div class="text">呵，那老酒鬼就指着我每月给他带的啤酒过活。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“一路平安，别忘记了——我的啤酒。”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哼，忘记谁的东西，也不能忘记他的那箱美酒啊！</div></div></div>
+<div class="narr">船夫说完，一个箭步登上了船。</div>
+<div class="narr">由海面吹来的风，将汽笛声带去小岛的每一个地方。</div>
+<div class="narr">看着这座寄托了美好和痛苦的小岛，初华有太多话想倾诉。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">三角初华</div><div class="text">......别忘记我。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="subtitle">不可能忘记的吧。</div>
+<div class="subtitle">我们从儿时就一起生活在这里。</div>
+<div class="subtitle">我相信，我们一定会再次相见——</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">初华——！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">呼......呼......呼......咳咳咳......</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i05_2.png" alt="65_i05_2"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">初华——初华——！</div></div></div>
+<div class="narr">祥子的声音已经沙哑。</div>
+<div class="narr">海浪一遍遍拍打着海岸，没有回声。</div>
+<div class="narr">返航的船已经驶离。</div>
+<div class="narr">现在，只留她一人独守于此。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/65_g4_islandharbor_n.png" alt="65_g4_islandharbor_n"><div class="cap">65_g4_islandharbor_n</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2318%241.png" alt=""><div class="bubble"><div class="who">莫菲丝</div><div class="text">等待了无数个日夜的少女，终于决心启程寻找自己的伙伴。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">没想到却在最后一刻错过......啧啧啧，好可惜哟。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2318%241.png" alt=""><div class="bubble"><div class="who">莫菲丝</div><div class="text">说实话，我没想到她会选择离开。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在我给她预设的结局里，她应该会忘掉关于你的一切，然后在这度过安逸无忧的一生。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不过现在看来，我有点低估你对她的影响了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我得承认，这局我们平手。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2320%241.png" alt=""><div class="bubble"><div class="who">莫菲丝</div><div class="text">可惜的是，以那艘航船的速度，她就快要遇到海难了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%236%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">什么......？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2320%241.png" alt=""><div class="bubble"><div class="who">莫菲丝</div><div class="text">为你们建造这整个岛已经够累了，难道还要我把整个泰拉造出来，让你们的苦情戏码在整片大地上一遍遍地上演？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">船马上要开到梦境的边际了，然后她就会落入下一次的梦境。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">一次次循环，一次次重置。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">她终会忘记你的存在。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4182_oblvns_1%239%242.png" alt=""><div class="bubble"><div class="who">丰川祥子</div><div class="text">不行，我要想办法追上她——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1942_1%2315%241.png" alt=""><div class="bubble"><div class="who">莫菲丝</div><div class="text">已经没有时间了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">祥子感到自己脚下一阵冰凉，不知何时，海水已经漫过脚踝。</div>
+<div class="narr">大海与天空的连接处已经被阴云笼罩，其中时不时闪着刺眼的光芒。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">初华——！</div></div></div>
+<div class="narr">海水像疯了一样不断地上涨，祥子感到有什么正在将自己往深渊里拖拽。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">初华——等着我！</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/49_g12_diving.png" alt="49_g12_diving"><div class="cap">49_g12_diving</div></div>
+<div class="narr">幽暗，冰冷，窒息。</div>
+<div class="narr">海水压迫着鼓膜，残存在胸腔中的氧气渐渐稀薄，就和头顶越来越微弱的光一样。</div>
+<div class="narr">视线愈发模糊，咸苦的海水从无法紧闭的嘴中涌入，试图侵占最后的意识。</div>
+<div class="narr">就这样，就这样，一直下坠。</div>
+<div class="narr">直到海底，暗无天日之处。</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="narr">“祥......”</div>
+<div class="narr">“祥......祥......”</div>
+<div class="narr">一个声音，正从无法辨听的方向靠近。</div>
+<div class="subtitle">这是哪？</div>
+<div class="subtitle">是谁在叫我？</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">快......快......快醒醒......</div></div></div>
+<div class="narr">熟悉的声音，许久未闻的声音。</div>
+<div class="narr">冰冷潮湿的海底已经消失得无影无踪，取而代之的是干燥的地面，还有四处纷飞的沙尘。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">是谁......</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/65_i06.png" alt="65_i06"></div>
+<div class="narr">祥子努力睁开双眼，一缕浅色的头发映入眼帘。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">若叶睦</div><div class="text">祥，你还好吗？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">......睦？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">若叶睦</div><div class="text">嗯，我在。</div></div></div>
+<div class="narr">再简单不过的一句话，却让祥子的眼泪夺眶而出。</div>
+<div class="narr">她确信不是飞沙的缘故，因为只有她自己知道，此刻她的内心有多么无助。</div>
+<div class="narr">她已无暇顾及自己一开口便会哽咽，她只想抓住唯一的那根稻草。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">丰川祥子</div><div class="text">睦......我......该怎么办......</div></div></div></div><div class="nav"><a href="level_act45side_04_beg.html">← 上一段</a><a href="level_act45side_05_beg.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

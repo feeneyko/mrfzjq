@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Promises of Reunion · Act or Die</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Act or Die</a> / <span>AD-5</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act43side/level_act43side_05_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Promises of Reunion<span class="section-tag">AD-5 · Before Operation</span></h1><div class="meta">Act or Die</div><div class="story-info">Moira suggests looking for a way to escape. Melanie seeks out Tippi to design the backdrop for her grand finale. While the script&#x27;s ending is still being written, Greta meets with Lucian, hoping he will become the new leading man. Meanwhile, Steven, struggling with writer&#x27;s block, hears a knock at his door...</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g6_proproom.png" alt="62_g6_proproom"><div class="cap">62_g6_proproom</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Old Dalton&#x27;s death and Shelly freezing in the cold storage were no accidents...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now Michael and Marion are dead too, in such a horrible way...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who&#x27;s behind all this? Why all the murders in the first place? And why are they so... gruesome?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">I have a feeling that Michael saw this coming.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He looked a lot more serious than usual when we met the night before the murder.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He must&#x27;ve figured out the real reason Dalton died, panicked, and decided to get out of here, but...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Now we&#x27;ll never know what he was hiding.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Maybe this all has to do with that accident five years ago, but what&#x27;s really worrying me is that...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The killer&#x27;s not even trying to make them look like accidents anymore. What if they&#x27;re trying to tell us—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That until the entire truth is brought to light, nobody is safe.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Omigosh, sorry Molly, did my babbling scare you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t worry, it doesn&#x27;t matter if there really is, like, a crazy killer running out there, I&#x27;ll protect you no matter how many of them there are.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">Oh, that&#x27;s not it, Detective Tippi. I was just thinking about... what I can do on my end.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Huh?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">Michael&#x27;s dead now, but that doesn&#x27;t mean what he wanted me to do doesn&#x27;t matter anymore.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The killer might be planning on using the escape landboats Miss Stone mentioned for their next move...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So if we can figure another way out, or put together something that&#x27;ll get us to the ground, or even just find an exhaust vent...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We might be able to get away from this maniac hiding in the shadows and save ourselves during the climax.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Molly...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">Tippi, you were the first person to really open up to me after I joined the crew.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even though I kept messing up and getting you into trouble, you were always there to stand up for me. When Marion would forget my name, you were always ready to give her a proper reminder.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re always looking after me, comforting me, protecting me...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So this time, I want to protect you too.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">......</div></div></div>
+<div class="narr">The Liberi gives a gentle hug to her most precious friend in the whole crew.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Tippi</div><div class="text">Once this is all over, we&#x27;re totally gonna have a movie marathon at your place. Twenty-four hours of non-stop screams, paired with our favorite drinks and fried finballs.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I wanna see what the house you grew up in looks like, and meet that sister you&#x27;re always bragging about.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Moira</div><div class="text">...Sure.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">I&#x27;m terribly sorry to interrupt your little sorority huddle.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%2310%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">Oh, wow, Miss Rutherford? What brings you to the prop room? Where&#x27;s your assistant?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%236%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">Didn&#x27;t you receive Greta&#x27;s notice on your terminals? She&#x27;s already sent out compensation to everyone and officially disbanded the crew.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whether you&#x27;re scared of the killer, worried about the Catastrophe, or want to stay and finish the shoot, we&#x27;re all free to do as we please.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So naturally it only took a blink of an eye for that spineless assistant of mine to run off god-knows-where.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1831_1%234%241.png" alt=""><div class="bubble"><div class="who">Moira</div><div class="text">Do as we please?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t tell me Miss Stone—no, none of the crew even care about the real reason all these murders are happening?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%234%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">Frankly, my dear, I don&#x27;t give a damn, and I don&#x27;t see why you should either. Surely the reasonable thing to do is escape and leave that to the police?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Or, as Greta said, you can leave the truth to whoever feels like playing detective.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1831_1%234%241.png" alt=""><div class="bubble"><div class="who">Moira</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%234%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">So, why&#x27;d you come looking for us, ma&#x27;am?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">I&#x27;m only here for you, Tippi, the background painter.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%238%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">Me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1830_1%231%241.png" alt=""><div class="bubble"><div class="who">Melanie</div><div class="text">I admire Greta&#x27;s gumption in wanting to film a Catastrophe, and this is a fine opportunity for me as well, but films cannot rely solely on natural phenomena.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I know you&#x27;re more passionate about cinema than most, and you must have heard how important this project is to me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So I implore you, from the bottom of my heart, to put your talent in ambience-building and color-matching to work, and paint the perfect backdrop for my grand finale.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%231%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">Wow...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I mean, I&#x27;d totally love to, but...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1831_1%239%242.png" alt=""><div class="bubble"><div class="who">Moira</div><div class="text">Go help her out, Tippi.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%2310%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">Hey, Molly, what&#x27;s with the raincoat? Are you really going &#x27;exploring&#x27;?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1831_1%239%242.png" alt=""><div class="bubble"><div class="who">Moira</div><div class="text">Mhm.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t worry, I&#x27;ve been part of the prop team for ages now, and I know my way around the plate. I&#x27;ll be fine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Remember what we were just talking about? This is something I need to do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4191_tippi_1%231%241.png" alt=""><div class="bubble"><div class="who">Tippi</div><div class="text">Alright then.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once I&#x27;m done helping out with the backdrops, I&#x27;ll come find you, promise!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g10_dormitory.png" alt="62_g10_dormitory"><div class="cap">62_g10_dormitory</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%232%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">You may enter, Madam Stone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%231%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">You know it was me before I even opened the door?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Yes. I have been waiting for you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%236%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your little investigation the other day forced me to reveal my plan of filming a real Catastrophe to the whole crew.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The timing couldn&#x27;t have been worse. Abner and the rest of the crew were already unhappy with me. So I had to make some last-minute decisions. Big decisions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If I wanted to, I could sue you for damages incurred by your act of industrial sabotage, Lucian.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">But?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%236%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">But I&#x27;m not going to punish my cast just to vent or assert my authority, especially when such actions would only complicate the situation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And then, more murders. The killer even stopped hiding their savagery, and everyone&#x27;s losing their minds, except you. You&#x27;re the same as ever, cool as a cucumber, watching the crowd from a distance.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I suppose I can thank this crisis for making it clear that you have other reasons to be here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%236%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">But none of that&#x27;s important right now. The crew&#x27;s been disbanded. You can leave, or stay until the date specified in the contract. It&#x27;s up to you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your part in this is done anyway.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1828_1%231%241.png" alt=""><div class="bubble"><div class="who">Lucian</div><div class="text">Hardly.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The moment you came to find me, you proved that my part in this is not yet done.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1834_1%231%241.png" alt=""><div class="bubble"><div class="who">Greta</div><div class="text">...I can&#x27;t magic up another Lady Dupont, or bring the three Rockefeller brothers back to life.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re running out of both time and manpower. So I need to figure out the best use of our limited resources.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lucian, I&#x27;d like you to be the lead for the rest of the film.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/62_g13_directorstudio.png" alt="62_g13_directorstudio"><div class="cap">62_g13_directorstudio</div></div>
+<div class="narr">In the middle of the night, the clackety-clack of typing echoes through the office.</div>
+<div class="narr">A despondent Perro curls up in front of his typewriter. He glances at his latest manuscript, and stubs a cigarette out on it.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">Ending, ending, ending...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Lady Dupont needs to die in the ending...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;After she elopes with the second Rockefeller, they vanish from high society and live a poetic life out in the countryside.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;But Rockefeller&#x27;s life of affluence has left too much of a mark on him. He eventually shames Lady Dupont for her empty family name and leaves her. In despair, she slits her own throat...&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Too realistic...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And do they really have to be punished after leaving their extravagant lives behind?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This takes place back when Columbia held wealth as its highest virtue. I&#x27;m just trying to recreate it and let the audience judge for themselves!</div></div></div>
+<div class="narr">The little cigarette burn grows, spreads, and swallows the whole paper up. Steven takes a deep breath and blows away the ashes.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1835_1%231%241.png" alt=""><div class="bubble"><div class="who">Steven</div><div class="text">&#x27;In the end, Lady Dupont chooses none of the Rockefellers. She had only wanted to escape her false destiny through marriage, but underestimated just how toxic love can be.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;The brothers, unbeknownst to each other, each plot their own revenge, and Lady Dupont is killed by three different schemes at the same time.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No, too lowbrow...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Getting stuck in a quagmire of love even after not choosing anyone makes it sound like it&#x27;s fate at work, but it&#x27;s really just slapping in a trope to patch up the gaps.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The final shot of her body being pulverized into nothing would definitely be shocking, but the setup&#x27;s just too crude.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;The Dupont&#x27;s family&#x27;s false claims of being descended from Victorian nobility are finally exposed to the public. No matter how deep the Rockefeller brothers&#x27; love for her is, they cannot shield her from punishment.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;The only time in her life that Lady Dupont is treated as true nobility is when the real Dupont family demands the death penalty for her...&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s too... neat!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All tied up with a bow to show off how deep and meaningful it is, but it lacks any of the madness or romance a film called The Death of Lady Dupont should have!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Tch, out of draft paper. Let me fetch some more from the filing cabinet...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whoa!</div></div></div>
+<div class="narr">Steven slips on a wad of paper he threw to the ground earlier, falling flat on his back.</div>
+<div class="narr">Only now does he notice that the entire office is filled with discarded drafts. There is nowhere left for him to stand.</div>
+<div class="narr">He lies down amidst his aborted ideas, covering his face with his hands as he yells in frustration.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Steven</div><div class="text">Get a Kubricking grip, Steven Quay! You&#x27;ve been messing with the ending for two whole months now, and don&#x27;t even have a shitty half-baked scene to show for it!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This is your baby! You wrote every damn line in this story! Don&#x27;t tell me you don&#x27;t even know what you want to write?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you need to suffer to make a classic, then this must be a goddamn masterpiece, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve got the time pressure of the shooting, the shock of hearing about filming a Catastrophe, the fear of some maniac going around killing the crew... You got it all, man! What more could you want?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;God of Inspiration&#x27;, my ass!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That was just some stupid excuse to get Greta off your back. Your god ain&#x27;t coming—you lost his Falking contact details!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who&#x27;s there...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Well, honestly, I don&#x27;t care who you are, as long as you can help me figure out this ending.</div></div></div></div><div class="nav"><a href="level_act43side_st02.html">← Prev</a><a href="level_act43side_05_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Game of Cards · Stormwatch</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Main Story</a> / <a href="index.html">Stormwatch</a> / <span>9-3</span></div>
+    <div class="lang"><a href="../../../zh_CN/main/main_9/level_main_09-02_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>A Game of Cards<span class="section-tag">9-3 · After Operation</span></h1><div class="meta">Stormwatch</div><div class="story-info">Outcast arrives at County Hillock. At the Rhodes Island branch office, she gets to know the barracks&#x27; guard of honor, Jane.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G9_rhodes_xqoffice.png" alt="21_G9_rhodes_xqoffice"><div class="cap">21_G9_rhodes_xqoffice</div></div>
+<div class="narr">7:11 A.M. \ Overcast</div>
+<div class="narr">Rhodes Island County Hillock Branch Office</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Morning, everyone! The weather&#x27;s not bad at all today, wouldn&#x27;t you say, Uncle Oliver?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Oh, it&#x27;s you. I was just asking, who else could it be knocking at the crack of dawn? But it&#x27;s a gloomy day today no matter where you look. What&#x27;s to appreciate?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Any time it&#x27;s not raining is good weather. That&#x27;s what you get in County Hillock. For that matter, how do you know the day&#x27;s not going to turn clear skies?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Fine, you&#x27;ve got me there. Shredder, you stop dilly-dallying. We haven&#x27;t got anyone dropping in, it&#x27;s just Janie, daily ditcher.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">You&#x27;re one to talk. Shredder, you come over here with us.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I brought you a yuccoffee pie today, and some shortbread. Da sent me some tea last week, so I&#x27;ve brought that too. Uncle Oliver, is there any evaporated milk left?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">Leftovers started molding ages ago. That bloody man—never remembers to go buy any.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Isn&#x27;t it your turn on the shopping? Or am I hallucinating, somehow?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Fred! Will! We need your thoughts too!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Alright, alright, it&#x27;s not worth crying over this little spilled milk. Look, what&#x27;s this? Fresh new evaporated, and some cheese too. Picked them up along the way from the morning market. Here, you can have them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hee-hee, I&#x27;ve wanted to try making milk tea for forever now. I think you&#x27;ll like it at least, Uncle Oliver.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Ah, still no one more considerate than you, Janie. Will, you&#x27;d better learn well. At least don&#x27;t start acting like that man next to you with Shredder for a codename.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">This shortbread tastes delicious... ooh, right, Miss Willow, isn&#x27;t your senior officer going to get on your case for running here every day to bring us breakfast?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">The Victorian Army&#x27;s rules are a fair deal strict, if I recall.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%232%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Ah... you don&#x27;t need to worry about that. I&#x27;m a guard of honor, I&#x27;m only good for big events or recruitment drives. They don&#x27;t have much use to put me to—the Sergeant Major wouldn&#x27;t even think about me most of the time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides, it&#x27;s not like I don&#x27;t do anything proper.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Every morning when I get up, the first thing I do is pull this banner off its support.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">While I wait for the flour to ferment and the coffee to brew, I&#x27;ll straighten out the creases bit by bit.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once the shortbread&#x27;s done, that means I have to wash the flour off me. It takes time for my hair to dry naturally, and that&#x27;s the perfect time to care for the flagpole, and let it shine like brand new.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Uncle Oliver, don&#x27;t rush to pick up your tea yet—it&#x27;s still too hot.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">For a complete morning, everything needs to glow gorgeous, no exceptions. Only then can I bring joy to you all—that&#x27;s my life&#x27;s creed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s the pie like today, Shredder? Want any more?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">Perfect... Just like every day before.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Really? Let me try some too... seems I put a little too much sugar in. I&#x27;ll make sure to watch out for that tomorrow.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">Well, I&#x27;m not going to tell you off for being lazy like they do now, Miss Willow.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">—Janie. That&#x27;s what everyone calls me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">Alright, er... Miss Jane. My honest fear&#x27;s that they&#x27;ll want me spending every morning as amply as you do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">No need for that. I&#x27;m not like any of you, there&#x27;s only so much I can do for the people here. Hm... I think the tea&#x27;s about the right temperature now. Just make sure to stir it a little before you drink—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Yagh!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G3_victoria_street_d.png" alt="21_G3_victoria_street_d"><div class="cap">21_G3_victoria_street_d</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Anxious Child A</div><div class="text">You sent the ball flyin&#x27; again, Craig!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll go get it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Anxious Child A</div><div class="text">Oh, poo... it went in the building.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you actually hit any of the grown-ups, then, then you&#x27;re in for it! Last time, didn&#x27;t Carol get...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">*Huff*, *huff*... Someone&#x27;s come out, let&#x27;s run!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">Uh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Whose ball is this?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">Um...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Is it yours?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Anxious Child A</div><div class="text">Craig... Craig, come on, run! Forget the ball...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">No... that ball&#x27;s left by my da...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">If you&#x27;re too shy about it, I won&#x27;t hand it back. Come on, hold your hand out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Are... Are you gonna beat me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Why would I beat you, now?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">Your clothes got dirty.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Eh, that&#x27;s just me being careless. It&#x27;s no matter.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">All the other grown-ups like you, they don&#x27;t care if it wasn&#x27;t me who got them dirty.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They always beat us. But not with their hands, they kick us instead. And they shout all loud, to scare us off.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">*Sigh*.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That means they&#x27;re definitely not your friends.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you live around here? I think I&#x27;ve spotted you before. Doesn&#x27;t your ma sell apples at the crack of every dawn, down the alley in District Seventeen nearby?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your family&#x27;s apples are scrumptious. Not too crisp, but still very, very sweet. Perfect for making apple butter and spreading onto bread.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How about this? I&#x27;ll put the ball on the windowsill here, and you come pick it up, okay?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Eh?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hold on, slow down, I&#x27;ve got tea on my hands, it&#x27;s gotten your hair all wet. Let me wipe that for you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">Um...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I&#x27;m Janie. What&#x27;s your name?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Craig</div><div class="text">I&#x27;m...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_240.png" alt=""><div class="bubble"><div class="who">Anxious Child A</div><div class="text">Craig! It&#x27;s your ma lookin&#x27; for you. Quick, you&#x27;ve gotta go!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/21_G9_rhodes_xqoffice.png" alt="21_G9_rhodes_xqoffice"><div class="cap">21_G9_rhodes_xqoffice</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Got into a commotion outside?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Children playing ball.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Those bunch of rotters, all higgledy-piggledly in the street first thing in the morning. I bet it was them who broke that last windowpane, too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Haha... children, you know? I broke the man next door&#x27;s flowerpots when I was young, and my da really gave me a talking-to for that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">You laid hands on that boy.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%235%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Just now? Yeah, if I didn&#x27;t wipe his hair clean, it&#x27;d be sticky all day.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">His father passed away, half a year ago. Poor bloke, caught Oripathy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s a lot—&#x27;cause of that—won&#x27;t dare touch him.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%235%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Oh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">Workers, fairly strapped for cash. That Oriron byproduct processing plant has a partnership, with Aneca. But they don&#x27;t give the full amount of prophylactics.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s normal for you—to hesitate. In their neighborhood, it&#x27;s about one in five houses, turning out to have Oripathy patients.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They care for another, in a sense. If those soldiers weren&#x27;t here...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Shredder! You&#x27;ve lost track.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%235%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">It&#x27;s alright... you&#x27;re just stating the facts. I&#x27;ve heard how... my coworkers treat the Oripathy-sick... no, not just the sick, they&#x27;ve got the wrong idea about all of the residents.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I... I don&#x27;t think the same way. We&#x27;re all Victorians, aren&#x27;t we? Their days might be hard on them, I—I understand full well. But I hope for them to live a little happier too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What do you think... Should I have been even better to that child?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">...Don&#x27;t force yourself.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">What&#x27;s the long faces for? I&#x27;ll bring the playing cards out. Wasn&#x27;t it you who suggested a spot of tea with cards, Miss Jane?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Yes. Will&#x27;s right, the sun&#x27;s poking out for once in a while. Let&#x27;s not waste the good weather.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Take a seat, everyone. I&#x27;ll pour you all some more tea; there&#x27;s still plenty left in the pot.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">Is that me who&#x27;s won again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">It&#x27;s too early to be full of yourself. You&#x27;re on shift tonight.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">What? How&#x27;s it me again?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Not clicking? That was our stakes! Whoever won at cards is on broom duty, file sorting, buying us all afternoon tea...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_090.png" alt=""><div class="bubble"><div class="who">Operator Will</div><div class="text">Can I get a redeal?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Uncle Oliver, your jokes are putting Will in tears again.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Isn&#x27;t that the fun of a game of cards? Ha-ha-ha-ha!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">One small tip—next time you try second dealing, remember to watch behind you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">What—?! Who&#x27;s talking?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">And on a side note, the tea&#x27;s an excellent brew.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">H—Hello! Who might you be?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(She came in suddenly, and none of us noticed her...)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">They call me Outcast, my young Vouivran beauty.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m sorry I tasted your tea without asking. Seeing as I rushed all the way over here, I hope you won&#x27;t mind too much.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">F... Feel—feel free. If you haven&#x27;t eaten breakfast yet, would you like to try some pie I baked? It might be a little sweet...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">I&#x27;d love to. Everybody who knows me knows I love sweets—especially the Victorian kind. You got it baked like this to fancy, adorable perfection.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Haha... Thank you for the encouragement, Lady Outcast.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">—Outcast. Nobody calls me a Lady, really. I&#x27;m more of that &#x27;Lass&#x27; type.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">—!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I—I know who you are! I remember now... Will! C-Clean the table up, quick—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">I thought you&#x27;d be here two days later... Last message, you said you&#x27;d just passed the border.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Couldn&#x27;t help it, I haven&#x27;t been to Victoria in a decade. Some parts are a bit more crowded, but just like me, the years are starting to show in a few places.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If I hadn&#x27;t hitched a ride the wrong way in County Peninsula, we would&#x27;ve met last night.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">*cough* Ahem, your understanding, please. County Hillock&#x27;s not the biggest spot on the map, and we rarely get elite operators at our branch office here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Last time I was out near Minos on field work, I met Stormeye—that was two years ago, already.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%234%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Elite operator? Just the name sounds like a force to be reckoned with.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">—Rhodes Island gives different work to different people, that&#x27;s all. Besides, I&#x27;m pretty much just a civil servant now. I only came to County Hillock to fetch some data.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">You&#x27;re too modest.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">On the topic of data, did you want to see our finance forms first, or the ledger for our inventory in/out and stock this half... (Hints to Will)</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Hold your beasties.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re not THAT pressed for time. No need to hurl a starving girl like me straight into work. It&#x27;s only fair to let me steal a breather here and there, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Haha... I can sympathize greatly.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Hope I haven&#x27;t disrupted your little R&amp;R here.</div></div></div>
+<div class="subtitle">Outcast casually picks up a card. Thin, no more than paper, it spins three times and a half at her fingertips, then is gone in a swish.</div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/21_I1.png" alt="21_I1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Janie</div><div class="text">Wow! Where&#x27;d that card just go?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Right here.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Janie</div><div class="text">It&#x27;s back! What kind of marvelous spatial Arts is this?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Just a little sleight of hand. I&#x27;ve got this gloomy-looking friend who taught me. Whenever I want you concentrating on my fingertips, this method works wonders.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All a little more relaxed now? Please, sit down, Oliver, and Shredder, Will, plus you there, kiddo, standing in the corner—you must be Fred.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Put that folder down, and enjoy a little break with us. A chance like this doesn&#x27;t come every day.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/21_I1.png" alt="21_I1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Operator Fred</div><div class="text">A... Are you sure this is okay?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Or would you like to see a magic trick where in ten minutes, this haggard stranger from out of town dies of boredom?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Operator Oliver</div><div class="text">*cough* Let&#x27;s sit.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Please, continue.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for me, I still want a proper taste of this fine black tea with evaporated milk, and that sweet, scrumptious pie.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Janie</div><div class="text">Ah, there&#x27;s more shortbread left here, if you still feel hungry, that is...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Thank you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ahh, now this dessert hit the spot. My stomach hasn&#x27;t been this happy in a while. My tongue was beginning to really miss flavor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now, you, cute little miss—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Janie</div><div class="text">I—I&#x27;m Jane, Jane Willow.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">That&#x27;s a lovely name. I&#x27;m gonna guess you&#x27;re old enough to drink?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Janie</div><div class="text">I&#x27;ve long since been of age, La... Lass.. Outcast. I&#x27;m serving, after all.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">Oh? That gray Victorian military uniform sure falls flat under your shimmering blonde hair. Oliver, count yourself lucky. No matter how dull and cloudy it gets, you&#x27;ve always got your sunshine indoors.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/21_I1.png" alt="21_I1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Operator Oliver</div><div class="text">Haha... true, true. Little Janie&#x27;s brought us a mound of happy days.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%231%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Listen to you, Uncle Oliver. You&#x27;re the ones all kindly letting me in while I&#x27;ve snuck off from the barracks.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">I was actually a tiny bit surprised, seeing you get along as well as you do—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Jane, if all Victorian soldiers were as lovable as you, we&#x27;d lose at least half of those awful rumors making their way across our world.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%233%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">Thank you, if I haven&#x27;t misunderstood. I assume those are compliments...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Even on my way here, I saw some not-so-pretty sights. But anyhow, that&#x27;s not gonna dampen the joy of meeting all of you here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_479_sleach_1%237%241.png" alt=""><div class="bubble"><div class="who">Janie</div><div class="text">I&#x27;m very glad... I could meet you too!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%231.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Well, then, a toast to our encounter?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I came here in kind of a hurry, so I could only bring some regular old gin, with way too much lemon because that&#x27;s how I like it. You folks might find it too sour—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_089.png" alt=""><div class="bubble"><div class="who">Operator Shredder</div><div class="text">We don&#x27;t really drink... on work hours.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Operator Oliver</div><div class="text">You killjoy!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_245_1%236.png" alt=""><div class="bubble"><div class="who">Outcast</div><div class="text">Alright, that&#x27;s on me for being sloppy. As a Rhodes Island Operator, I can&#x27;t be an exception. Let&#x27;s just have some tea.</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/21_I1.png" alt="21_I1"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">So—who&#x27;s dealing next?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Operator Will</div><div class="text">M—Me.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Outcast</div><div class="text">——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Need a little blessing from a Sankta?</div></div></div></div><div class="nav"><a href="level_main_09-01_beg.html">← Prev</a><a href="level_main_09-03_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

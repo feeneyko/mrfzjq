@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prime Target · IL Siracusano</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">IL Siracusano</a> / <span>IS-3</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act21side/level_act21side_03_beg.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Prime Target<span class="section-tag">IS-3 · Before Operation</span></h1><div class="meta">IL Siracusano</div><div class="story-info">While Texas sits in prison, various forces on the outside begin to clash, and a plot to assassinate Lavinia takes shape.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g6_newtown_street.png" alt="33_g6_newtown_street"><div class="cap">33_g6_newtown_street</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%234%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Woooah, this dress looks absolutely stunning!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%231%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">You&#x27;n say that again. Sora&#x27;s gonna look mighty fine in it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%231%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">If someone told me about this earlier, I would&#x27;ve signed up myself!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%235%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">No way, no how. Ya don&#x27;t know the first thing about actin&#x27;.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%2310%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">I can just act like I always do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%236%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">And there ain&#x27;t no roles for a Sankta in Siracusa neither!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%234%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Says who? I heard that there was a Sankta with Signora Sicilia—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Huh?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g5_srcpark.png" alt="33_g5_srcpark"><div class="cap">33_g5_srcpark</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Signorina Sally, our boss is inviting you over for dinner.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Um... But...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Stony-Faced Bodyguard</div><div class="text">She&#x27;s on her way to rehearsal right now. Vaffanculo.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">And our boss wants to have a word with Signorina Sally here. Being a little late won&#x27;t make a difference, will it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">I, I&#x27;ll go get the director...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">The director? I might&#x27;ve carried water for him in the past, but these days...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Um, please don&#x27;t...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Angry Mafioso</div><div class="text">The hell are you playin&#x27; nice with them for?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You should feel honored that our boss wants to see you. If you don&#x27;t wanna get messed up, behave yourself and come with us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Wait, the boss didn&#x27;t say we could—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Angry Mafioso</div><div class="text">You still don&#x27;t understand what the boss was gettin&#x27; at? We were all scared of the Bellones before.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But now that they are out of the picture, and the bigwigs are about to shuffle the deck again, we&#x27;ll never get a better chance!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Huh, you&#x27;re right. Let&#x27;s go, brothers, time to clean the streets of these eyesores!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Stony-Faced Bodyguard</div><div class="text">Tch... Protect Signorina Sally!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g6_newtown_street.png" alt="33_g6_newtown_street"><div class="cap">33_g6_newtown_street</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%2311%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">The heck&#x27;s happenin&#x27;, Exu— Huh? Where&#x27;d she go?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">She already rushed out. Let&#x27;s back her up!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g5_srcpark.png" alt="33_g5_srcpark"><div class="cap">33_g5_srcpark</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Stony-Faced Bodyguard</div><div class="text">Urgh...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Heh, and you call yourself a bodyguard?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Ahh... *sobs*...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Right this way, signorina.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">I, I know...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Huh? You people are—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Who the hell are you?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%232%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Catch me if you can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Frivolous Mafioso</div><div class="text">Tch, get her!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Angry Mafioso</div><div class="text">Don&#x27;t mess with us!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%237%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">Let&#x27;s split!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%232%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Your name&#x27;s Sally, right? You okay?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">You...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you know what you&#x27;ve done?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You didn&#x27;t save me at all, you&#x27;re just making things worse! They&#x27;re not going to let this go!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%237%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">So how&#x27;d you plan to get out of that mess?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">...By gritting my teeth.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%235%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Huh? But they were gonna hurt you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">I... can deal with injuries.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did you really think they were going to kidnap me? They&#x27;re just trying to cause trouble.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%235%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Shouldn&#x27;t you at least call for help when stuff like this happens?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">What&#x27;s the point? Nobody&#x27;s going to intervene in a struggle between famiglie.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%235%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">What about that Judge Lavinia lady? She seemed like a pretty decent person to me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">She&#x27;s... indeed a very good judge, but there&#x27;s nothing she can do in these situations.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides, even if I never made it out of this park, how many people would know that I disappeared because of the conflict between those mafiosi?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">So... you&#x27;re just going to put up with it?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">How else are we supposed to live our lives? This is how it&#x27;s always been.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Find a place to hide, wait until the dust settles, and then follow the victorious side out. That&#x27;s all I can do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">But... why does it have to be like that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh, I&#x27;m sorry. I&#x27;m not trying to blame you, but to be honest, this is the first time in my life I&#x27;ve ever known what it feels like to be protected.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That famiglia isn&#x27;t even particularly influential. The director should be able to help me smooth things over.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But just as a friendly word of advice, if you plan to stay alive in Siracusa, please try to avoid doing that kind of stuff in the future.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Especially considering what&#x27;s about to happen.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%237%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">What&#x27;s about to happen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Have you not seen the news at all? Carracci, Ministro dei Lavori Pubblici, is dead.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_201_moeshd_1%2315%241.png" alt=""><div class="bubble"><div class="who">Croissant</div><div class="text">Yeah, saw that. Assassinated, looks like?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">I feel so bad for him.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Since you all seem nice enough, I&#x27;ll tell you a little more about him.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have to deal with mafiosi pretty regularly, so I&#x27;ve heard a thing or two from them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The person who murdered him hasn&#x27;t been found yet, and the young master of Famiglia Bellone was also attacked at the same time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">Huh? Bellone?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">That&#x27;s right. The Bellones were poised to stand head and shoulders above the other famiglie, but it seems like someone&#x27;s been plotting against them for a while now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Many famiglie that had previously given up are now starting to move again, little by little.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">Did you hear any of them mention the name Texas?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">Texas? There&#x27;s not a single person in Siracusa who doesn&#x27;t know that name.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But usually in the context of &#x27;the last Texas&#x27; or something along those lines...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">Really?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">You&#x27;re a strange one, you know that? It&#x27;s obviously all made-up. How could there possibly be a Texas still alive out there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">But... Alright, you have a point.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">In any case, you should already know that our troupe has some connections to Famiglia Bellone, through the director.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just as those people were saying, in the past everyone wanted to get on his good side. But now...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You all saw what happened.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%232%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">Do all of Siracusa&#x27;s famiglie go around doing whatever the hell they want like that?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_175.png" alt=""><div class="bubble"><div class="who">Actress</div><div class="text">...Remember what I&#x27;m about to tell you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you want to survive in Siracusa, you either need to join a famiglia, or stay as far away from them as possible.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then... you need to delude yourself into believing that as long as you stay away from them, you won&#x27;t get sucked into any trouble.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Alright, I should head back to the theater now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_101_sora_1.png" alt=""><div class="bubble"><div class="who">Sora</div><div class="text">Right.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Actress</div><div class="text">Aaaaaaaahhhh—!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_103_angel_1%234%241.png" alt=""><div class="bubble"><div class="who">Exusiai</div><div class="text">What now?!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Actress</div><div class="text">S-Someone&#x27;s been tied up over here!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g10_smallrestaurant.png" alt="33_g10_smallrestaurant"><div class="cap">33_g10_smallrestaurant</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Assuming nothin&#x27; outta the ordinary happened, someone ought to have found the poor fella by now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t get it, man. Why go through all that trouble keeping him alive, just to let him go? What&#x27;s so special about that guy anyway?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">What it proves is, that shady bartender wanted him to be found.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for why... it&#x27;s usually a trap.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%236%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Tch, what a sinister fella.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%238%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">You say that now, but if he ends up winning, you&#x27;re gonna be calling him a genius.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%2310%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Dipshit.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%2310%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Hah.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%236%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">What&#x27;s so funny?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%239%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">I just remembered how we used to argue like this back when we were kids.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Never would&#x27;ve imagined that after all these years, after all of life&#x27;s twists and turns, the two of us&#x27;d still be out here, fightin&#x27; for our lives.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s fate for you. Never know where it&#x27;s gonna take you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Heh. Ain&#x27;t that the truth.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Who could&#x27;ve known something like that would happen in Lungmen?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And that after all that, we&#x27;d still come back to Siracusa.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Gambino... If, and I mean if, Lappland has really decided to leave us alone, and let us fend for ourselves...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Would you still stay in Siracusa?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">What, do you miss your Lungmen that bad?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%235%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Hmph. Forget it, not like you&#x27;d ever understand anyway.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s talk about something more practical. You really plan on switching employers?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Looking at the news, the guy we tried to off today was Don Bellone&#x27;s son. Seems like someone real important died at the same time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Which sounds to me an awful lot like some unknown famiglia has been using us as their weapons.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%236%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Might as well go make that relationship formal, then.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Better than taking on odd jobs and begging for scraps.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">That&#x27;s right. As soon as you&#x27;re back in Siracusa, you participate in an attempted assassination of one of the Dodici dons. You two sure have grown.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%237%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Guess the good ol&#x27; days are over...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Lappland...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Oh? Today&#x27;s breakfast is looking pretty good.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Pay for your own.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Aw, is that any way to treat your boss?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">So, what&#x27;ve you been up to all this time?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">I went to say hi to the folks, and got to enjoy some sorely-missed family time. Simple as that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haah, what a relief that despicable old mug back home is just as punchable as it&#x27;s always been.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%2311%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">You with a famiglia?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Oh, did I never mention it? My last name is Saluzzo.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%232%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Saluzzo?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re a Saluzzo?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%233%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Capone, do you know what the thing I hate the third most is?</div></div></div>
+<div class="narr">Capone feels a chill course through his body, but the sensation is so fleeting that he has to wonder if it was his imagination.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%2310%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">When people start wailing and moaning once they hear the name of my famiglia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah, come to think of it, the way you do things really does remind me of that one famiglia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%238%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">What about the other two things? If I&#x27;m gonna die, might as well die knowing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Haha. Seems like you&#x27;ve picked up on how to get along with me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Actually, I just came up with that line on the spot.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%232%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Tch.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Alright, talk to me. So why&#x27;d the two of you decide to do a hit on Famiglia Bellone?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g7_reception.png" alt="33_g7_reception"><div class="cap">33_g7_reception</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Come in.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Sorry for bothering you, Signor Segretario.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">No, no, Your Honor, the pleasure is mine.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%234%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Your office is... quite impressive.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Haha, I frequently have distinguished guests here, and this is the sort of decor they prefer, so I figured I&#x27;d go along with it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, did you need me for something?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">I wanted to talk to you about Carracci&#x27;s death.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Hmm? I believe I already made a statement about that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">I know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I wanted to have a chat with you, for more personal reasons.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Oh right... I heard you swore you&#x27;d find Carracci&#x27;s murderer and bring them to justice.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Good, good. Young folks ought to have that kind of drive.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So have you made any progress?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Unfortunately, not yet.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Sorry to hear that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">I heard you&#x27;d always been on good terms with him personally, so...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">That&#x27;s true. Carracci was greatly concerned with the citizenry&#x27;s well being, things such as food, water, and sanitation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I don&#x27;t think there&#x27;s anything I can do to assist you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I never actually mingled my way into his innermost circle.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So while I&#x27;d love to help, there&#x27;s nothing I can do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Anything you can give me is fine. A place you think is suspicious, or anyone in the government I should keep an eye on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">You&#x27;re asking too much. You understand what I&#x27;m saying, don&#x27;t you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your Honor... several other Ministri dei Lavori Pubblici died before Carracci. Do you remember them?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Seven? Or maybe eight?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The people in those positions were just puppets. Each famiglia was trying to push their own people up there.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But in the end, they were all taken out by other famiglie.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When it came to a position as important as il Ministro dei Lavori Pubblici, though, I&#x27;ll be blunt here, it was clear as day why the famiglie filled the position with a man as spotless as Carracci instead of installing one of their cronies.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">For one simple reason: if the killing continued, the construction of the city would grind to a halt.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">&#x27;If our people can&#x27;t get in, then we&#x27;ll at least make sure yours can&#x27;t either.&#x27; That is why Carracci occupied that seat.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Make no mistake, he had close ties with the Bellones. The Don&#x27;s son even sat beside him as his secretary. But, in one way or another, he was just as close with every other famiglia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s an ancient Yan saying to the effect of &#x27;he who walks oft along the river, inevitably finds his shoes wet,&#x27; yes? I have always trusted in Carracci&#x27;s integrity, but so what? Others did not see it that way.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The way Siracusans think, you either choose to be one famiglia&#x27;s pet, or you choose to be another&#x27;s.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In other words, Carracci&#x27;s death was inevitable. He wasn&#x27;t part of any of famiglia&#x27;s vision for the future. Do you think he was oblivious to that fact?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In the end, it doesn&#x27;t matter whether he died today, a month ago, or a month from now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%236%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">You know how much hard work he put in.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%234%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">And what did he get for it in the end?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Actually, let&#x27;s assume he was as selfless a person as you say. What did the people he worked so hard for, those whom he so eloquently claimed as &#x27;his dear citizens,&#x27; give him in the end?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%238%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Your Honor, I&#x27;ve also heard a great many rumors about you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You undeniably have a fair number of accomplishments under your belt.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But among them, how many were due solely to your own hard work, and how many were influenced by the people behind your back? You already know the answer, don&#x27;t you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">You—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">If I may be frank, Your Honor, are you really not here to test me on behalf of Bellone?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%234%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">That is not my intention, I swear.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">...I&#x27;d prefer it were.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then please heed this word of caution, Your Honor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let those who&#x27;ve died stay dead.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We already have too much to worry about without overly concerning ourselves with the deceased.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">And... this is the attitude of someone who was on good terms with him?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%231%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">If you want to have a slightly longer lease on life in Volsinii&#x27;s government, I&#x27;d suggest you learn this lesson well.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, hello sweetheart. Ah, I&#x27;m still at work right now. Are you ready to go?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mm, alright. I&#x27;ll get ready to head over then.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Okay, okay.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That was my daughter. Now, a newly-opened restaurant has invited me to inspect their ingredients tonight.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ll have to set aside our discussion for later.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Oh right, please let Master Leontuzzo know that he is welcome to talk to me if he&#x27;s interested in the gourmet experience.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">...I&#x27;ll remember to pass it on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_689_1%235%241.png" alt=""><div class="bubble"><div class="who">Rubio</div><div class="text">Now then, please see yourself out.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g2_srcalley.png" alt="33_g2_srcalley"><div class="cap">33_g2_srcalley</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%238%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">...*sigh*.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What did you say? You found someone unconscious and tied up? The leader of the bunch that attacked the restaurant?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Understood. I&#x27;ll be there right away.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g10_smallrestaurant.png" alt="33_g10_smallrestaurant"><div class="cap">33_g10_smallrestaurant</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%236%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">I&#x27;m telling you, the two of us just happened to be involved in that hit. We don&#x27;t know nothing.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">As for the guy who handed out the orders, we don&#x27;t know which famiglia he belongs to, but he sure was generous with the cash.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">They were clearly looking for hitmen with murky backgrounds like you two, so when you die, there&#x27;d be no trail back to who hired you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You might think you ran into them by chance, but it wouldn&#x27;t surprise me if they had their eyes on you a long time ago.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">I&#x27;m not saying they didn&#x27;t.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">So, want to take a crack at who your employer is?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%237%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Probably... the Rossatis or the Saluzzos. Of the Dodici who&#x27;ve been fighting over this city all this time, and with the Bellones out of the picture, they&#x27;re the only two famiglie with enough power left.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Right, I&#x27;m sure most people would think the same.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But now you know the Saluzzos were never planning anything like that.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%2310%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">That just leaves... the Rossatis?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">One more.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%236%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">What do you mean?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Remember those poor suckers you took out early on? They were originally targeting people from il Ministero dei Lavori Pubblici.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don Bellone&#x27;s son&#x27;s been working there, so another way of putting this is that the folks you dealt with were trying to get in Bellone&#x27;s way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%235%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">So... what you&#x27;re saying is, we helped the Bellones put down a threat, but then turned right around and hit &#x27;em even harder.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%237%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">...So what? We see famiglie doing that kinda power jockeying stuff every day.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">That... He&#x27;s got a point. The first hit we made might&#x27;ve just been on some unlucky, short-sighted bastards.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">But don&#x27;t forget, you were specifically sent to &#x27;shut them up.&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%233%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Wait, are you serious?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%232%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Are you suggesting... there&#x27;s a double agent inside the Bellones?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Just another possibility.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hahaha, but hey, that&#x27;s what makes things interesting.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let&#x27;s assume that&#x27;s true and do a little thought experiment here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Carracci, il Ministro dei Lavori Pubblici, is dead. And before that, several more people in the ministero were killed.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Naturally, most people are going to see those things as connected, especially that poor judge.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But. The perpetrator who carried out the hit has already been silenced, and she can&#x27;t find their leader either. She&#x27;s at a complete loss, so what does she do next?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If only some kind of clue would appear.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And what do you know, isn&#x27;t that assassin you dumped out there the best possible lead?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%238%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">So that&#x27;s why they waited until now to throw that guy out...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It does make sense, when you put it that way.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then, they set up a little ambush, and make sure the judge has an &#x27;accident&#x27;...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Kaboom.</div></div></div>
+<div class="narr">Lappland stretches out her hands and falls back onto the sofa, as if knocked back by the blast.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Everyone&#x27;s gonna get pulled in.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ahh, what a great idea.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s so great that even if this is all bullshit, I&#x27;d want to make it reality.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">So... lemme get this straight, you two are sayin&#x27; that the Bellones are puttin&#x27; on a whole goddamn opera?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">It&#x27;s definitely possible.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After all, nobody understands the Bellones better than themselves.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%231%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Hmph. I don&#x27;t buy it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">These are the famiglia&#x27;s plans for the future we&#x27;re talking about. There ain&#x27;t a single wise guy in all of Siracusa who&#x27;d attack his own famiglia at a time like this.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%235%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">Gambino, you should&#x27;ve realized by now that kinda blind confidence is what brought down the Sicilians.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%234%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">You—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%238%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">But I gotta say, I think I agree with you this time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Aha! Then maybe they&#x27;re putting on this show to feign weakness, so everyone thinks they&#x27;re vulnerable and—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%231%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">But they were already on the cusp of victory.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you seriously think that the Bellones just decided to give up on a city that was right at their fingertips, just to turn this whole place upside-down?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_542_1%2310%241.png" alt=""><div class="bubble"><div class="who">Gambino</div><div class="text">Are they crazy or something?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Who knows? There are more lunatics walking this land than you might think.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Haha, but I guess our merry mealtime needs to wrap up.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I hope you have a jolly ol&#x27; time out there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%2311%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">You stopped by just to say hello?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">What, are you that eager to be my henchmen?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_541_1%2311%241.png" alt=""><div class="bubble"><div class="who">Capone</div><div class="text">I wouldn&#x27;t say it&#x27;s high on my priorities.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But at least tell us which side you&#x27;re on.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Last thing I want is to end up fighting against you without realizing, and dying without knowing what hit me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Me? Naturally, I&#x27;ll always be Texas&#x27;s most loyal supporter.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bar_1.png" alt="bg_bar_1"><div class="cap">bg_bar_1</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_690_1%239%241.png" alt=""><div class="bubble"><div class="who">Demetri</div><div class="text">Is everyone in position for the ambush?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Bodyguard</div><div class="text">...Yes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_690_1%239%241.png" alt=""><div class="bubble"><div class="who">Demetri</div><div class="text">You seem like you want to say something.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Bodyguard</div><div class="text">I was just thinking... I feel bad for Signorina Lavinia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Whatever the case may be, she&#x27;s a friend to the famiglia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_690_1%238%241.png" alt=""><div class="bubble"><div class="who">Demetri</div><div class="text">If only the one she befriended wasn&#x27;t Leon, the next don of Famiglia Bellone—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Look, I don&#x27;t want to be the villain either.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So she wants to play her little game of justice. Sure, that we can allow, to an extent.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But she thinks she has the backing of one of the bosses. What she&#x27;s done over the years has had a larger and larger impact on Leon... No, on our entire famiglia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Bellones don&#x27;t need softness like that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She must be made crystal-clear of this fact, and so must Leon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Otherwise...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ll never be able to seize ultimate victory from the chaos that&#x27;s about to ensue.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Bodyguard</div><div class="text">But, the young master, he—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_690_1%239%241.png" alt=""><div class="bubble"><div class="who">Demetri</div><div class="text">I know many of you are still conflicted about this. I will assume full responsibility for whatever happens. When Leon eventually comes asking who to blame, I won&#x27;t get any of you involved.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_698_1%231%241.png" alt=""><div class="bubble"><div class="who">Bodyguard</div><div class="text">...*sigh*.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_cellroomB.png" alt="bg_cellroomB"><div class="cap">bg_cellroomB</div></div>
+<div class="subtitle">Cellinia, I need to send you to stay in Siracusa for a while.</div>
+<div class="subtitle">You have to go.</div>
+<div class="subtitle">The Columbian famiglie changed into opulent attire, took up residence in luxurious mansions, and stepped into the so-called upper class, thinking they had clearly delineated a boundary between them and Siracusa.</div>
+<div class="subtitle">&#x27;Siracusa is barbaric, while we are not.&#x27; They spoke those words, thinking themselves superior to our homeland.</div>
+<div class="subtitle">Your father&#x27;s been captured by this line of thinking too.</div>
+<div class="subtitle">As for you, I need you to see for yourself.</div>
+<div class="subtitle">See the place we came from. See if we&#x27;re any different from them.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%237%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">...Who&#x27;s there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">I&#x27;ve brought you some chocolate. Want some?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%235%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">I see prison security in Siracusa is as shoddy as ever.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">You know, they call this one impregnable, at least compared to other cities.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%232%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">......</div></div></div>
+<div class="narr">Texas lets out a tiny sigh, and takes a bite out of the chocolate in Lappland&#x27;s hand.</div>
+<div class="narr">It&#x27;s her least favorite flavor.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Hah. And here I thought you&#x27;d be chasing me out instead.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%231%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">That takes a lot more effort than just ignoring you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So long as you don&#x27;t get in my way, do whatever you want.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%233%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">Aw, I&#x27;m almost moved to tears here, Texas. Even you&#x27;re gradually figuring out how to get along with me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I never get in other peoples&#x27; way. I&#x27;d much rather clear the fog for them, so they can better see where they&#x27;re going.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%238%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">How much do the Saluzzos know?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">No more than you do.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Bellones were pretty much a shoo-in to win, but to keep the Rossatis down, they even brought you back from Lungmen, as a precautionary measure of sorts.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But right at the critical moment, yesterday&#x27;s assassination took place.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s so blatant that people can&#x27;t help but think it had to be intentional. Is the perpetrator even trying to stay hidden?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%238%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%239%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">So what about you? Planning to sit in this cell reminiscing about every little thing that happened in Lungmen until that judge lets you go?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Weren&#x27;t you in a hurry to get back there?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%231%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">If you consider the wait as just another leg of the journey home, then I can be pretty patient.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_683_1%231%241.png" alt=""><div class="bubble"><div class="who">Lappland</div><div class="text">But what if that judge is in danger?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%237%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/33_g5_srcpark.png" alt="33_g5_srcpark"><div class="cap">33_g5_srcpark</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Where is he? Has he woken up yet?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_697_1%231%241.png" alt=""><div class="bubble"><div class="who">Court Clerk</div><div class="text">Good to see you here, Your Honor! We&#x27;ve already taken full control of the scene.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The suspect is still unconscious, but he was tied up and stuffed into a trash can over by the corner. We&#x27;ve already notified the hospital.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Who found him?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_697_1%231%241.png" alt=""><div class="bubble"><div class="who">Court Clerk</div><div class="text">A group of actors from Compagnia dell&#x27;alba. They already left because they had a rehearsal to get to.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%238%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Compagnia dell&#x27;alba... Bernardo&#x27;s people?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He really is cursed with bad luck.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_697_1%231%241.png" alt=""><div class="bubble"><div class="who">Court Clerk</div><div class="text">Your Honor, the people murdered in the witness elimination case you reported last time were this person&#x27;s accomplices, right?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Yes, but we couldn&#x27;t find anything on them to identify them with.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_697_1%231%241.png" alt=""><div class="bubble"><div class="who">Court Clerk</div><div class="text">Why would their leader show up here in such a sorry state then...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Want me to try waking him up?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Please do.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">*cough* *cough*... *cough* *cough*!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Stop struggling. We already have you restrained.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">...Lavinia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Do you understand the situation you&#x27;re in? Who tied you up and dumped you here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Do you really need to ask, judge?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Answer my question, murderer.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Heh. Maybe I can invoke Article 14 of the penal code to remain silent under informal investigations.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%235%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">...You&#x27;re pretty familiar with the law.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">What, are you gonna use Article 132, the right of special dispensation, on me? Judge?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%237%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Just who are you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Your average everyday murderer.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%235%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">I, I remember now... I&#x27;ve seen you before.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Last night at the restaurant, no? You rescued that hapless clerk from il Ministero dei Lavori Pubblici.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%238%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">It was three years ago, at a legal forum. Judge Bortolotti from the city of Sorrento gave a particularly outstanding speech.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%231%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Signor, I was deeply impressed by your report.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Well, I just kill people for a living now. It&#x27;s an easy life. What you&#x27;re talking about, I can barely even remember anymore.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%236%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">This isn&#x27;t who you are.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Stop acting so self-righteous, Lavinia. You really think you understand me? Just from a fantasy-filled report at a window-dressing legal forum?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%236%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">You can&#x27;t hide true passion. That&#x27;s what you said back then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Right, along with all the other naive, idealistic nonsense I rattled off. All young people are like that, thinking they can change the world all on their own.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I just happened to wake up sooner than you, Lavinia.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%236%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">You said, &#x27;we should all strive to find the common line that can protect anyone.&#x27;</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Yes, here&#x27;s an example: join a famiglia, listen to the boss, and kill anyone who gets in your way.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%2312%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Judge Bortolotti, I can help you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_031.png" alt=""><div class="bubble"><div class="who">Calm Hitman</div><div class="text">Hah! Help me?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, that&#x27;s right. You have the great and powerful Bellones backing you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your honor and dignity will stay untarnished. You won&#x27;t get chained down or beaten up for a moment of naivete. You won&#x27;t come home to the sight of your house going up in smoke along with your family.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You don&#x27;t know a damn thing, Judge Lavinia.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You have no idea how weighty the code you hold in your hand is, and how easily it can destroy your life.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And luckily for you, you&#x27;ll never have a chance to find out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_697_1%231%241.png" alt=""><div class="bubble"><div class="who">Court Clerk</div><div class="text">Watch out, Lavinia!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Lavinia</div><div class="text">What...?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%237%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">We need to get out of here, now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4065_judge_1%234%241.png" alt=""><div class="bubble"><div class="who">Lavinia</div><div class="text">Texas?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_1028_texas2_1%237%241.png" alt=""><div class="bubble"><div class="who">Texas</div><div class="text">They&#x27;ve sent a ton of people. Come with me.</div></div></div></div><div class="nav"><a href="level_act21side_02_end.html">← Prev</a><a href="level_act21side_03_end.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>交叉航线 · 未许之地</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">明日方舟 · 剧情阅读</a> / <a href="../index.html">活动</a> / <a href="index.html">未许之地</a> / <span>UR-6</span></div>
+    <div class="lang"><a href="#" class="on">中文</a><a href="../../../en_US/act/act47side/level_act47side_06_end.html" class="">English</a></div>
+  </div>
+  <h1>交叉航线<span class="section-tag">UR-6 · 行动后</span></h1><div class="meta">未许之地</div><div class="story-info">“螺旋桨天堂”即将与特区接驳。展会开始前，高登发现古斯塔夫给自己安排的演讲稿其实是一封彻头彻尾的道歉信。古斯塔夫和梅兰德似乎想在万众瞩目的展会上引发一场事故。</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_cellroomB.png" alt="bg_cellroomB"><div class="cap">bg_cellroomB</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">园区广播</div><div class="text">请各位公司代表和体验员注意，“螺旋桨天堂”将在两小时后与特区接驳。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">进入城际网络的覆盖范围之后，园区直播将自行开启，请各位将展品调试至最佳状态，“天空生活展会”即将开幕！</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">奥克里</div><div class="text">快看，那是塔山生物科技的鳞兽飞艇！听说他们在最后关头做了不少改造，材质的耐热性有很大提升。</div></div></div>
+<div class="narr">还有太阳能浮空厨房套组！哪怕在星荚之外依旧能有源源不断的动力，看宣传资料的时候我就好奇了......</div>
+<div class="narr">哎哟！</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">费尔南</div><div class="text">还好只是撞到窗户的栏杆，不是整个头卡进去。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">奥克里</div><div class="text">展会马上就要开始了，你一点都不着急？</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">费尔南</div><div class="text">放心，专业人士早就想好整套越狱方案了，等时机一到我就带你逃出去。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">？？？</div><div class="text">就这么想出去？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%233%241.png" alt=""><div class="bubble"><div class="who">奥克里</div><div class="text">不、不想......长官我们哪敢啊！</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">行了，我只是来给你们送东西的。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%234%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1000_1%233%241.png" alt=""><div class="bubble"><div class="who">奥克里</div><div class="text">好厚一沓，这是案卷和审批表？追责对象是——费尔南·伯恩？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%236%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">损害公共财产、窃取文物、私闯禁区、冒充讲解员......一个小小的独立导游，值得你们把她五年的从业经历全部翻遍？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">只差一个签名，你下半辈子就要在监狱里给人讲解手铐和脚镣了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%238%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">你们想怎么样？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">展会很快就要开始了，演播室的人手不够。我们不可能把园区仅有的两名讲解员锁在屋子里，暴殄天物，耽误所有后续进程。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">但你的前科太多，又跟娜斯提有关联。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%238%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">所以你们决定威胁我？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">只要你安分守己，这也是一个把罪名一笔勾销的机会。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%238%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">看来我没有选择。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">感谢古斯塔夫先生吧，是他向梅兰德应急管理监督协会提议，你们才能有幸参加这场划时代的展会。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">广播你们也听到了，在园区地块驶入直播所需的城际网络覆盖范围内之前，你们必须做好向每个哥伦比亚人介绍未来的准备。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_4214_cairn_1%237%241.png" alt=""><div class="bubble"><div class="who">费尔南</div><div class="text">我明白了，我会完成演播室的所有工作，在展会结束前我们不会离开园区。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_901_1%231%241.png" alt=""><div class="bubble"><div class="who">园区警卫</div><div class="text">很好。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">两个人都给我出来，该干活了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/38_g2_colombiaoffice.png" alt="38_g2_colombiaoffice"><div class="cap">38_g2_colombiaoffice</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">“谨代表莱塔尼亚全体人民，对‘螺旋桨天堂’实验园区即将举办的‘天空生活展会’，致以最诚挚的祝贺。”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">猜猜落款是什么？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">？？？</div><div class="text">金律的领奏人，九区的守护者......总之是带着那一串您与我都念不明白的头衔的——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">女皇本人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">老梅兰德生前总说敏锐的政治嗅觉能伴人终生，看来不假。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">雅拉女士。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%231%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">我还是更希望伴我终生的是对葡萄酒的敏锐嗅觉。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%237%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">拉特兰筹备了半个世纪之久的“万国峰会”，堪称泰拉近两百年最大规模的外交活动，莱塔尼亚只去了几个无关紧要的公爵。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而一场小小的“天空生活展会”，却能让女皇亲笔来函祝贺......</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">副总统秘书</div><div class="text">副总统先生，“螺旋桨天堂”送来了礼物，一簇以大总统先生为原型的特制气球，大部分已经装饰在走廊上了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">谢谢你，帕瓦尔。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%231%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">或许您可以回赠女皇一只这样的气球？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">然后让金律法卫和高塔术师花上三天把它细细拆成橡胶渣？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%231%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">它看起来只是个普通的装饰气球。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%232%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">恐怕从女皇亲笔来函的那一刻起，就不是了。它会“变成”最尖端的军事科技产物——可以伪装成气球飘入别国领空的航空炸弹。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%234%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">这样规格的贺函，您已经收到了多少？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%237%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">维多利亚的大公爵、乌萨斯的议长、卡西米尔的大骑士长......恐怕我的手指要不够用了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">上一任副总统为边境移民和关税政策发愁了四年，可我这四年，发愁的都是些什么事？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">永不陷落的城市被攻占，恒常不变的天空被撕破，沉寂已久的海洋也开始发声。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这些事之后，核心圈的所有国家都不约而同地进入了那套“只有航空炸弹，没有气球”的语境当中。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">而我们呢？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哦，我们这只气球甚至飞不起来。</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">副总统秘书</div><div class="text">这批气球在送来之前，里面易燃的氢气已经被换成了普通的空气......出于安全考虑。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">多安全啊，哥伦比亚。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%233%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">听起来，这已经是关乎国家安全的重要话题了，您却偏偏选择与我这样一位退休了的老妇人来聊......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">还选在进步大厦，整个特区最好的会客厅？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">很难想象退休与否会让雅拉·布克·威尔森变得有什么不同。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">不论是对曾在永夜里燃烧的“晨星”，还是对莱茵生命的前任人力资源科主任，这都谈不上是像样的招待。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这个时代，比起某种政见、某些承诺，人们似乎更愿意被一段传奇、一个奇迹所感召。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哪怕我们最为理智的议员，也是如此。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%231%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">如果是为了我和韦恩议员的那几次会面，我相信您之前已经表示过谢意了......用您从谢拉格带回的那些特色纪念品。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%231%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">那只是我个人的谢意，况且，我后来才意识到，那些驻扎在观测站的莱茵科学家们应该早就送过你同样的东西。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">如果你出面，能让正确的人有机会把哥伦比亚气球里的空气换回氢气，那么想要对你表达谢意的，肯定不止我一人。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%231%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">依我的常识，如果给气球换气也分“正确的人”，那只会是制造气球的人。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">为了他们，我已经出面过不少次了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">科研工作者总是真挚得像一群孩子，我也总是最不忍心看他们的希望落空。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">在这点上，您说得对，退休与否，确实没让我有什么不同。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_897_1%232%241.png" alt=""><div class="bubble"><div class="who">杰克逊</div><div class="text">......当然，我们都知道莱茵对你有多么重要。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_1840_1%232%241.png" alt=""><div class="bubble"><div class="who">雅拉</div><div class="text">看，“螺旋桨天堂”......哪怕不用望远镜，也能看到它了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">他们会把哥伦比亚的气球变成什么模样，我们只需要等着看，就好。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/68_g4_floatingplatform.png" alt="68_g4_floatingplatform"><div class="cap">68_g4_floatingplatform</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员</div><div class="text">瞧一瞧看一看啊，大总统形高空自适应气球，“螺旋桨天堂”的热门周边产品！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">气球表面的薄膜会根据外部环境自动调节材料的分子构造，哪怕迎面撞上阻隔层，都不会爆炸。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">这位小姐，请想象一下，要真是这样，阻隔层底下会攒多少个气球？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%239%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我记得特工考核要求大学基础物理过关。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">这个园区存在的意义不就是突破物理学的边界吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%231%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">所以你身上大包小包的样品和小吃都是用于学术研究的？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">（痛快的咀嚼声）</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">伪装罢了，一会儿我还要去四号平台买刚出炉的行星棉花糖——一个小小的真空箱就能模拟泰拉诞生的过程，太浪漫了......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">至少比转移特殊人员的工作有意思。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%235%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">特殊人员......是指那位女妖？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">对啊，就是之前你负责的那位。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%237%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">原来，锡人前辈已经知道了......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">前辈说你有紧急任务需要处理，我们会全权接手这位特殊人员的撤离工作。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%2310%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">拂哀菈女士的状况很不好，需要悉心对待。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">我知道，年迈的女妖必定精通巫术，我们会布置好认知干扰的装置，保证不出差错。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%232%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">认知干扰？可她已经在被支离破碎的记忆折磨——</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">唉，跟我一起行动的同期怎么还没到，所有特工必须在半小时内把园区人员撤出浮空结构层，再晚我就买不到纪念品了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">毕竟之后可就看不到这些稀奇古怪的玩意儿了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%2314%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我建议你先去买你想要的行星棉花糖哦，你的同期不会来了。</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2044_1%231%241.png" alt=""><div class="bubble"><div class="who">体验员？</div><div class="text">什么意思？我——</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/68_g4_floatingplatform.png" alt="68_g4_floatingplatform"><div class="cap">68_g4_floatingplatform</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">体验员？</div><div class="text">我......在索道站？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">对了，我要去四号平台，快赶不上最后一炉棉花糖了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/68_g4_floatingplatform.png" alt="68_g4_floatingplatform"><div class="cap">68_g4_floatingplatform</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2037_1%2314%241.png" alt=""><div class="bubble"><div class="who">梅希亚</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">拂哀菈女士，抱歉，我只能为您争取三十分钟。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">去实现您的心愿吧，您自由了。</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_hotel.png" alt="bg_hotel"><div class="cap">bg_hotel</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2035_1%231%241.png" alt=""><div class="bubble"><div class="who">拂哀菈</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">门，开了。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">是引我......回家的路？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......可娜斯提......在哪儿......</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/68_g8_gordoncollection.png" alt="68_g8_gordoncollection"><div class="cap">68_g8_gordoncollection</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2034_1%231%241.png" alt=""><div class="bubble"><div class="who">高登</div><div class="text">距离园区直播开始还有一个小时，该戴哪条领带......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">啧，古斯塔夫还没决定好开幕致辞的人选？再拖下去演讲稿都来不及准备了！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我为园区做出的贡献数不胜数，一个小时根本不够把它们列完；需要感谢的机构和部门也有上百个，帮忙办了那么多事总该提携......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">应该不会出意外吧......？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">想什么呢！那个老家伙虽然跟我不对付，但总不至于偏心一个只认识了几天的库兰塔。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">唉，直到最后一刻，古斯塔夫还是跟以前一样，用尽手段吊足所有下属的胃口，就为了让他们“听话”。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我们也真的像一群孩子，为那么点应得的奖励而紧张。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......零五四怎么到现在还没回来？不就是让它去办公室看看有没有消息吗？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">谁！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......信封？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我就知道......我就知道！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">犹豫了半天不还是把演讲的机会给我了，理所应当！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我费了多大劲才抓住调职的机会？从行政部最不起眼的专员做起，我要解决多少刁钻的问题，才能在半年内爬上来？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">我才是“螺旋桨天堂”的总长官，只有我有资格为整个园区冠名！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">哦，古斯塔夫连开幕致辞的演讲稿都替我准备好了？老狐狸，做事还真是滴水不漏。</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“各位哥伦比亚公民，我是‘螺旋桨天堂’的总长官，高登·谭农，想必诸位已在直播屏幕前等候许久。”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">“在此，我以十二万分沉重的心情宣布，‘天空生活展会’正式取消。园区发生了重大事故，我作为负责人有不可推卸的责任......”</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">等等，事故？是不是搞错了？这是一封——</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">公开道歉信？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2040_1%231%245.png" alt=""><div class="bubble"><div class="who">太空鳞兽</div><div class="text">警报！警报！</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">巡逻结束，未取到信件。部分道路被一批泰拉人封锁，按行进路线推测，他们正在赶往浮空层的实验区。</div></div></div>
+<div class="narr">同时，侦测到多个高能源石制品正在移动，上面的货品识别标签......</div>
+<div class="narr">属于高登·谭农。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2034_1%236%241.png" alt=""><div class="bubble"><div class="who">高登</div><div class="text">我的识别标签......？</div></div></div>
+<div class="narr">道歉信、零五四带回的消息......这不是恶作剧式的预言，而是板上钉钉的事实。</div>
+<div class="narr">震惊、恐慌、愤怒......无数情绪堵在高登的胸口。</div>
+<div class="narr">古斯塔夫要引发一场事故？在“螺旋桨天堂”，在全哥伦比亚人都翘首以盼的展会上？</div>
+<div class="narr">出于什么原因？他从何时开始计划的？“高登·谭农”在其中又是一枚怎样的棋子？</div>
+<div class="narr">“道歉”“谢罪”——类似的字眼，高登再熟悉不过。因为同僚的排挤，因为他那点另类的爱好，他永远在“违规”。</div>
+<div class="narr">眼前这张薄薄的稿纸，是他过去七年的总和。</div>
+<div class="narr">他在管理局任职期间曾写下几百份检讨书，他记得每一次古斯塔夫勒令自己道歉时的样子，也记得自己是如何从不服到妥协。</div>
+<div class="narr">他理所应得的奖励，他像个孩子一样向古斯塔夫讨要的东西，从来都是罪名。</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">古斯塔夫</div><div class="text">高登长官，收到演讲稿了？</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">怎么样，能做到吗？</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2034_1%237%241.png" alt=""><div class="bubble"><div class="who">高登</div><div class="text">......</div></div></div>
+<div class="narr">精心挑选的领带在高登的脖子上越咬越紧，像是刑具。</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_2034_1%234%241.png" alt=""><div class="bubble"><div class="who">高登</div><div class="text">我要做的，只是听话。</div></div></div></div><div class="nav"><a href="level_act47side_06_beg.html">← 上一段</a><a href="level_act47side_07_beg.html">下一段 →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

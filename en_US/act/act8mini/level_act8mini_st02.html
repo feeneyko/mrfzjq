@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memoria · Vigilo</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Vigilo</a> / <span>level_act8mini_st02</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act8mini/level_act8mini_st02.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Memoria<span class="section-tag"> · Interlude</span></h1><div class="meta">Vigilo</div><div class="story-info">A Catastrophe looms. The Doctor steps onto the bridge, as if guided by prophecy, to lead Rhodes Island through the crisis. Kal&#x27;tsit determines that though the Doctor has lost most episodic memory, a basic understanding of the nature of Originium still remains.</div><div class="story-body"><div class="narr">4:11 P.M. \ Overcast, Visibility: 10 km</div>
+<div class="narr">Rhodes Island Landship, Medical Cabin</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_infirmary.png" alt="bg_infirmary"><div class="cap">bg_infirmary</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Remove the electrodes.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What&#x27;s the prognosis?</li><li>......</li><li>My head feels hot and distended. Not good.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">No new developments.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ll feel better after a quick rest.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, I&#x27;ve scanned your brain seven times over the past month or so, and the results are always the same.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s nothing wrong with your medial temporal lobe, and the neurons in other brain areas are as active as they are in most young people.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Meaning you don&#x27;t need to come to Medical for these unpleasant tests so often.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Then, what&#x27;s wrong with my memory?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">There&#x27;s no doubt that you&#x27;ve lost a lot of your memory. Even someone like you wouldn&#x27;t be able to manipulate the results.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those memories are episodic, chiefly concerning the subjective awareness of your identity, and even more so about all your experiences before you fell asleep in the Chernobog sarcophagus.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In contrast, your procedural memory has recovered extremely quickly.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From my reports or Amiya&#x27;s and Dobermann&#x27;s observations, this conclusion is clear.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your ability to command, as exhibited during the Chernobog incident, is not significantly worse than before.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Why would this happen?</li><li>......</li><li>In other words, I&#x27;m still useful?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">There are many reasons for memory loss. Some are force majeure, others are subjective.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Medical testing can only rule out qualitative pathological changes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Of course, you don&#x27;t make as much noise as you used to.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Considering your language center has not been damaged, I can only guess that the deprivation of episodic memory has caused some changes in your personality.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To Rhodes Island, you are far more than just &#x27;useful.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even if you truly lost all your memories and become an ignorant bystander, Amiya would not have regretted saving you, and there will always be a place for you at Rhodes Island.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In any case, I believe that the skills you possess will play just as key a role as they did in the past.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I want to be able to help you.</li><li>I want to be able to help Amiya.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And I&#x27;ve seen how hard you&#x27;ve been working.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After leaving Lungmen, we&#x27;ve been making our way through the wastelands for some time. The operators need an opportunity to rest, Amiya in particular.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Likewise, you also need a chance to catch your breath, don&#x27;t you?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I just want some time to adjust.</li><li>......</li><li>I don&#x27;t want to stop here.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">With PRTS to help you, it won&#x27;t take long for you to adapt to your work at Rhodes Island.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">However, I don&#x27;t want you to push yourself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rhodes Island is not the only thing that has just emerged from a terrible disaster. You have as well, Dr. Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your physical indicators have more or less returned to normal, but your memory is still damaged, and your mental state is unstable.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As a patient, overwork can only harm you.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You&#x27;re also a patient.</li><li>Amiya is also a patient.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Me? I appreciate your concern.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Though I can&#x27;t say I&#x27;m used to Oripathy, I can assure you that I&#x27;m the last person you should worry about.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya knows you&#x27;re concerned about her, and she&#x27;s been paying more attention to her health lately.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I have no choice but to admit, there are some areas in which your words hold more weight than mine.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, in the span of one short month, you&#x27;ve taken over the staffing of several departments on this ship.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In addition, I&#x27;ve seen you reviewing past battles together with combat operators to further explore the possibilities of tactical optimization.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve even been reading during this entire examination. Are you looking at the briefing submitted by the new operator who just reported in a few days ago?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Furthermore, I&#x27;ve seen your notes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those records about even the most trivial of the operators&#x27; details, those flashes of tactical inspiration...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Those calculations for determining Rhodes Island&#x27;s business efficiency, and even those scrawls that I can&#x27;t make sense of. They are all evidence of your commitment to your duty.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Although most of these tasks can be completed with the assistance of PRTS, I think this is your preferred method.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It&#x27;s just a way of organizing my thoughts.</li><li>PRTS&#x27;s data lacks a bit of that human touch.</li><li>You didn&#x27;t see me badmouthing you, did you?!</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">As the density of your notes increases, your cognition also improves.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">PRTS is just a tool. Avoiding overreliance on tools is a good working habit.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So that was a complaint? I would rather take those words as a compliment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All of your abilities are recovering rapidly, not only due to the retention of your procedural memory, but also due to your extraordinary efforts.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Conscious exercise will help your brain return more quickly to your pre-comatose state, and may even bring back your memory faster than expected.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Do you want me to recover as quickly as possible?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I am your doctor. There&#x27;s not a doctor out there who does not wish for the quick recovery of her patient.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That said, if you end up collapsing due to overwork, you&#x27;ll disrupt Amiya&#x27;s condition as well.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Are you only concerned about Amiya?</li><li>......</li><li>I see. You do care about me.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">These sentiments of yours that occasionally leak through are quite unlike the past you. While this is rather intriguing, if I am the object of your feelings, let&#x27;s just say we&#x27;ve no need of that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve told you many times over that ensuring your physical and mental well-being has always been one of my duties.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, yes, even here, I still care about you. Even without a battle.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It&#x27;s strange that you&#x27;d talk to me like this.</li><li>......</li><li>Alright.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Today&#x27;s exam is over.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As I said, you don&#x27;t need to report back here at the same time next week.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The regular morning and evening check-ups will continue for a while. Lancet-2 will look after you for me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If we ever find that your physical condition does not support your continued work, you must immediately return to Medical.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As for now, you may return to your work, Doctor.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor.png" alt="bg_corridor"><div class="cap">bg_corridor</div></div>
+<div class="narr">4:32 P.M. \ Overcast, Visibility: 7 km</div>
+<div class="narr">Rhodes Island Landship, Hallway outside the bridge</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Earthspirit? What brings you here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">I&#x27;ve updated the geological monitoring report I submitted this morning.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">You needed to make an adjustment so soon? That&#x27;s unlike you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">The numbers changed quickly. Made me miss my afternoon nap.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Forward the report to your team leader. My recommendations are at the bottom.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Sure. Strong winds warning, is it?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s no problem. The Engineering Department strengthened the storm shutters two days in advance, and Logistics notified everyone to stay away from the at-risk deck areas.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">That&#x27;s not all. Keep reading.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Huh... There might be a strong windstorm ahead of our route? Should we slow down or make a detour?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How dangerous is this windstorm you&#x27;re talking about here?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">I don&#x27;t know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I looked at anomalies in the data and made my best call. All I know for sure is there&#x27;s more than one cyclone forming ahead, and it&#x27;s far more intense than anyone would expect.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Sounds pretty vague.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We set our route a month ago, it&#x27;s already been approved. We&#x27;re looking at a big mess if we change it on the fly.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You were in that meeting, right? We chose the route for its super low risk profile. Over the last decade, caravans from Lungmen to Leithanien have been back and forth over this route dozens of times.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Yes. In theory, we&#x27;ve avoided the Catastrophe-prone areas, and the probability of encountering danger is low.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">But you&#x27;re also not sure?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The bosses want us as far away from Ursus and Lungmen as soon as possible.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Whatever... I just needed to make sure you got my warning.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Deciding what to do with it is not in my job description. That&#x27;s up to you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Settle down, Earthspirit, we&#x27;ve got protocols. I&#x27;ll notify the team leader, and we&#x27;ll discuss...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>There&#x27;s no time for that.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Huh, Doctor?! Why are you here?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Shouldn&#x27;t you be in your office?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I was going up onto the bridge.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator A</div><div class="text">Now that&#x27;s some coincidence...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re taking the report, are you going to explain the situation to our team leader in person?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>The windstorm is right in front of us. He&#x27;ll notice soon enough.</li><li>The situation is urgent, I&#x27;ll let Amiya know.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator A</div><div class="text">What? It&#x27;s that serious? Well that&#x27;s not good...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Doctor, you believe me?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I believe in reality.</li><li>I believe my operators.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Earthspirit</div><div class="text">Then I&#x27;ll go to the bridge with you. I&#x27;ll continue to observe the situation in real time and report to you and Amiya.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Good. That&#x27;s the best option.</li><li>Not going to ask for overtime?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Earthspirit</div><div class="text">This is within the scope of my duties.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bridge.png" alt="bg_bridge"><div class="cap">bg_bridge</div></div>
+<div class="narr">4:39 P.M. \ Overcast, Visibility: 4 km</div>
+<div class="narr">Rhodes Island Landship, Bridge</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Warning, the wind speed is increasing rapidly!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">At these numbers, our visibility&#x27;s going to fall under one kilometer within a few minutes!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Did you turn on the assisted driving function for sandstorm mode?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">We&#x27;ve had it on for a while, it was part of the itinerary.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But Amiya, this might not be an ordinary sandstorm...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">My god!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">What is it, Pavel?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Sensors detecting thunderstorm clouds ahead!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Open the PA, tell the whole ship that Rhodes Island will pass through a thunderstorm shortly, and raise the alert level by one!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Central command personnel, slow us down right now!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh... we&#x27;re rocking a lot...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What&#x27;s the situation?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">The pressure on the hull side panels is skyrocketing!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">70% of the outermost storm shutters have been damaged and are basically failing!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Also... multiple abnormal heat sources detected near the hull, energy amplitude approaching critical threshold!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Does this mean...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Yes. It&#x27;s a Catastrophe.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Ah, Dr. Doctor!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How... can this be?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>No time to explain.</li><li>It&#x27;s a supercell.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Alright... I got it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All hands, activate code red Catastrophe alert!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Evacuate all personnel on the first deck, bridge excluded. Gather all non-engineering personnel from the second to sixth levels in the central area for safety!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Central control, maintain minimum speed cruising...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Navigator, how long will this desert thunderstorm last?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">These sudden-onset storms usually pass within an hour or two...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">It&#x27;s hard to say for sure. Doctor? Earthspirit?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Earthspirit, your analysis.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Yes, Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Pavel, the Doctor gave you the report I completed an hour ago.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Multiple small cyclones within two kilometers...? This doesn&#x27;t bode well!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This Catastrophe is no ordinary desert thunderstorm... we could be looking at a maximum strength windstorm!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Can I borrow one of the sensors on the bridge?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Of course. I should&#x27;ve seen it myself...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">It&#x27;s alright, Mr. Pavel. This is an extremely abnormal phenomenon and well beyond the scope of normal Catastrophe prediction. An experienced Catastrophe Messenger would have some trouble spotting all the signs in time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If not for the Doctor&#x27;s assistance, I would&#x27;ve treated the outliers as errors and glossed over them.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>We still have time to move things in the right direction.</li><li>......</li><li>I&#x27;m getting a real bad feeling about this.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Doctor, Amiya, the small cyclones ahead are converging and intensifying.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In other words, the core of the multi-cyclone vortex is about to generate.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once the core forms, I estimate the cyclone will reach two kilometers in diameter and last at least seven to eight hours.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">What happens if Rhodes Island maintains its speed as it approaches the core?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">If we come into contact with the vortex, the ship&#x27;s hull may collide with high-speed active Originium dust, roughly equivalent to the simultaneous detonation of hundreds of maximum-payload Originium bombs across the bulwark.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m sure you can guess how that might go for us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Do we have enough time to change course?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">I can try...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">The core of the windstorm changes directions very quickly, and can reach a maximum speed of nearly 1,000 kilometers per hour.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Then there&#x27;s no point in us trying.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Amiya, even if we try a full speed retreat, if we get unlucky with the direction, Rhodes Island won&#x27;t escape the storm.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Then it seems like the only thing we can do is stay put.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Mr. Pavel, give me a potential damage assessment.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">If we spend seven hours in a thunderstorm of a similar scale, the first to sixth decks will be damaged maybe 15%...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Of those, the first deck will take the hardest hits, and casualties are likely.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">It&#x27;ll be the biggest loss the ship takes in a year.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, I don&#x27;t see any options...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>There is a way.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>We won&#x27;t have to take damage.</li><li>You don&#x27;t want to have to dock for a month of repairs, right?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Yes, if we have to stop in the wastelands, we could face other threats.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>We have another choice.</li><li>Since we can&#x27;t retreat and don&#x27;t want to stop, what else can we do?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor, are you suggesting that we continue straight ahead?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">That&#x27;s out of the question, visibility is too low!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even with assisted driving, I can&#x27;t navigate. I&#x27;m from Sargon, plunging headfirst into a sandstorm like this is suicide!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">I understand your concerns, Mr. Kamal.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But, I trust the Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, are you sure about leading Rhodes Island through the Catastrophe zone?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I need Earthspirit to keep calculating the real-time coordinates of the vortex.</li><li>Yes.</li><li>I need PRTS to help me calculate the energy amplitude of the Originium on the surface.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Good, please cooperate with the Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Calculating a safe route in such a short time sounds like a bad joke.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">If anyone can do it, it&#x27;s our Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">I&#x27;ve heard stories of the battles and all... but operating the landship is nothing like field command!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">I don&#x27;t know about this... Of course, I don&#x27;t doubt the Doctor&#x27;s abilities, but I&#x27;ve never heard of this real-time calculation method...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">It just might work...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Earthspirit, can you make sense of the Doctor&#x27;s formulas?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">No.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But they feel a bit familiar.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right... I heard about a similar formula from some whiz kid a couple days ago, but the Doctor&#x27;s version is more complicated and varied.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I&#x27;ve given the route to the navigator.</li><li>Work with the central control staff if you need to change course rapidly.</li><li>Amiya, we&#x27;re ready.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Let&#x27;s head forward then!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I&#x27;ll help you issue instructions.</li><li>Leave it to me.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">No, Doctor, that would be too inefficient.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rhodes Island only needs one commander right now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Okay, Doctor, go forward until you&#x27;re at my position.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From the moment I saw you appear on the bridge, I trusted that the situation would definitely turn around.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Attention, everyone on the bridge–</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">From now on, I am transferring command of the Rhodes Island landship to Dr. Doctor!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Notify Closure and have her put all cabins into energy-saving mode!</li><li>All power to the engines!</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Got it, Doctor!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Message from Closure: The engine is ready, and she wishes us &#x27;good luck&#x27;...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">There&#x27;s nothing wrong with going a little crazy every now and then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">If I knew I&#x27;d be sailing like this, I would&#x27;ve brought some booze.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Rhodes Island, all ahead full!</li></ul></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/bg_0_rhodes.png" alt="bg_0_rhodes"></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Central Control Staff</div><div class="text">I&#x27;m getting a nosebleed from this speed!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator B</div><div class="text">That&#x27;s because I elbowed your nose... Sorry, but the whole place is shaking so much I can&#x27;t control my limbs.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Is the seismic damper malfunctioning?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator B</div><div class="text">Looks like it&#x27;s not just my imagination - the whole ship&#x27;s falling apart.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Earthspirit, you haven&#x27;t taken your eyes off the screen at all...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Earthspirit</div><div class="text">Cyclone number two is continuing to move thirty degrees southeast, cyclone number three... cyclone number four...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor, hold my hand!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I&#x27;ve got you, Amiya.</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bridge.png" alt="bg_bridge"><div class="cap">bg_bridge</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor, did I step on your foot...?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Don&#x27;t worry about it. You can hold on even tighter.</li><li>......</li><li>Your ears are making my face itchy.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Are we shaking less?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Hard right, now!!</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Haah... I didn&#x27;t even notice that strong wind just now. If it caught us, there&#x27;s no telling if we would&#x27;ve been able to stabilize the hull at this speed!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Did the downburst make contact with the ground?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Only two minutes until the core of the storm forms.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Maintain current trajectory and keep moving forward!</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Wait, I see the cyclone!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s one on the left and another on the right!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;re surrounded. Rhodes Island is going to collide in just two or three more minutes!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Keep going.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">It&#x27;s impossible to avoid them! We don&#x27;t have enough space to maneuver!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Trust me.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">I&#x27;m trying real hard, Doctor!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I don&#x27;t trust myself so much!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Forget it, if Amiya&#x27;s with you, I&#x27;m on board too. Even if I have to tie my hand to the steering handle, I&#x27;ll keep pushing it forward until the very end!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I just regret agreeing to swap shifts with that stinky lad, George...</div></div></div>
+<div class="cg"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/images/avg_7_9.png" alt="avg_7_9"></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Earthspirit</div><div class="text">Seventy-five meters. Fifty meters. Thirty meters...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator B</div><div class="text">(Gulps nervously) I&#x27;ve never seen a Catastrophe-cyclone up close before...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Amiya, are you afraid?</li><li>......</li><li>You&#x27;re hurting my hand.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">I&#x27;m a bit nervous, but I&#x27;m not afraid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I am a little nervous. But rest assured, Doctor, I&#x27;m not afraid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Sorry, Doctor, I&#x27;m a bit nervous. But I&#x27;m not afraid.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ve been through times like this together before.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The closer we might be to despair, the bigger everyone&#x27;s hopes are, the more incredible the outcome will be.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor, this is what you taught me.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Hope comes from the commitment to never give in, even at the bitter end.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Yes, Doctor, you once said the exact same words.</div></div></div>
+<div class="narr">&#x27;Red alert, red alert...&#x27;</div>
+<div class="narr">&#x27;Attention everyone, prepare for impact!&#x27;</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">Just like before, we&#x27;ll get through this crisis together.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_0_rhodes3.png" alt="bg_0_rhodes3"><div class="cap">bg_0_rhodes3</div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Yes, we survived back then.</li><li>Look.</li><li>I think my record&#x27;s looking pretty good.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Amiya</div><div class="text">The wind is subsiding... and the color of the sky is changing too.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Navigator B</div><div class="text">Report, Rhodes Island has left the Catastrophe zone!!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The damage to all deck levels is less than 5%, and nobody was injured!</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_bridge.png" alt="bg_bridge"><div class="cap">bg_bridge</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Thank goodness...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">My nose hurtsssss... Pavel, do you know you hit my nose again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">So what if I did? We&#x27;re alive, I say! Alive!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Fine, but you owe me a drink.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_012.png" alt=""><div class="bubble"><div class="who">Navigator B</div><div class="text">Whatever you want, it&#x27;s on my tab. I almost made a big mistake.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor, it&#x27;s all thanks to you!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_183_skgoat_1.png" alt=""><div class="bubble"><div class="who">Earthspirit</div><div class="text">Absolutely brilliant calculations, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_013_riop.png" alt=""><div class="bubble"><div class="who">Central Control Staff</div><div class="text">Doctor, is your command always so thrilling? Haha, I&#x27;d like to get another taste of that sometime!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_088.png" alt=""><div class="bubble"><div class="who">Navigator A</div><div class="text">Doctor, how in the world did you pull that off? It&#x27;s like you&#x27;ve got prophetic Arts or something, suddenly showing up on the bridge right before we get hit by a Catastrophe!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>To be fair, I was pretty anxious through that whole thing.</li><li>......</li><li>Shouldn&#x27;t we celebrate?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor...</div></div></div>
+<div class="subtitle">Amiya hugs you suddenly, and you realize that the hands on your waist are squeezing you tighter than they were at any point during the storm.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Thank you... Thank you standing by my side.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_room_2.png" alt="bg_room_2"><div class="cap">bg_room_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Not half bad.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I did what I had to do.</li><li>......</li><li>Thanks.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">The relationship between the self-replication speed of Originium and the increase in energy— you applied this knowledge to the calculation of wind-Catastrophe trajectories.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You demonstrated similar abilities in the past, helping your colleagues at the time mitigate losses from Catastrophes. Some called you a Catastrophe expert.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But we both know what you really specialize in.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What do I specialize in?</li><li>......</li><li>Look, I really don&#x27;t know.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">That formula... You still remember it.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I didn&#x27;t remember it before.</li><li>It jumped right into my head.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">You created that formula yourself.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve recovered a lot of information about Originium and Catastrophes over the past month, and you left a lot of calculations in your notes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Perhaps the sudden crisis dredged up the latent memories from deep inside your consciousness, or perhaps you reinvented it using the knowledge you left behind.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The fact that you could recall this formula proves that you still retain a basic understanding of the nature of Originium.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In other words, you&#x27;ve never forgotten your identity as a researcher of Originium.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I want to continue this line of research.</li><li>This seems to be my duty.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">You may see the study of Originium as your duty, but know that our actions should never be restricted by duty alone.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, what drives you to pursue the study of Originium so fervently?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Both you and Amiya have Oripathy.</li><li>The suffering caused by Originium scars our world.</li><li>I want to bring an end to this calamity.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">I once heard an answer to this question.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It was very similar to what you said today, but also completely different.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The person who uttered those words had an instinctive desire to unravel truths unknown, and also worked hard to save lives.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But sometimes, salvation also meant destruction— that is what the same person told me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do you still harbor that same answer deep within your brain?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Does it still count as being there even if I don&#x27;t remember it?</li><li>......</li><li>Whatever makes you happy.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Amiya said your performance on the bridge today was much like that of an actual &#x27;prophet.&#x27;</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I did my homework.</li><li>......</li><li>Why are you staring at me like that?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">The rational part of me wants to believe in science.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When the results of your first brain examination came back, I thought I saw some errors in the process, and so there was a second time, a third time... and even a seventh time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The rational part of me told me that repeating the same results three times was enough to prove that you weren&#x27;t lying.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Without a shadow of a doubt, you really did lose a lot of your memories. You don&#x27;t remember what you did to Theresa, and you forgot why you were standing here in the first place.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All of this has caused a significant... dichotomy between you and the person I once knew.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But just like I allowed you to do the seventh test, in this moment, I once again find myself doubting... Who exactly is standing in front of me?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How much of the past remains, and how much of you blooms anew?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You&#x27;re being sentimental again.</li><li>It felt terrible having to sit through seven exams.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Perhaps, I won&#x27;t deny it. Dealing with you always has a tendency to sway my emotions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But this is also born of extreme rationality.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I hope you understand, there can be errors in our measurements. And in your case, I can no longer tolerate any errors.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I would like to apologize to you regarding this matter.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But taking a better grasp of your memory recuperation will also have real benefits for your body.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>There&#x27;s something I&#x27;ve wanted to ask for a long time.</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Setting aside your role as a doctor, do you want me to regain my memories?</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Situations are rarely black and white... and the same is true of human emotions.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve not concealed my hatred for you in the past, but... no matter how much I hate to admit it, there&#x27;s something else there too.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You want me doing everything I could before.</li><li>Do you miss the person you hate?</li><li>You&#x27;re searching for the truth of the past.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">If it&#x27;s only strength I needed, I believe that you are good enough as you are... Perhaps, you can do even better.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do I... &#x27;miss&#x27;...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That word is far too simple. The languages of this world have developed over thousands of years, and yet I am still unable to choose the most suitable word to order my thoughts during the many moments I think about you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Without a doubt, I seek that answer.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ideally, I want to hear the truth from your mouth. But I will not give up looking for that truth in other ways.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Now, it&#x27;s my turn to ask you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, do you want your memories back?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I do.</li><li>I don&#x27;t.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Your answer doesn&#x27;t matter. I see your hesitation.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once your memories come back, many of your questions will be answered. However, not every answer will satisfy you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You will know where all the emotions pouring into you come from, whether it is the hatred from me and W, the unconditional trust from Amiya, or... even further back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Excess memories, intense emotions, will instantly flood your entire brain—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Trust me, what you will feel at that time will be far greater than exhaustion.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What you should fear even more is, when the past finally catches up to you, you must decide.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What if those memories are too strong and engulf all the hard work you&#x27;ve put in recently, and pull you back into the abyss that you failed to crawl out of over countless years?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Once the current you is defeated, everything you&#x27;ve worked so hard to build will collapse, and your will may no longer be your own.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, let me ask you once more—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor, are you ready?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">If luck is on our side, you won&#x27;t need to answer this question any time soon.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I want to thank you. Over the past month or so, you&#x27;ve shown me some new possibilities.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Especially today. I learned that you still remember the formula.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It turns out, you and I are not the only ones preparing for that day.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I suspected this long ago, that home-use life functions restoration device was not supposed to have the defect of deleting one&#x27;s memory—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In particular, it&#x27;s impossible to selectively delete the part of the brain most likely involved in decision-making, but still retaining the parts most meaningful to you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Dr. Doctor......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What I think is, she trusted you even more than I could fathom in the past.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That being the case, we should continue to work hard.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Just as I&#x27;ve said countless times already, I will help you, as long as we continue to stand together.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodescom.png" alt="bg_rhodescom"><div class="cap">bg_rhodescom</div></div>
+<div class="narr">7:43 P.M. \ Overcast</div>
+<div class="narr">Rhodes Island Landship, Command Center</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Professor, are you here?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Eyjafjalla? Come in.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Professor, they said you wanted to see me...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>This is for you.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Is it about my application to become an operator...? Oh, it&#x27;s been approved?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s great news. Everyone said you and Miss Amiya would turn me down because of my condition.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I convinced her.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">I see, you even went out of your way to get it approved? Thank you...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>The briefing you submitted this morning helped Rhodes Island through a crisis.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">You mean... the Catastrophe this afternoon?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Professor, did you read my analysis?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Your Originium vein expansion observations were incredibly accurate.</li><li>You were able to predict a Catastrophe through an increase in Originium activation on the surface.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">It was just a hunch.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They said the density of Originium near the surface around here would be very low, but I saw the same situation in a volcano in southern Leithanien...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Even a small amount of Originium proliferates rapidly over a brief period when the conditions are right.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Two days ago, after finishing my daily treatment, I was walking around the dorms as usual when I saw the approaching phenomenon from the dust samples on the porthole.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">In sandy terrain, a sudden burst in Originium energy will cause the ground temperature to rise rapidly, leading to a significant increase in the possibility of large-scale wind-Catastrophes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Um... I&#x27;m so sorry... I can go on and on about this stuff...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Please continue.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">You&#x27;ve already seen the report, right?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Busy as you are, I never expected you&#x27;d read our random notes.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I also read your thesis.</li><li>Your research is very interesting.</li><li>I&#x27;ve said before, I&#x27;m a hard worker, but some folks are thinking I can use Arts.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Professor, are you interested in my research?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Do mystical Originium Arts like that exist?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">............</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah... I understand, you were making a joke.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re not too busy, I&#x27;d love to stay over and have a nice chat with you again.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>After I get some work done.</li><li>You&#x27;re welcome to look around.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">There are so many books on your desk...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Annals of the Great Yan Classics,&#x27; &#x27;A Tower Without a Legend,&#x27; &#x27;Columbia Judicial Observation Notes,&#x27; &#x27;Conquest and Assimilation&#x27; ...Professor, are these the books you normally read?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Your interests are so diverse. It&#x27;s nothing like the bookcases of the other professors I know.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I think this one will interest you the most.</li></ul></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">These are your... Catastrophe research notes?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Just something to read over.</li><li>Just some thoughts I jotted down.</li><li>Just a rough draft.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Thank you... Thank you so much! I&#x27;ll study these thoroughly!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If I have any questions, may I come to talk to you?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Any time.</li><li>You&#x27;re always welcome.</li><li>As long as I can finish my other work.</li></ul></div>
+<div class="subtitle">The young scholar clutches the notes you handed her tightly, lifts her head, and looks at you with conviction-filled eyes.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_180_amgoat_1.png" alt=""><div class="bubble"><div class="who">Eyjafjalla</div><div class="text">Professor... my life has been a series of wonderful surprises since coming to Rhodes Island.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The stability of my Oripathy has given me a lot more confidence about my future, and people like you have given me the hope to keep moving forward.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">If you&#x27;re working so hard, then what reason do any of us have to give up?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">—Professor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Thank you so much for leading Rhodes Island forward, and on into the future.</div></div></div></div><div class="nav"><a href="level_act8mini_st01.html">← Prev</a><a href="level_act8mini_st03.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

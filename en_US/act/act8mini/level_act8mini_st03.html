@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valorem · Vigilo</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Vigilo</a> / <span>level_act8mini_st03</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act8mini/level_act8mini_st03.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Valorem<span class="section-tag"> · Interlude</span></h1><div class="meta">Vigilo</div><div class="story-info">After the Chernobog incident, the Doctor broods over the events of the last three, breakneck months. Caught between confusion and thought, the Doctor recalls an interesting story with a fallen friend.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_indoor4.png" alt="bg_indoor4"><div class="cap">bg_indoor4</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">I bet 300. It&#x27;s just a pile of broken scrap metal. Not worth the trouble.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">You sure? I&#x27;ll bet 500, then. That thing&#x27;s important to us.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">How do you figure?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">Intuition.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">Not tricky to find old gadgets in the wastes, though, when Catastrophes blow them out all the time.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">But intuition tells me that&#x27;s not your average trash.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_048.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">What are you two chatting about?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">Oh, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">Good evening, Dr. Doctor.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We went to a drifter settlement yesterday while on field duty, and turned out something fairly interesting.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">It&#x27;s just industrial scrap. I&#x27;ve seen this stuff all over the western wastes. Not worth your time, Doctor.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">But incredibly, it&#x27;s industrial scrap that still works. It seems to be playing some kind of audio.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_048.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">Music?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">You&#x27;d be hard-pressed to convince me that&#x27;s music.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_048.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">The circumstances it was found in?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">There was a strange machine in the middle of the drifters&#x27; settlement. Painted red, very heavy, and made strange noises when anyone came near.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The drifters weren&#x27;t too keen on approaching it, but they still set up camp around it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We ought to have moved it back. Dame Kal&#x27;tsit might know the specifics of its technology.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">Spend cash to drag back a pile of industrial scrap? Have we ever had the luxury?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">Perhaps that banshee might take a liking to it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">If you have some personal beef going on, I suggest you don&#x27;t bring it to work.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_048.png" alt=""><div class="bubble"><div class="who">Doctor</div><div class="text">Sounds interesting.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Time permitting, we can visit that settlement together sometime. Maybe I&#x27;ll be able to tell you what it is.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_014_riope.png" alt=""><div class="bubble"><div class="who">Ace</div><div class="text">Oh, looks like our gamble&#x27;s gonna pay off, then.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_026.png" alt=""><div class="bubble"><div class="who">Scout</div><div class="text">Then it&#x27;s settled. Once Her Majesty&#x27;s affairs are worked out for the time being, together we&#x27;ll go.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And keep to that deal.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_room_2.png" alt="bg_room_2"><div class="cap">bg_room_2</div></div>
+<div class="narr">You awaken to an unpleasant mechanical noise.</div>
+<div class="narr">A normal day.</div>
+<div class="narr">Before your eyes is the ceiling of an ordinary living room in Rhodes Island. The furnishings look just as ordinary, though the hum of the ventilation system seems a bit deeper than in other cabins.</div>
+<div class="narr">You know why. It is one of the most inconspicuous parts of your many peculiarities.</div>
+<div class="narr">You wash up perfunctorily. This part isn&#x27;t so different from ordinary people. You take special medication to maintain your condition. This part is a bit different from ordinary people.</div>
+<div class="narr">Next, you don the full-body protective clothing that hampers your normal activities, but considering your physical condition, it is necessary. It may also be temporary, depending on your recovery.</div>
+<div class="narr">These are all orders from Dr. Kal&#x27;tsit. According to her, you used to know more about these things than she did; but now, only she can look after your health.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_graduate.png" alt="bg_graduate"><div class="cap">bg_graduate</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_003_kalts_1.png" alt=""><div class="bubble"><div class="who">Kal&#x27;tsit</div><div class="text">Of course, Dr. Doctor. You are not like that one.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Is there anyone out there like us?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Is anyone out there like you?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_room_2.png" alt="bg_room_2"><div class="cap">bg_room_2</div></div>
+<div class="narr">The world has not been kind to you, and you know this.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Ah, Doctor, you&#x27;re awake.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Considering how late you stayed up, you can rest a bit longer.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Not going to urge me to work today?</li><li>...I&#x27;m fine.</li><li>Don&#x27;t worry, I&#x27;m feeling pretty energetic.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor... I&#x27;m not trying to supervise your work or anything. You should rest when it&#x27;s time to rest.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hmm... Dr. Kal&#x27;tsit says you need to be getting enough sleep, and that means more than usual.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Really...? Doctor, I&#x27;m worried you may be a little TOO energetic.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Oh, by the way, Dr. Kal&#x27;tsit stepped out for the day. She asked me to tell you that the meeting is postponed to tomorrow.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Huh. So in other words, there&#x27;s nothing on today&#x27;s schedule?</li><li>Do I actually get a day off?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Yes, that&#x27;s why you should take advantage of it and rest up.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Resting up, huh...</li><li>......</li><li>What a luxurious word.</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_canteen.png" alt="bg_canteen"><div class="cap">bg_canteen</div></div>
+<div class="narr">7:33 A.M.</div>
+<div class="narr">Rhodes Island Cafeteria</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_123_fang_1.png" alt=""><div class="bubble"><div class="who">Fang</div><div class="text">Oh, Doctor! Good morning.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_124_kroos_1.png" alt=""><div class="bubble"><div class="who">Kroos</div><div class="text">Ehh? Oh, Doctor~!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Good morning.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_124_kroos_1.png" alt=""><div class="bubble"><div class="who">Kroos</div><div class="text">Wooow, Doctor, you actually got the time to come down to the cafeteria for breakfast today?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Yes... I have the day off.</li><li>......</li><li>Am I normally that busy?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_500_noirc_1.png" alt=""><div class="bubble"><div class="who">Noir Corne</div><div class="text">Heh, would you look at that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I never see you in the cafeteria so early.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What impression have I given you...?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_500_noirc_1.png" alt=""><div class="bubble"><div class="who">Noir Corne</div><div class="text">What impression, huh... Probably a workaholic, chronically overworked all year round?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Seriously though, this is long overdue. You&#x27;ve been like this ever since we left Lungmen. Don&#x27;t want to see you break down.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Be a little kinder to yourself, Doctor. After all, we were—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">—Ouch... Gahhh, g&#x27;damn, the hell are you doing?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_502_nblade_1.png" alt=""><div class="bubble"><div class="who">Yato</div><div class="text">Loose lips sink ships.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_500_noirc_1.png" alt=""><div class="bubble"><div class="who">Noir Corne</div><div class="text">Huh?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It&#x27;s fine... You&#x27;re exactly right.</li><li>My life is not solely my own, and I need to remind myself from time to time.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_500_noirc_1.png" alt=""><div class="bubble"><div class="who">Noir Corne</div><div class="text">Oh, it&#x27;s not that, Doctor. That&#x27;s not what I meant...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Well, whatever. Enjoy your breakfast. I&#x27;ll leave you in peace.</div></div></div>
+<div class="narr">The operators gradually disperse, and you find yourself sitting in the corner of the canteen, a rare occurrence indeed.</div>
+<div class="narr">Rhodes Island, a place that makes you feel both at home yet also estranged, just like those clear but also unrecognizable memories. A pharmaceutical company with the primary goal of resolving the problems surrounding the Infected.</div>
+<div class="narr">It is said that the past you was intimately connected to all of this. It is said that you played a key role in its establishment. It is said that you were the brains of Rhodes Island, and that Rhodes Island was the extension of your will.</div>
+<div class="narr">A portion of what was spoken of has been slowly returning to you, but you are not sure if this is good or bad.</div>
+<div class="narr">You have forgotten too much. Rhodes Island has welcomed you, but you don&#x27;t know if you are worthy of its welcome.</div>
+<div class="narr">Your breakfast lies before your eyes, a bland but healthy meal. You know that this, too, is Kal&#x27;tsit&#x27;s work.</div>
+<div class="narr">Over the past three months, your life has been filled with these feelings—</div>
+<div class="narr">Everything is so strange yet so nostalgic. Conceptually, these feelings are completely contradictory, yet they manifest in front of you together.</div>
+<div class="narr">Three months ago, during the sudden outbreak of rioting and conflict, they... Rhodes Island, rescued you from the epicenter of the turmoil.</div>
+<div class="narr">In the ensuing conflict, too many people lost their lives.</div>
+<div class="narr">So many of the deceased recognized you, yet you do not recognize them; So many of the deceased heard about you, yet you have not heard about them.</div>
+<div class="narr">You gave your utmost, gaining greater respect in the process, and your hard work finally bore the fruit of victory. Yet that victory still came laden with inevitable pain.</div>
+<div class="narr">Up until now... Up until now, you&#x27;ve had but one question, a question that you&#x27;ve repeatedly raised to yourself but have never been able to answer.</div>
+<div class="narr">Is it all worth it?</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_warehouse.png" alt="bg_warehouse"><div class="cap">bg_warehouse</div></div>
+<div class="narr">2:45 P.M.</div>
+<div class="narr">Rhodes Island Integrated Bioprocessing Unit</div>
+<div class="narr">Stretching out before your eyes is the most unique warehouse in all of Rhodes Island.</div>
+<div class="narr">A large number of unclaimed objects are stacked in this warehouse.</div>
+<div class="narr">A petite Perro operator is struggling to wipe down a badly-damaged shield.</div>
+<div class="narr">You recognize the shield, and remember the former owner of that shield.</div>
+<div class="narr">You remember that tall, somewhat slovenly operator who always sported a hearty smile. He was once your friend, or so you&#x27;ve been told. But you don&#x27;t know anything.</div>
+<div class="narr">You&#x27;re weary of this repetitive, contradictory nonsense, but nothing better encapsulates the current state of your existence.</div>
+<div class="narr">All the specifics sift through the cracks of your fingers. You extend your hand to catch them, but the fine sands of memory are dragged down by gravity and fall into the abyss, grain by grain.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">D-Doctor?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">How&#x27;d you end up over her...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>This is... Ace&#x27;s shield.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Yes. It belonged to him. Every week, I come by... to keep it clean.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh, it&#x27;s... so heavy.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Um, can you lend me a hand, Doctor? It&#x27;s really, really heavy... I always have trouble lifting it back onto the shelf.</div></div></div>
+<div class="narr">You step forward to help her, but soon realize that you are too weak to lift the shield even a single centimeter off the ground.</div>
+<div class="narr">Perhaps you were able to do it in the past, but such a task is no longer possible for your convalescing body. Kal&#x27;tsit has reminded you of this, as well as everything else.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Hey! Heyyyy! Doctor, don&#x27;t lift with your back!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Um, never mind. I can do it myself.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Sorry, I&#x27;m no help at all.</li><li>But... this is Ace&#x27;s shield. I should at least...</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Don&#x27;t worry about it. They always said you&#x27;re the smartest person on Rhodes Island.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Let me help.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Alright! Just like this though— and be careful!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Phew! We did it!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>By the way, who are &#x27;they?&#x27;</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Let&#x27;s see, Instructor Dobermann and others used to say that, as well as the elite operators.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Including Ace...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He used to talk about you. He said that you could stand up to half an army by yourself, hahaha.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Were you and Ace close?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Huh? Um... were we close...?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ace was close to everyone. That&#x27;s the kind of person he was.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The very reliable type... During training, he taught us all sorts of things, fighting as a team, cooperation, breaking encirclement.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The elite operators are always busy, but Ace took the time to drop by the training grounds.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I always thought to myself, when could I become as reliable as Ace...?</div></div></div>
+<div class="narr">Beagle stares at the shield with a sad smile. The dust from the warehouse plaster her hair and face, but the Perro operator doesn&#x27;t seem to care.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_warehouse.png" alt="bg_warehouse"><div class="cap">bg_warehouse</div></div>
+<div class="narr">You look around the room, and in the corner of the shelf, something catches your attention.</div>
+<div class="narr">Various photos and ornaments stacked in a small, messy box. Underneath it are some old, faded documents.</div>
+<div class="decision"><div class="lbl">◇</div><ul><li>This is...</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Oh... That&#x27;s....</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor, you shouldn&#x27;t...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What is it?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">These are... things that belonged to... they&#x27;re from the Reunion fighters, back in Lungmen...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The handlers in the Processing Room were discussing what to do with these for a long time, and ended up stuffing everything in here.</div></div></div>
+<div class="narr">You flip through a few photos. These old, yellowed, stained photos almost all depict Ursus people.</div>
+<div class="narr">Most of the people in the photos are clad in ragged clothes, showing a mix of awkwardness, joy, or numbness when facing the camera.</div>
+<div class="narr">On the backside of a silver pendant in the box is an engraving in the Ursus script—</div>
+<div class="narr">—&#x27;To Ivana, my darling daughter. May she always know happiness.&#x27;</div>
+<div class="narr">Among them are former enemies, as well as former friends.</div>
+<div class="narr">You know that some of them fought against Rhodes Island to the bitter end, and you also know that some of them became allies of Rhodes Island in a time of crisis.</div>
+<div class="narr">You don&#x27;t know all their stories, but you do know the suffering of the Infected. You know... and yet you do not know.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Sometimes, those of us who were there, will also ask ourselves this question......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All of us have been through disaster. Ursus, the Infected, as well as us, but...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Was all of this truly worth it?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Ah, sorry. I, I shouldn&#x27;t be venting my frustration... But every time I come here, and see these things...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">A-Anyways, please forget I said anything, Doctor— Doctor?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It&#x27;s fine, don&#x27;t worry about it.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_122_beagle_1.png" alt=""><div class="bubble"><div class="who">Beagle</div><div class="text">Ah, it&#x27;s already three! Gotta head to the training grounds. If I&#x27;m late, Instructor Dobermann&#x27;s gonna chew me out again.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Gotta go, Doctor! Remember to lock the door, okay?</div></div></div>
+<div class="narr">The Perro operator rushes out, leaving you alone with the ownerless objects stacked in the warehouse, save the slowly-settling dust of time.</div>
+<div class="narr">You are about to turn and leave, but a strange red shadow enters your field of vision. Curious, but just not enough to stop your movement.</div>
+<div class="narr">It&#x27;s just a strange red machine.</div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="narr">3:53 P.M. \ Overcast</div>
+<div class="narr">Rhodes Island Landship, Lower Deck</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Real talk, don&#x27;t you guys get hot in here all day? Not even thinking about heading up to catch some fresh air?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">This heat is just right for us Goliaths. Besides, someone&#x27;s gotta keep an eye on this equipment.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Rhodes Island depends on the power system here.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Whatever keeps your motor running.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Getting ready to leave?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Yup, there&#x27;s nothing for me here, plus that old hag Kal&#x27;tsit&#x27;s giving me the evil eye again.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">I&#x27;m actually really surprised that Dame Kal&#x27;tsit even let you back on.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%235.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Hah. Do you have any idea how many swords the hag has hanging over my head right now?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">More than you could ever... Oi, look at the corridor over there. Wanna guess who&#x27;s standing in that corner?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">...Are you going to Victoria?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Guess so. Just had a few words for my dear old pals before I go.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">We all know what you&#x27;re trying to do. We also know we can&#x27;t talk you out of it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But I have to say it one more time. Going to Victoria is not a good idea, W.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I think Sarkaz maybe shouldn&#x27;t...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ah, whatever. I&#x27;m just a boiler worker, and I shouldn&#x27;t even be saying this stuff to you. Forget I brought it up.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">There is something I&#x27;ve wanted to ask... Most of the gang already left, so why are you staying behind?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">With your skills, don&#x27;t you think you could make a good living anywhere?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Her Majesty left us this home. No reason we should leave it.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Having a place we belong to sure as hell beats wandering the wastes.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Besides...</div></div></div>
+<div class="narr">The burly Sarkaz knocks on the nearby machine.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">We have to protect the things Her Majesty left behind. I guess it&#x27;s not much different from what you&#x27;re trying to do... And you know that, W, better than anyone else.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%235.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Protecting a boiler? That big ol&#x27; hunk of steamy machinery is your home, huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Basically, yeah. I&#x27;d say this boiler is my purpose in life. Laugh if you want.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Yeah, you know this isn&#x27;t exactly a laughing situation.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Haha. You&#x27;re still thinking of us, and we appreciate that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Safe travels.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Ugh... saps.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">It&#x27;s time to go.</div></div></div>
+<div class="narr">A voice from the shadows. W looks up, and though the light isn&#x27;t on, someone has been staring at her from the darkness since the beginning.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">I know, I know... Ascalon, you&#x27;re the most impatient one of all, aren&#x27;t you?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you&#x27;re really not gonna let me see that &#x27;Doctor&#x27; or the dragon lady? There&#x27;s a loooot— that I still want to say to them—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Aww, giving me the cold shoulder?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, Ines is still alive? What&#x27;s the situation in Londinium?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Then what&#x27;s the plan? You used to be with Theresis—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%235.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Haha, fine. Spooking me with the silent treatment isn&#x27;t easy. You used to be a lot more talkative. I guess seeing me pissed you off? I&#x27;ll leave then, happy?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It just so happens that I had some stuff to check with the old hag first, otherwise I wouldn&#x27;t have wanted to be here either.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%235.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">We work together for now.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">Work together, huh? I&#x27;m not sure I&#x27;d call it that. It&#x27;s more like making sure I&#x27;ve got all my targets nice and clear before we meet up out there in a warzone later.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m not gonna randomly stroll into Rhodes Island, don&#x27;t worry. Though, those folks sure have an interesting look in their eyes. It&#x27;s a warrior&#x27;s look, you see it in battle—</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">???</div><div class="text">......</div></div></div>
+<div class="narr">The Sarkaz in the shadows does not answer.</div>
+<div class="narr">W knows of this habit, in Ascalon&#x27;s line of work. The rule is, each extra word makes your head hit the ground a little bit faster.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_046%232.png" alt=""><div class="bubble"><div class="who">W</div><div class="text">My dear sweet Ascalon, you&#x27;re not my boss anymore.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">See you in Londinium.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">What&#x27;s wrong, W? You haven&#x27;t left yet? Huh...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That&#x27;s weird. How come there&#x27;s nobody here?</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_corridor_2.png" alt="bg_corridor_2"><div class="cap">bg_corridor_2</div></div>
+<div class="narr">4:10 P.M.</div>
+<div class="narr">Rhodes Island Landship, Lower Deck</div>
+<div class="narr">The roar of machinery fills the lowest level of Rhodes Island, the area that provides power to the entire ship.</div>
+<div class="narr">The Sarkaz Goliaths are the operators responsible for running it. On weekdays, the bottom level is populated pretty exclusively by technical staff.</div>
+<div class="narr">You are wandering around aimlessly.</div>
+<div class="narr">In these three months, you still have not set foot in every corner of Rhodes Island.</div>
+<div class="narr">Rhodes Island is like a small nomadic city. Though much smaller in scale, it is still well-equipped.</div>
+<div class="narr">Its internal structure is far more complicated than it seems at a glance, and the power plant is one such example.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Hm? Why&#x27;s it so lively here today? Nobody ever comes down to a place like... Oh...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Doctor?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Closure told me you were looking for me?</li><li>Someone from HR said you were looking for me?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Yes, that&#x27;s right. Actually... Uh, I&#x27;ve been wanting to talk to you for a while.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you didn&#x27;t need to come down here in person. I&#x27;m drenched in sweat, and it&#x27;s way too hot here for you...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Why don&#x27;t take this somewhere else? How does that sound?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>No problem, but what did you need me for?</li><li>......</li><li>Sure, but what&#x27;s the rush?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">It&#x27;s just... about some nostalgic stuff. Sorry to make you listen to my rambling.</div></div></div>
+<div class="narr">The burly Sarkaz man puts down the wrench in his hand and removes his dirty work gloves.</div>
+<div class="narr">From the bottom of his toolbox, he takes out a small teapot and the accompanying teacups, contrasting sharply with his large, rough hands.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Do you drink tea?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>We can skip the formalities...</li><li>Am I the one bothering you?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Don&#x27;t worry about it. You&#x27;re here, I might as well take a break.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I&#x27;ll be glad to have some then.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">You... Haha, I won&#x27;t try to hide it. In fact, I never thought I&#x27;d get a chance to chat with you like this.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Seems like you&#x27;re in a bad mood. Is something wrong? Something to do with the weather?</div></div></div>
+<div class="narr">He knows more about Rhodes Island than you.</div>
+<div class="narr">You suddenly feel that it is this Sarkaz and his fellow workers who are keeping Rhodes Island going.</div>
+<div class="narr">They grasp the lifeblood of the landship in their hands, yet they deliberately avoid the public eye.</div>
+<div class="narr">You are grateful for everything they do, but don&#x27;t know why.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">It&#x27;s hard to see the weather when we&#x27;re working down here. Even through the lower windows, all you can see is the dust kicked up by the treads.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I don&#x27;t know what complex problems you&#x27;re mulling over, Doctor. I&#x27;m just a simple boiler worker.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;m not exactly the big brain type over here.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>You have something you want to tell me.</li><li>Speak your mind. Maybe I should spend more time talking with everyone.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Yes, Doctor. Miss Amiya and Dame Kal&#x27;tsit are always ready to help you, so you should probably start with them.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There are too many things... and bottling them all up isn&#x27;t a good option.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Some things are hard to talk about... but you seem to know a lot.</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>How long have you worked for Rhodes Island?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">I&#x27;m an old Rhodes Island hand, Doctor. We used to know each other. I took orders from you a few times before I started my technical work, even if you don&#x27;t remember.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The only advice I can give you is this: if they can&#x27;t be the ones to answer you, who else can you ask to give you that answer?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">(Whispers) You are the ones She put her trust in... She trusted in you, and She trusted in them.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Looking for an answer... huh?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">In fact, I just saw W.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Huh... is she here?</li><li>......</li><li>That&#x27;s strange. Kal&#x27;tsit lets her around Rhodes Island?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_053.png" alt=""><div class="bubble"><div class="who">Sarkaz Boiler Worker</div><div class="text">Doctor, you must know by now, but W and Rhodes Island have a connection... and you&#x27;re mixed up in that too.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">When a Sarkaz like Flamebringer showed up at Rhodes Island, I knew this day would come.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">It&#x27;s something. From Kazdel to Ursus, then to Lungmen, and onto us here today, and even on into the future...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">We&#x27;ve kept moving forward, but we keep bumping into the same faces we started this journey with. Only now, they bring some of those far-reaching effects they left behind...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_rhodescom.png" alt="bg_rhodescom"><div class="cap">bg_rhodescom</div></div>
+<div class="narr">6:22 P.M.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor, you&#x27;re back?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I haven&#x27;t seen you all day... Where have you been?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Just wandering around the island.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">It&#x27;s fine. Getting enough rest is also a part of your job.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I feel kind of listless, going a whole day without work.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll tell you a little secret, but don&#x27;t let Dr. Kal&#x27;tsit know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The truth is, Dr. Kal&#x27;tsit didn&#x27;t have anything that important to do today. She didn&#x27;t need to go out.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">She&#x27;s seen how tired you&#x27;ve been lately and wanted you to take a break.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Oh.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">But, you look pretty happy? Did something good happen?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Nothing in particular. It&#x27;s just been a long time since I&#x27;ve talked to people like this.</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>By the way, Amiya...</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>I think I saw something strange in the operators&#x27; storage room.</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Storage room... Doctor, did you... What do you mean by something strange?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>It was red...</li><li>Like some kind of industrial device...</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Oh, you&#x27;re probably talking about that &#x27;red industrial scrap.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You might not remember, but... it was a bet between Scout and Ace. One day, they brought that device back to Rhodes Island.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Closure spent some time on it and decided it was useless, so she let it sit there in the warehouse.</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Can I go take another look at it?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Oh, of course.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_warehouse.png" alt="bg_warehouse"><div class="cap">bg_warehouse</div></div>
+<div class="narr">Among the various discarded, unused mechanical equipment in the warehouse, that strange device towers above the rest.</div>
+<div class="narr">The box-shaped device stands more than two meters tall. The red paint on the surface is clearly visible, but has been severely worn down under the perennial erosion of wind and sand.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">It&#x27;s this thing. You&#x27;re weird, Doctor. Why the sudden interest?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">When they first brought it back, the box would make noises as soon as someone got close to it, but I think Closure broke it.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">What do you mean I broke it?! It was already like this when I moved it back here. All I did was &#x27;study&#x27; it a little.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ve never been able to figure out what this thing is really for. Originally wanted to see if I could open it up, but ended up breaking three power saws without a crack.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So, yeah... Doctor, do you have any idea what this is?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Maybe it&#x27;s some kind of safe?</li><li>...Not sure.</li><li>Do you reckon it can fly?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">A safe this big and conspicuously colored? Maybe if you really wanted to attract thieves, I guess?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Welp, even the Doctor doesn&#x27;t know what it is.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">...Doctor, are you okay? All that work finally rotting your brain?</div></div></div>
+<div class="narr">You observe the enigmatic device carefully. There are no buttons and no gaps under its worn-out metal casing.</div>
+<div class="narr">You haven&#x27;t seen anything like it before. At least in your existing memory, you have no impression of it.</div>
+<div class="narr">You lightly knock on the casing of the device, out of curiosity.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">Huh?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">D-Doctor! Watch out!</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>D-Did anything happen?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">Don&#x27;t worry about that right now, just stand back!</div></div></div>
+<div class="narr">After a violent rattling noise, the device lets out a small &#x27;ding.&#x27;</div>
+<div class="narr">The complete, box-like structure suddenly opens, the once seamlessly-shut outer shell sliding up and down like a cabin door.</div>
+<div class="narr">Inside the box-like structure, you see an artifact with a metallic luster.</div>
+<div class="narr">Unlike the wear and tear that the outside of the box had been subjected to, everything inside is as smooth as ever, with no trace of the passage of time.</div>
+<div class="narr">However, the manmade object within fills everyone with a sense of familiarity.</div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">This is...</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">A bottle... of beer... right?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>No matter how you look at it, it&#x27;s just a bottle of beer?</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_007_closre_1.png" alt=""><div class="bubble"><div class="who">Closure</div><div class="text">What the heck! I thought there&#x27;d be something super high-tech in it! Something a bit more constructive!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">After all that time, it turns out it&#x27;s just a vending machine? What&#x27;s the point of making something this tough anyway? You need it to withstand an originium bomb?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh... But, isn&#x27;t that kind of a weird color for beer? I&#x27;ll have to look into it some more...</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>......</li></ul></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_002_amiya_1.png" alt=""><div class="bubble"><div class="who">Amiya</div><div class="text">Doctor, do you know what this is?</div></div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Nothing. Just a heap of scrap metal.</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>What really matters is we got ourselves an extra bottle of beer.</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>But Closure, this beer...</li></ul></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Just put it in the room, next to Ace&#x27;s shield.</li></ul></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="decision"><div class="lbl">◇</div><ul><li>Wasn&#x27;t that the bet?</li></ul></div></div><div class="nav"><a href="level_act8mini_st02.html">← Prev</a><a href="level_act8mini_st04.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>

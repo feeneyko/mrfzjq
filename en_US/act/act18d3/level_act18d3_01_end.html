@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intruder · Under Tides</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; background:#11141a; color:#e7e9ee;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.7; }
+a { color:#7fb1ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+.topbar { display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid #2a2f3a; padding-bottom:14px; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.topbar .crumbs { color:#9aa3b3; font-size:14px; }
+.topbar .crumbs a { color:#cdd3df; }
+.topbar .lang a { margin-left:8px; padding:4px 10px; border:1px solid #2a2f3a; border-radius:6px; color:#cdd3df;}
+.topbar .lang a.on { background:#2a3242; color:#fff; }
+h1 { font-size:28px; margin:0 0 6px; }
+h2 { font-size:20px; margin:36px 0 12px; color:#cfd5e1; border-left:3px solid #5476d8; padding-left:10px;}
+.meta { color:#8a93a3; font-size:14px; margin-bottom:18px;}
+
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 640px) { .section-grid { grid-template-columns: 1fr; } }
+.section-card { display:block; padding:22px 22px; border:1px solid #2a2f3a;
+  border-radius:10px; background:#171b22; transition:background .15s; }
+.section-card:hover { background:#1f2632; text-decoration:none; }
+.section-card .lbl { color:#7fb1ff; font-size:13px; font-family: ui-monospace,Consolas,monospace;}
+.section-card .nm { color:#fff; font-size:22px; font-weight:600; margin-top:4px;}
+.section-card .sub { color:#9aa3b3; font-size:13px; margin-top:6px;}
+
+.event-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+.event-card { display:block; padding:14px 16px; margin:0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.event-card:hover { background:#1f2632; text-decoration:none; }
+.event-card .e-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:12px;}
+.event-card .e-nm { color:#fff; font-size:16px; font-weight:600; margin-top:2px;}
+.event-card .e-sub { color:#9aa3b3; font-size:12px; margin-top:2px;}
+.event-card .e-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:11px;
+  background:#2a3242; color:#cdd3df; margin-right:6px;}
+
+.stage-card { display:block; padding:14px 16px; margin:8px 0; border:1px solid #2a2f3a;
+  border-radius:8px; background:#171b22; transition:background .15s; }
+.stage-card:hover { background:#1f2632; text-decoration:none; }
+.stage-card .stage-id { color:#7fb1ff; font-family: ui-monospace,Consolas,monospace; font-size:13px;}
+.stage-card .stage-name { color:#fff; font-size:16px; margin-top:2px;}
+
+.story-info { background:#171b22; border-left:3px solid #5476d8; padding:12px 16px; border-radius:6px;
+  margin:14px 0 28px; color:#cfd5e1; white-space:pre-wrap;}
+.warn { background:#2a2233; border-left:3px solid #b07db8; padding:10px 14px; border-radius:6px;
+  margin:10px 0 22px; color:#e0d4ea; font-size:14px;}
+.bg-shot { margin:24px 0 8px; }
+.bg-shot img { width:100%; max-height:340px; object-fit:cover; border-radius:8px;
+  border:1px solid #232833; background:#0a0c10; }
+.bg-shot .cap { font-size:12px; color:#727a89; margin-top:4px; font-family: ui-monospace,monospace;}
+.cg { margin: 28px auto; text-align:center; }
+.cg img { max-width:100%; max-height:520px; border-radius:8px; border:1px solid #232833; background:#0a0c10;}
+
+.line { display:flex; gap:16px; margin: 16px 0; align-items:flex-start;}
+.line.cont { margin-top: 4px; }
+.line .ava { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  object-fit:cover; object-position:top; background:#0a0c10; border:1px solid #232833;
+  cursor:zoom-in; transition: transform .15s ease;}
+.line .ava:hover { transform: scale(1.05); }
+.line .ava-placeholder { width:96px; height:96px; flex-shrink:0; border-radius:50%;
+  background:#222732; border:1px solid #2a2f3a; display:flex; align-items:center;
+  justify-content:center; color:#5e6779; font-size:28px;}
+.line .ava-spacer { width:96px; height:1px; flex-shrink:0; }
+.line .bubble { background:#1c2230; padding:10px 14px; border-radius:10px; flex:1;
+  border:1px solid #252c3a;}
+.line .who { font-weight:600; color:#9bbcff; margin-bottom:4px; font-size:14px;}
+.line .text { white-space:pre-wrap; }
+
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.88); display:none;
+  align-items:center; justify-content:center; z-index:1000; cursor:zoom-out; padding:24px;}
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain;
+  border-radius:8px; background:#0a0c10;}
+
+.narr { font-style:italic; color:#bdc6d6; padding:8px 0 8px 16px; border-left:2px solid #3a4054;
+  margin:14px 0; white-space:pre-wrap;}
+.header-bar { text-align:center; font-size:22px; font-weight:700; letter-spacing:.05em;
+  color:#fff; margin: 30px 0 18px; padding:8px 0; border-top:1px solid #2a2f3a; border-bottom:1px solid #2a2f3a;}
+.subtitle { text-align:center; color:#d8b35f; font-size:18px; margin:18px 0; font-weight:600;}
+.sticker { color:#e7d8a8; font-size:16px; margin:22px 0; padding:14px 18px;
+  background:#1a1812; border-left:3px solid #b58b3a; border-radius:6px; line-height:1.8;}
+.sticker i, .sticker em { color:#f4dfa6;}
+.decision { background:#1c2230; border:1px dashed #4a5570; padding:14px 18px; border-radius:8px;
+  margin:18px 0;}
+.decision .lbl { font-size:12px; color:#9aa3b3; margin-bottom:6px;}
+.decision ul { margin:0; padding-left:20px; }
+.decision li { margin:4px 0;}
+.nav { display:flex; justify-content:space-between; margin-top:40px; padding-top:18px;
+  border-top:1px solid #2a2f3a;}
+.nav a { padding:8px 14px; border:1px solid #2a2f3a; border-radius:6px;}
+.nav span { color:#5e6779;}
+.section-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px;
+  background:#2a3242; color:#cdd3df; margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="crumbs"><a href="../../index.html">Arknights · Story Reader</a> / <a href="../index.html">Events</a> / <a href="index.html">Under Tides</a> / <span>SV-1</span></div>
+    <div class="lang"><a href="../../../zh_CN/act/act18d3/level_act18d3_01_end.html" class="">中文</a><a href="#" class="on">English</a></div>
+  </div>
+  <h1>Intruder<span class="section-tag">SV-1 · After Operation</span></h1><div class="meta">Under Tides</div><div class="story-info">Skadi receives guidance from her contact, disguises herself as a wandering singer, and prepares to infiltrate Sal Viento. But her eyes are not alone on Sal Viento, as Iberia&#x27;s Inquisitors are watching too.</div><div class="story-body"><div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_desert_1.png" alt="bg_desert_1"><div class="cap">bg_desert_1</div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Skadi.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;ve fallen, Skadi. The old you could&#x27;ve made chunks out of them with just a touch.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Mister José, I am not that bloody.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Hard to say. You&#x27;ve changed, then. You even gave them a chance to escape.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Possibly.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">What wind blew you back here again? Why were they waiting to spring you—something to do with me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I don&#x27;t know.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">I hear you&#x27;re not in our line of work anymore. Joined some... pharma company? What are you shirking good, decent work for to tromp around these rundown outskirts again?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You&#x27;re well-informed, Mister José. This time I need you to help me out.</div></div></div>
+<div class="subtitle">The old man licks his rolling paper, and pulls out some second-rate tobacco from his pouch.</div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Old José</div><div class="text">Several years have come and gone. Here I thought you&#x27;d folded, seeing as you went through plenty of Kazimierz bounty hunters. This far out from Kazimierz, and I could still hear word of what you&#x27;d been up to.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Always thought you only knew how to make big ruckuses.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">But you&#x27;ve been quiet as this now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You came roadrollering in all the way from Minos country like a tow truck, just to find me? Go on, then, tell me what you want.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I need to get to Sal Viento.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Sal... Viento?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Don&#x27;t tell me. Even you&#x27;ve never heard of the place?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">No, I&#x27;ve heard. Out of all us information peddlers, only I must&#x27;ve heard. The question&#x27;s you—what makes you want to go there?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">There&#x27;s nothing there anymore. Few decades ago... close to nothing left after.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So close to such a vast patch of ocean, and you think anything&#x27;d be left? No better than bare frames left, letting the wind and all through.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Many bounty hunters wanting to get up to those abandoned cities, just like beastlings pouncing on a rotting burdenbeast corpse.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">All of them thinking there&#x27;s still meat they can pick off. They don&#x27;t know whatever they swallow there might as well be a batch of poison.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Iberia. All of them think this unspeaking Iberia&#x27;s just like Kazimierz and Gaul, treasure all over the map.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hah, there&#x27;s nothing there at all. When a place has nothing at all, it&#x27;s likelier than all it could have anything.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">So do you tell those bounty hunters anything?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">If they ask me to sell info, I&#x27;ll sell it. As far as ones like me go, whether those folks come back or don&#x27;t, it&#x27;s all business.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Fact is, they don&#x27;t come back at all. Not one ever comes back.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Two weeks ago, a team came to me. Lackeys of the &#x27;Daggerhorn.&#x27;</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">He had equipment leagues better than all these runts lying around. Very experienced too. Brought more than ten with him. Still haven&#x27;t seen them again yet.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Very many wonder about where they went. They could&#x27;ve been caught by the Penal Battalion, or it could&#x27;ve been the Iberian Defensa&#x27;s doing, but I&#x27;ve heard tell of a different possibility.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Over there be... monsters.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Oh.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Or it was the Inquisition that got &#x27;em. I don&#x27;t know what&#x27;s a more wretched end.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Monsters or people, my sword draws little distinction. There are only those who block my way, and those who don&#x27;t.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Alright, alright. You can&#x27;t be going to Sal Viento for a holiday, that much&#x27;s for sure.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I need to find someone.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">What poor bastard has your wrath this time?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">This time&#x27;s different. It&#x27;s my... It&#x27;s someone I knew from before.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Before you even knew me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Much before.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Here I thought they&#x27;d all left. Or died. At least, that&#x27;s what you told me back in those days.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">That&#x27;s why I&#x27;m searching. There&#x27;s a few things I need to figure out.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">You&#x27;ve been searching for quite some years, yeah?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That whole ruckus from last time couldn&#x27;t have been for any knights&#x27; treasure&#x27;s sakes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You told me before. People ought to move forward.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Did you bring a treasure map with you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">What?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">There&#x27;re many, some of them even old hands. They travel the barrens, traveling and traveling, and forget where they wanted to go, or what they were even looking for.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They just keep on traveling. They don&#x27;t know starvation, they don&#x27;t know exhaustion.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Until the barrenlands do them in.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">They were too weak.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Weak? No matter how much stronger, a hunter could still never conquer the boundless barrenlands. So many hunters die for no sure reason out on the road, and don&#x27;t even know what they&#x27;re searching for come their deaths—that&#x27;s not an ending that suits you.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Why are you telling me all this?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">As if I&#x27;ve never told you before? They wouldn&#x27;t rival even the tiniest Ægir machine.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">You&#x27;re strong. So did you save my son&#x27;s life?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I&#x27;m sorry.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Don&#x27;t say sorry! I&#x27;m not trying to flog you here. I&#x27;m trying to get you thinking. It&#x27;s you who hasn&#x27;t forgiven yourself, not me.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I only regret that I didn&#x27;t break his legs, stop him following an old papá in his old tracks. Nothing to do with you.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You say you came from the sea. I&#x27;ve never heard of any other sea than the one in Iberia. You&#x27;re someone I don&#x27;t know.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">So what about you? Is there no one you don&#x27;t know?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Because that&#x27;s the kind that killed my son. Someone you don&#x27;t even know.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">That&#x27;s the sort of thing I&#x27;m afraid of.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Never mind it. At least the people you talk about wouldn&#x27;t spend day and night plotting to kill me. What are you thinking of doing in Sal Viento?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I have a friend who&#x27;s been taken there.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Strange, that.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Take this. Map.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Alright. What do I need to give you?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Give me?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You sell intel. One thing for another. You&#x27;ve given me information, I&#x27;ll give you what you need.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">(Flicks cigarette ash)</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Let me think... That year you brought my young Juan&#x27;s body back, you handed him to me. Head and arms all still attached to him. So, now we&#x27;re even.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Mister José, my greatest thanks.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I&#x27;ll be going, then. Take care.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Stop! Are you in such a hurry to get yourself killed?!</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Hm?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Hey. Tell me—has anyone ever said anything like that to you before?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">No.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Then you need somebody to tell you well.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You&#x27;re strolling straight into an Iberian city dressed in all your bounty hunter clothes?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Yes.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">You really haven&#x27;t changed, Skadi. Here I am parching my mouth, and I might as well be the wind for all the good telling you anything does.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">The Iberian Defensa&#x27;d have you ten times over for looking like that!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And how much time are you ready to waste on them? How much longer can the person you&#x27;re looking for wait? Iberians aren&#x27;t like these lousy bounty hunters. They&#x27;re not that easy to break clean of.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">You want to suggest something to me.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">I can lend you a few things. Take this harp.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Harp?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Can you play? I remember you played before.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">I can.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Good, all the better. Would be fine if you couldn&#x27;t, long as you pulled off the act.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Change into these too.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">What clothes are these? They&#x27;re very strange.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Whether you&#x27;re used to them isn&#x27;t the point. Iberians are.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">......</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">From now on, you&#x27;re the wandering singer Skadi.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Go where you want now, singer. Follow the map, go by the waterways, and you&#x27;ll get there soon enough. This you can do, Ægir.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">Farewell, Mister José.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_181.png" alt=""><div class="bubble"><div class="who">Old José</div><div class="text">Skadi!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Don&#x27;t you die out there. You have to die with someone, someone you know.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/char_263_skadi.png" alt=""><div class="bubble"><div class="who">Skadi</div><div class="text">......</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Right.</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_ibcoastn.png" alt="bg_ibcoastn"><div class="cap">bg_ibcoastn</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">Help—Help me!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What are these things... they—they&#x27;re tangling me, they won&#x27;t let go! Chopping them apart doesn&#x27;t even work. Is the entire coast all monsters like this?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Hey—get away, get the hell away!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I wouldn&#x27;t have come if I goddamn knew! Ja pierdolę, &#x27;Yellow Smog,&#x27; bastard, if only you weren&#x27;t so useless to get hoodwinked back then, would I still be stuck picking up garbage out here?!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Skurwysyny, if I&#x27;m not dead by the end of this I&#x27;ll wish I was! Goddamned Iberia! Country of the actual goddamned!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What—What the hell was that? Turning them all to paste in one shot?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Huff... huff. Whatever it was, at least it lets me live another day—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Ugh—</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">You. You&#x27;re not leaving.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">And—And who are you? Where the hell does Iberia get all these freaks from?</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Second time. Iberia forbids the spreading of rumors. The next you move to speak, be much more careful.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">What? Look at that getup, that weapon—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Holy shit. You, you&#x27;re... that&#x27;s it, I&#x27;m done for, I&#x27;m...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Commander. The coast is clean now.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This place is void of all living—er, excepting this outsider who can&#x27;t stand still and stinks to high Heaven.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What did you see?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">I... I...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Please, I haven&#x27;t done anything! I swear it, I, I was only lost, I was too careless to end up here, I didn&#x27;t mean to...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Look, I have gold coins, and plenty of other stuff too, damnit, I&#x27;ve lost so much... Take this money, this equipment, all of it, I just beg you to let me go!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Gather your scraps. When the Commander asks you a question, it&#x27;s not to hear you blather, outsider.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">Question? What question? I swear, honor, I wouldn&#x27;t dare ask questions... I&#x27;ve got no questions, I guarantee...</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">I beg you, honor, I don&#x27;t want... Don&#x27;t take me... I&#x27;d be better off if I just died!</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Casting yourself into the sea in front of me? Do you still think it&#x27;s not too late?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">That sword... my hand... too close... wargh...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Now, have you regained some sense? You outsiders are as good as insects in the weeds, hearts avaricious and blackened, yet always so quick to fall to pieces.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">Ugh, ah... I&#x27;m not running anywhere, honor, I&#x27;ll tell you anything.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Good. I do not like repeating my questions. This will therefore be the final time.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">What did you see on the coast?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">I, I... *cough* *cough*... I saw monsters.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">How many of you came?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">Originally twelve... uh, counting the guide, we&#x27;re thirteen total.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Commander. He&#x27;s not lying. I&#x27;ve found the corpses myself along the coast.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">*Sob*...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Hey. What use will crying be for you now? If it weren&#x27;t for you all intruding, they wouldn&#x27;t have sought you out. When you violate the law, you should anticipate the costs.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That said, twelve have died... They&#x27;ve been proliferating in number, all along the way here.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">They can&#x27;t have gone too far from their nest.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">This serves to show your judgment was sound. The closer one approaches, the more numerous they are. There is surely something amiss going on in that town!</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">You may depart.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">And this fellow? He has seen much he shouldn&#x27;t have.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">Spare... Spare me! I&#x27;ve told you everything I can! Sir, Commander, your honor... ohh, mama...</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">What... did you see?</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_007.png" alt=""><div class="bubble"><div class="who">Bounty Hunter</div><div class="text">I... I...</div></div></div>
+<div class="bg-shot"><img loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/backgrounds/bg_black.png" alt="bg_black"><div class="cap">bg_black</div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">Bishop</div><div class="text">We made an agreement.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">I do not know what sense lies in such conduct.</div></div></div>
+<div class="line"><img class="ava" loading="lazy" src="https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg/characters/avg_npc_184.png" alt=""><div class="bubble"><div class="who">Bishop</div><div class="text">You agreed to it.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">???</div><div class="text">Agreed? Pledged—(Bones and flesh chafe against each other.)—promised? To prior be granted an act, and afterwards to accomplish one different?</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">No.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">To such requests of yours, I will respond. No agreement, nor promise.</div></div></div>
+<div class="line"><div class="ava-placeholder">·</div><div class="bubble"><div class="who">Bishop</div><div class="text">A response... but of course.</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">Honorable herald—</div></div></div>
+<div class="line cont"><div class="ava-spacer"></div><div class="bubble"><div class="text">That you will to respond is already my honor.</div></div></div></div><div class="nav"><a href="level_act18d3_01_beg.html">← Prev</a><a href="level_act18d3_02_beg.html">Next →</a></div>
+</div>
+
+<div class="lightbox" id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb');
+  var img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.line .ava');
+    if (a) { img.src = a.src; lb.classList.add('open'); e.preventDefault(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Asset fallback chain. The default URL points at Aceship; we walk through
+  // a few candidates per image before giving up and hiding it cleanly:
+  //   step 0 -> default Aceship URL                            (initial)
+  //   step 1 -> Aceship URL with the '%23K' expression dropped
+  //   step 2 -> Aceship URL with both '%23K' and '%24L' dropped
+  //              (or 'char_xxx_NAME' + '_1' for bare char ids)
+  //   step 3 -> fexli mirror, original encoded id              (newer events)
+  //   step 4 -> fexli mirror, with '%23K' dropped
+  // Each step is only emitted when it would actually change the URL.
+  var ACE_BASE   = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/avg';
+  var FEXLI_BASE = 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/avgs';
+  function toFexli(src) {
+    if (src.indexOf(ACE_BASE + '/backgrounds/') === 0) {
+      return src.replace(ACE_BASE + '/backgrounds/', FEXLI_BASE + '/bg/');
+    }
+    if (src.indexOf(ACE_BASE + '/images/') === 0) {
+      return src.replace(ACE_BASE + '/images/', FEXLI_BASE + '/');
+    }
+    if (src.indexOf(ACE_BASE + '/characters/') === 0) {
+      return src.replace(ACE_BASE + '/characters/', FEXLI_BASE + '/');
+    }
+    return null;
+  }
+  function stripExpression(src) {
+    if (/%23\d+/.test(src)) return src.replace(/%23\d+/, '');
+    return null;
+  }
+  function stripLayer(src) {
+    if (/%24\d+/.test(src)) return src.replace(/%24\d+/, '');
+    return null;
+  }
+  function bareCharVariant(src, t) {
+    if (!(t && t.classList && t.classList.contains('ava'))) return null;
+    if (/char_\d+_[a-z0-9]+\.png$/i.test(src)) {
+      return src.replace(/\.png$/, '_1.png');
+    }
+    return null;
+  }
+  function nextCandidate(src, t, origSrc) {
+    var c;
+    if ((c = stripExpression(src))) return c;
+    if ((c = stripLayer(src)))      return c;
+    if ((c = bareCharVariant(src, t))) return c;
+    if (src.indexOf(ACE_BASE) === 0) return toFexli(origSrc); // pivot mirrors
+    return null;
+  }
+  document.addEventListener('error', function(e){
+    var t = e.target;
+    if (!(t && t.tagName === 'IMG')) return;
+    var attempt = parseInt(t.dataset.fallbackStep || '0', 10);
+    if (attempt >= 6) { t.style.visibility = 'hidden'; return; }
+    if (!t.dataset.origSrc) t.dataset.origSrc = t.src;
+    var next = nextCandidate(t.src, t, t.dataset.origSrc);
+    if (next && next !== t.src) {
+      t.dataset.fallbackStep = String(attempt + 1);
+      t.src = next;
+      return;
+    }
+    t.style.visibility = 'hidden';
+  }, true);
+})();
+</script>
+
+</body></html>
